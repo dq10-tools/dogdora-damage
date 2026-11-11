@@ -131,7 +131,7 @@ footer a{color:var(--accent)}
   <p><b>計算式（攻略サイトの検証による）</b><br>
   割合軽減 = 1 −（1 − 構え）×（1 − 魔結界・フバーハなどの状態変化）＋ やいばの極意 ＋ 宝珠・装備の呪文/ブレス耐性 ＋ ファランクスなど（100%が上限）<br>
   1回のダメージ = 基礎ダメージ ×（1 − 割合軽減）×（1 − 属性耐性）− 固定軽減（属性耐性は宝珠と装備を足してから掛ける）</p>
-  <p>わざの数値は通常戦闘の目安です。竜閃砲と救われぬ死魂は守備力無視の攻撃として、守備力・スカラ・呪文/ブレス耐性の影響を受けず、構え・ファランクスなどの割合軽減と固定軽減だけが効く形で計算しています。基礎ダメージと回数は各タブで変えられます。</p>
+  <p>わざの数値は通常戦闘の目安です。竜閃砲と救われぬ死魂は守備力無視の攻撃として、守備力・スカラ・呪文/ブレス耐性の影響を受けず、構え・ファランクスなどの割合軽減と固定軽減だけが効く形で計算しています。ダメージはすべて最大値で計算します（物理はダメージのゆれの最大、ほかのわざは攻略情報の最大値。救われぬ死魂は約450〜470の470）。元のダメージと回数は各タブで変えられます。</p>
   <p>出典：
   <a href="https://mazigappo.jp/e/dq10-kisyouzyu-dogdra" target="_blank" rel="noopener">マジガッポ</a> ／
   <a href="https://wikiwiki.jp/dq10dic2nd/%E3%80%90%E8%BC%9D%E6%99%B6%E7%8D%A3%E3%83%89%E3%82%B0%E3%83%89%E3%83%A9%E3%80%91" target="_blank" rel="noopener">DQ10大辞典（ドグドラ）</a> ／
@@ -155,7 +155,7 @@ const MOVES = [
   {id:'mera', name:'神速メラガイアー', type:'spell', base:1750, hits:3, elem:'fire', area:'対象周囲・ランダム', note:'ランダムなので当たる回数は変わる。'},
   {id:'bagi', name:'太古に封じられしバギ', type:'spell', base:2000, hits:2, elem:'wind', area:'対象周囲', note:'HP80%以下になると使わなくなる。'},
   {id:'breath', name:'絶望なる吐息', type:'breath', base:5000, hits:1, elem:'dark', area:'前方扇状', note:'呪い・移動速度低下・全属性耐性低下。'},
-  {id:'shikon', name:'救われぬ死魂', type:'other', base:450, hits:2, elem:null, area:'対象方向', note:'守備力無視。HP80%以下から使う。蘇生禁止30秒・攻撃力2段階低下。'},
+  {id:'shikon', name:'救われぬ死魂', type:'other', base:470, hits:2, elem:null, area:'対象方向', note:'守備力無視。HP80%以下から使う。蘇生禁止30秒・攻撃力2段階低下。'},
 ];
 const TYPE = {phys:['物理','t-phys'], spell:['呪文','t-spell'], breath:['ブレス','t-breath'], other:['守備力無視','t-other']};
 const ELEM = {
@@ -215,7 +215,7 @@ const CTRL = {
 };
 MOVES.forEach(m=>{
   if (m.type==='phys') CTRL['mult_'+m.id] = {label:'わざの倍率', kind:'num', def:m.mult, step:0.1};
-  else CTRL['base_'+m.id] = {label:'基礎ダメージ（1回・軽減なし）', kind:'num', def:m.base};
+  else CTRL['base_'+m.id] = {label:'元のダメージ（1回・軽減なし・最大値）', kind:'num', def:m.base};
   CTRL['hits_'+m.id] = {label:'当たる回数', kind:'num', def:m.hits};
 });
 
@@ -338,8 +338,9 @@ function compute(m){
     const [aS,aV] = K('攻撃力', atk), [defS,defV] = K('最終守備力', def);
     let mS = '', mV = '';
     if (mult!==1){ const [xS,xV] = K('わざ倍率', d(mult)); mS = '×'+xS; mV = '×'+xV; }
-    sym = '('+aS+'÷2−'+defS+'÷4)'+mS;
-    val = '('+aV+'÷2−'+defV+'÷4)'+mV;
+    const [rS,rV] = K('ゆれ最大', '17/16');
+    sym = '(('+aS+'÷2−'+defS+'÷4)×'+rS+'＋1)'+mS;
+    val = '(('+aV+'÷2−'+defV+'÷4)×'+rV+'+1)'+mV;
   } else {
     base = lo = hi = num('base_'+m.id);
     [sym, val] = K('元のダメージ', base);
@@ -413,7 +414,7 @@ function compute(m){
     val += '−' + (fV.length>1 ? '(' + fV.join('+') + ')' : fV[0]);
   }
   const note = mul+add>1 ? '※割合軽減が100%を超えたので1として計算（ダメージ0）。' : '';
-  return {m, hits, per:f(base), lo:f(lo), hi:f(hi), sym, val, note};
+  return {m, hits, per:f(hi), lo:f(lo), hi:f(hi), sym, val, note};
 }
 
 function hpNow(){ return String(S.hpNow).trim()==='' ? num('hp') : num('hpNow'); }
@@ -424,7 +425,6 @@ function judge(r, big){
   let h = left>0
     ? `<span class="${cls} ok">${big?`HP ${fmt(now)} → `:''}耐える 残り${fmt(left)}</span>`
     : `<span class="${cls} ng">${big?`HP ${fmt(now)} → `:''}倒れる ${fmt(-left)}不足</span>`;
-  if (r.m.type==='phys' && r.lo!==r.hi && left>0 && now - r.hi*r.hits<=0) h += `<div class="sub">ダメージが最大幅だと倒れる</div>`;
   return big ? `<div>${h}</div>` : h;
 }
 
@@ -473,9 +473,9 @@ function update(){
   const rs = MOVES.map(compute);
   rs.forEach(r=>{
     const total = r.per*r.hits;
-    const range = (r.m.type==='phys' && r.lo!==r.hi) ? `<div class="sub">1回の幅：${fmt(r.lo)}〜${fmt(r.hi)}</div>` : '';
+    const range = (r.m.type==='phys' && r.lo!==r.hi) ? `<div class="sub">1回の幅：${fmt(r.lo)}〜${fmt(r.hi)}（最大の${fmt(r.hi)}で計算）</div>` : '';
     $('res_'+r.m.id).innerHTML = `
-      <div class="sub">合計ダメージ（${r.hits}回）</div>
+      <div class="sub">最大の合計ダメージ（${r.hits}回）</div>
       <div class="big">${fmt(total)}<small> ダメージ</small></div>
       <div class="sub">1回あたり ${fmt(r.per)} × ${r.hits}回</div>
       ${range}${judge(r, true)}
@@ -484,7 +484,7 @@ function update(){
     $('tabdmg_'+r.m.id).textContent = fmt(total) + (r.hits>1 ? `（${fmt(r.per)}×${r.hits}）` : '');
   });
   $('overview').innerHTML = `<div style="overflow-x:auto"><table class="res">
-    <thead><tr><th>わざ</th><th>1回</th><th>回数</th><th>合計</th><th>HP判定</th></tr></thead>
+    <thead><tr><th>わざ</th><th>1回（最大）</th><th>回数</th><th>合計</th><th>HP判定</th></tr></thead>
     <tbody>${rs.map(r=>{ const [t,c] = TYPE[r.m.type];
       return `<tr data-open="${r.m.id}"><td><span class="type ${c}">${t}</span>${r.m.name}</td><td>${fmt(r.per)}</td><td>×${r.hits}</td><td class="tot">${fmt(r.per*r.hits)}</td><td>${judge(r,false)}</td></tr>`; }).join('')}</tbody></table></div>`;
   const worst = rs.filter(r=>r.per*r.hits >= hpNow()).length;
