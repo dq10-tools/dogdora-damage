@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ドグドラ被ダメ計算</title>
+<style>
+:root{
+  --bg:#f5f3ef; --panel:#ffffff; --ink:#1f1d1a; --sub:#6b665e; --line:#e2ddd4;
+  --accent:#7a3fb8; --accent-soft:#efe6f8; --phys:#b5532a; --spell:#2a63b5; --breath:#4a2f6e; --other:#5f6b2a;
+  --ok:#2f7d4a; --danger:#b3261e; --dim:.42;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16151a; --panel:#211f27; --ink:#ece9f1; --sub:#a39ead; --line:#35323d;
+    --accent:#b48be6; --accent-soft:#2e2540; --phys:#e48a5f; --spell:#78a6ee; --breath:#b394e0; --other:#b8c46c;
+    --ok:#6fcf8f; --danger:#ff8a80;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16151a; --panel:#211f27; --ink:#ece9f1; --sub:#a39ead; --line:#35323d;
+  --accent:#b48be6; --accent-soft:#2e2540; --phys:#e48a5f; --spell:#78a6ee; --breath:#b394e0; --other:#b8c46c;
+  --ok:#6fcf8f; --danger:#ff8a80;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;font-size:15px;line-height:1.6}
+.wrap{max-width:1240px;margin:0 auto;padding:0 16px}
+header{padding:24px 0 8px}
+h1{font-size:22px;margin:0 0 4px}
+header p{margin:0;color:var(--sub);font-size:13px}
+
+/* 上部：まとめて設定 */
+details.settings{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:12px 0 20px}
+details.settings>summary{cursor:pointer;padding:14px 16px;font-weight:700;font-size:16px;list-style:none;display:flex;align-items:center;gap:8px}
+details.settings>summary::before{content:"▸";transition:transform .15s;color:var(--sub)}
+details.settings[open]>summary::before{transform:rotate(90deg)}
+details.settings>summary small{font-weight:400;color:var(--sub);font-size:12px}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;padding:0 16px 16px}
+.sbox{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.sbox h3{font-size:13px;margin:0 0 6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sbox h3 .for{font-weight:400;font-size:11px;color:var(--sub)}
+
+.field{display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--sub);margin-bottom:6px}
+label.row{display:flex;align-items:center;gap:8px;padding:2px 0 6px;font-size:13px}
+input[type=number],select{font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;width:100%}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;flex:none}
+.off{opacity:var(--dim)}
+.flash{animation:flash .6s}
+@keyframes flash{from{background:var(--accent-soft)}to{background:transparent}}
+
+.type{font-size:11px;font-weight:700;padding:0 6px;border-radius:4px;color:#fff;margin-right:4px;white-space:nowrap}
+.t-phys{background:var(--phys)} .t-spell{background:var(--spell)} .t-breath{background:var(--breath)} .t-other{background:var(--other)}
+
+/* タブ */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:thin}
+.tab{flex:none;font:inherit;font-size:13px;border:1px solid var(--line);border-bottom:none;background:var(--bg);color:var(--ink);border-radius:10px 10px 0 0;padding:8px 12px 6px;cursor:pointer;text-align:left;line-height:1.35}
+.tab .dmg{display:block;font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums}
+.tab[aria-selected=true]{background:var(--panel);border-color:var(--accent);box-shadow:inset 0 3px 0 var(--accent);font-weight:700}
+.tab[aria-selected=true] .dmg{color:var(--ink)}
+.panelbox{background:var(--panel);border:1px solid var(--accent);border-radius:0 12px 12px 12px;padding:18px;margin-bottom:24px}
+.panel[hidden]{display:none}
+.phead{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:12px}
+.phead h2{font-size:20px;margin:0}
+.phead .meta{color:var(--sub);font-size:13px}
+.pgrid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;align-items:start}
+.pgrid>[id^=res_]{position:sticky;top:12px}
+@media (max-width:860px){.pgrid{grid-template-columns:minmax(0,1fr)}.pgrid>[id^=res_]{position:static}}
+.pctrl{border:1px dashed var(--line);border-radius:10px;padding:12px}
+.pctrl>h3{font-size:13px;margin:0 0 2px}
+.pctrl>p{font-size:11px;color:var(--sub);margin:0 0 10px}
+.pctrl .grp{border-top:1px solid var(--line);padding-top:8px;margin-top:4px}
+.pctrl .grp:first-of-type{border-top:0;padding-top:0}
+.pctrl .grp h4{font-size:12px;margin:0 0 4px;color:var(--sub)}
+
+.big{font-size:46px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.big small{font-size:16px;font-weight:600;color:var(--sub)}
+.sub{font-variant-numeric:tabular-nums;color:var(--sub);font-size:13px}
+.hp{margin-top:10px;padding:8px 10px;border-radius:8px;font-weight:700}
+.hp.ok,.judge.ok{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.hp.ng,.judge.ng{background:color-mix(in srgb,var(--danger) 15%,transparent);color:var(--danger)}
+.judge{font-weight:700;font-size:12px;padding:1px 8px;border-radius:99px;white-space:nowrap}
+
+.formula{font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:14px;font-family:ui-monospace,Consolas,monospace;word-break:break-all;line-height:1.8}
+.formula .fl{font-family:inherit;font-size:12px;color:var(--sub);font-weight:700}
+.formula .fsym{padding-bottom:6px;margin-bottom:6px;border-bottom:1px dashed var(--line)}
+.formula .fval{margin-bottom:4px}
+.formula .fn{font-size:11px;color:var(--sub);margin-top:4px;font-family:inherit}
+.chip{display:inline-block;padding:0 6px;margin:1px 1px;border-radius:5px;font-weight:700;line-height:1.5}
+.c0{background:#fde2c8;color:#7a3b06} .c1{background:#d4e6fb;color:#123f73} .c2{background:#d9f2dc;color:#1e5a2a}
+.c3{background:#efdcf8;color:#5a2378} .c4{background:#fbd9e1;color:#7a1832} .c5{background:#f6efc3;color:#5c4a05}
+
+table.res{width:100%;border-collapse:collapse;font-size:14px}
+table.res th{font-size:12px;color:var(--sub);text-align:right;font-weight:600;padding:6px;border-bottom:2px solid var(--line)}
+table.res th:first-child{text-align:left}
+table.res td{padding:10px 6px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;border-bottom:1px solid var(--line)}
+table.res td:first-child{text-align:left;white-space:normal;font-weight:700}
+table.res td.tot{font-size:18px;font-weight:800}
+table.res tbody tr{cursor:pointer}
+table.res tbody tr:hover{background:var(--accent-soft)}
+.hint{font-size:12px;color:var(--sub);margin:8px 0 0}
+h5.subh{font-size:11px;margin:8px 0 4px;color:var(--ink);border-left:3px solid var(--phys);padding-left:6px}
+.sbox.wide{grid-column:span 2}
+@media (max-width:640px){.sbox.wide{grid-column:auto}}
+.sbox.wide .cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0 14px}
+.defout{margin:6px 0 4px;padding:6px 10px;border-radius:8px;background:color-mix(in srgb,var(--phys) 12%,transparent);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.defout small{font-weight:400;color:var(--sub);font-size:11px;display:block}
+[data-wrap].hide{display:none}
+.formula.def{margin-top:10px}
+.formula .bd{font-size:11px;color:var(--sub);font-family:inherit;margin-top:2px}
+
+footer{color:var(--sub);font-size:12px;padding-bottom:32px}
+footer a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>輝晶獣ドグドラ 被ダメージ計算</h1>
+  <p>上でまとめて宝珠・耐性を選び、下のタブでわざごとのダメージと計算式を見ます。タブの中の設定は上と連動しています。数値は攻略サイトの目安値です（下に出典）。</p>
+</header>
+
+<details class="settings" open>
+  <summary>まとめて設定（宝珠・耐性・補助など）<small>ここで変えると全タブに反映されます</small></summary>
+  <div class="sgrid" id="settings"></div>
+</details>
+
+<div class="tabs" role="tablist" id="tabs"></div>
+<div class="panelbox" id="panels"></div>
+
+<footer>
+  <p><b>計算式（攻略サイトの検証による）</b><br>
+  割合軽減 = 1 −（1 − 構え）×（1 − 魔結界・フバーハなどの状態変化）＋ やいばの極意 ＋ 宝珠・装備の呪文/ブレス耐性 ＋ ファランクスなど（100%が上限）<br>
+  1回のダメージ = 基礎ダメージ ×（1 − 割合軽減）×（1 − 属性耐性）− 固定軽減（属性耐性は宝珠と装備を足してから掛ける）</p>
+  <p>わざの数値は通常戦闘の目安です。竜閃砲と救われぬ死魂は守備力無視の攻撃として、守備力・スカラ・呪文/ブレス耐性の影響を受けず、構え・ファランクスなどの割合軽減と固定軽減だけが効く形で計算しています。基礎ダメージと回数は各タブで変えられます。</p>
+  <p>出典：
+  <a href="https://mazigappo.jp/e/dq10-kisyouzyu-dogdra" target="_blank" rel="noopener">マジガッポ</a> ／
+  <a href="https://wikiwiki.jp/dq10dic2nd/%E3%80%90%E8%BC%9D%E6%99%B6%E7%8D%A3%E3%83%89%E3%82%B0%E3%83%89%E3%83%A9%E3%80%91" target="_blank" rel="noopener">DQ10大辞典（ドグドラ）</a> ／
+  <a href="https://xn--10-yg4a1a3kyh.jp/dq10_kisyou3.html" target="_blank" rel="noopener">ドラクエ10極限攻略（ドグドラ）</a> ／
+  <a href="https://gameranbu.jp/dq10/88feb98858a49f10b3a0" target="_blank" rel="noopener">ゲーム乱舞</a> ／
+  <a href="https://hiroba.dqx.jp/sc/diary/72848010377/view/5444363/" target="_blank" rel="noopener">防御関連メモ（冒険者の広場）</a> ／
+  <a href="https://wikiwiki.jp/dq10dic2nd/%E3%80%90%E8%A2%AB%E3%83%80%E3%83%A1%E3%83%BC%E3%82%B8%E8%BB%BD%E6%B8%9B%E3%80%91" target="_blank" rel="noopener">DQ10大辞典（被ダメージ軽減）</a> ／
+  <a href="https://wikiwiki.jp/dq10dic2nd/%E3%80%90%E3%82%84%E3%81%84%E3%81%B0%E3%81%AE%E3%81%BC%E3%81%86%E3%81%8E%E3%82%87%E3%80%91" target="_blank" rel="noopener">DQ10大辞典（やいばのぼうぎょ）</a> ／
+  <a href="https://xn--10-yg4a1a3kyh.jp/a_hojyu/dq10_hojyu_k_teppekinokogekijumontaisei.html" target="_blank" rel="noopener">極限攻略（鉄壁系宝珠）</a> ／
+  <a href="https://xn--10-yg4a1a3kyh.jp/a_hojyu/dq10_hojyu_k_utaremeijin.html" target="_blank" rel="noopener">極限攻略（打たれ名人）</a> ／
+  <a href="https://yukidqx.exblog.jp/25718248/" target="_blank" rel="noopener">ダメージ計算のすべて</a></p>
+</footer>
+</div>
+
+<script>
+// ===== わざデータ =====
+const MOVES = [
+  {id:'normal', name:'通常攻撃', type:'phys', mult:1, hits:1, elem:null, area:'単体', note:''},
+  {id:'tail', name:'しっぽアタック', type:'phys', mult:2, hits:2, elem:null, area:'周囲', note:'通常攻撃の約2倍×2回。ターンエンドにも使う。'},
+  {id:'ryusen', name:'竜閃砲', type:'other', base:1000, hits:2, elem:null, area:'前方直線', note:'守備力無視。横に避けられる。'},
+  {id:'mera', name:'神速メラガイアー', type:'spell', base:1750, hits:3, elem:'fire', area:'対象周囲・ランダム', note:'ランダムなので当たる回数は変わる。'},
+  {id:'bagi', name:'太古に封じられしバギ', type:'spell', base:2000, hits:2, elem:'wind', area:'対象周囲', note:'HP80%以下になると使わなくなる。'},
+  {id:'breath', name:'絶望なる吐息', type:'breath', base:5000, hits:1, elem:'dark', area:'前方扇状', note:'呪い・移動速度低下・全属性耐性低下。'},
+  {id:'shikon', name:'救われぬ死魂', type:'other', base:450, hits:2, elem:null, area:'対象方向', note:'守備力無視。HP80%以下から使う。蘇生禁止30秒・攻撃力2段階低下。'},
+];
+const TYPE = {phys:['物理','t-phys'], spell:['呪文','t-spell'], breath:['ブレス','t-breath'], other:['守備力無視','t-other']};
+const ELEM = {
+  fire:['炎', [['鉄壁の炎耐性','teppekiFire'], ['装備の炎耐性','resFire']]],
+  wind:['風', [['鉄壁の風耐性','teppekiWind'], ['装備の風耐性','resWind']]],
+  dark:['闇', [['鉄壁の闇耐性','teppekiDark'], ['装備の闇耐性','resDark']]],
+};
+
+// ===== 設定項目（上部とタブ内で共有） =====
+const LV = (label, step, unit, sign='') => ({label, kind:'lv', step, unit, sign, def:'0'});
+const CTRL = {
+  hp:{label:'最大HP', kind:'num', def:800},
+  hpNow:{label:'現在HP（空欄なら最大HP）', kind:'num', def:'', ph:'最大HPと同じ'},
+  stance:{label:'防御行動', kind:'sel', def:'none', opts:[['none','なし'],['bougyo','ぼうぎょ（25%）'],['yaiba','やいばのぼうぎょ（25%）']]},
+  yaibaGokui:LV('宝珠「やいばのぼうぎょの極意」（やいば時のみ）', 1, '%'),
+  phalanx:{label:'ファランクス／アイギスの守り（25%）', kind:'chk', def:false},
+  jikai:{label:'磁界シールド（20%）', kind:'chk', def:false},
+  otherPct:{label:'その他の被ダメ割合減（%）', kind:'num', def:0},
+  atk:{label:'ドグドラの攻撃力', kind:'num', def:1700},
+  defMode:{label:'守備力の入れ方', kind:'sel', def:'calc', opts:[['calc','内訳から計算する'],['direct','最終的な守備力を直接入れる']]},
+  def:{label:'最終的な守備力（この値をそのまま使います）', kind:'num', def:600},
+  mmBase:{label:'職業・レベルの基本みのまもり', kind:'num', def:300},
+  mmSkill:{label:'職業スキル（パッシブ）のみのまもり＋', kind:'num', def:0},
+  kotetsu:LV('宝珠「鋼鉄の肉体」（みのまもり＋）', 5, ''),
+  mmSeed:{label:'まもりのたね', kind:'num', def:0},
+  mmMegami:{label:'女神の木', kind:'num', def:0},
+  mmOther:{label:'その他のみのまもり＋（タロット・装備効果など）', kind:'num', def:0},
+  eqHead:{label:'頭', kind:'num', def:40},
+  eqBodyU:{label:'からだ上', kind:'num', def:60},
+  eqBodyL:{label:'からだ下', kind:'num', def:45},
+  eqArm:{label:'うで', kind:'num', def:30},
+  eqFoot:{label:'足', kind:'num', def:30},
+  eqShield:{label:'盾', kind:'num', def:60},
+  eqAcc:{label:'アクセサリーの基礎守備力', kind:'num', def:0},
+  shieldSkill:{label:'盾スキル（パッシブ）の守備力＋', kind:'num', def:15},
+  renkin:{label:'錬金（ツボ錬金含む）・合成・輝晶の守備力合計', kind:'num', def:20},
+  food:{label:'料理の守備力＋', kind:'num', def:0},
+  defPlus:{label:'その他の守備力プラス効果', kind:'num', def:0},
+  scala:{label:'スカラ／スクルト', kind:'sel', def:'0', opts:[['0','なし'],['0.2','1段階（守備力+20%）'],['0.4','2段階（守備力+40%）']]},
+  makekkai:{label:'魔結界／マジックバリア', kind:'sel', def:'0', opts:[['0','なし'],['20','1段階（20%）'],['40','2段階（40%）']]},
+  teppekiSpell:LV('宝珠「鉄壁の攻撃呪文耐性」', 1, '%'),
+  spellRes:{label:'装備（錬金・盾など）の呪文耐性（%）', kind:'num', def:0},
+  mamori:{label:'まもりのきり（ブレス無効）', kind:'chk', def:false},
+  fubaha:{label:'フバーハ／心頭滅却', kind:'sel', def:'0', opts:[['0','なし'],['20','フバーハ1段階（20%）'],['40','フバーハ2段階 ＝ 心頭滅却（40%）']]},
+  teppekiBreath:LV('宝珠「鉄壁のブレス耐性」', 1, '%'),
+  breathRes:{label:'装備（錬金・盾など）のブレス耐性（%）', kind:'num', def:0},
+  teppekiFire:LV('宝珠「鉄壁の炎耐性」', 1, '%'),
+  resFire:{label:'装備・アクセの炎耐性（%）', kind:'num', def:0},
+  teppekiWind:LV('宝珠「鉄壁の風耐性」', 1, '%'),
+  resWind:{label:'装備・アクセの風耐性（%）', kind:'num', def:0},
+  teppekiDark:LV('宝珠「鉄壁の闇耐性」', 1, '%'),
+  resDark:{label:'装備・アクセの闇耐性（%）', kind:'num', def:0},
+  neck:{label:'首アクセ', kind:'sel', def:'0', opts:[['0','なし'],['30','竜のうろこ（−30）'],['35','赤竜の首飾り（−35）']]},
+  utare:LV('宝珠「打たれ名人」', 2, '', '−'),
+  skill180:{label:'職業スキル180「被ダメージ−10」', kind:'chk', def:false},
+  otherFlat:{label:'その他の固定軽減', kind:'num', def:0},
+};
+MOVES.forEach(m=>{
+  if (m.type==='phys') CTRL['mult_'+m.id] = {label:'わざの倍率', kind:'num', def:m.mult, step:0.1};
+  else CTRL['base_'+m.id] = {label:'基礎ダメージ（1回・軽減なし）', kind:'num', def:m.base};
+  CTRL['hits_'+m.id] = {label:'当たる回数', kind:'num', def:m.hits};
+});
+
+const DEF_KEYS = ['defMode','def',
+  '#h:みのまもり（スカラが掛かる）','mmBase','mmSkill','kotetsu','mmSeed','mmMegami','mmOther',
+  '#h:防具の基礎守備力（できのよさ込み・錬金は除く／スカラが掛かる）','eqHead','eqBodyU','eqBodyL','eqArm','eqFoot','eqShield','eqAcc',
+  '#h:あとから足す分（スカラが掛からない）','shieldSkill','renkin','food','defPlus','#out'];
+const MM_KEYS = ['mmBase','mmSkill','kotetsu','mmSeed','mmMegami','mmOther'];
+const EQ_KEYS = ['eqHead','eqBodyU','eqBodyL','eqArm','eqFoot','eqShield','eqAcc'];
+const ADD_KEYS = ['shieldSkill','renkin','food','defPlus'];
+
+// 上部の区分
+const SECTIONS = [
+  {title:'プレイヤー', keys:['hp','hpNow']},
+  {title:'防御行動・味方の補助', for:'全わざ', keys:['stance','yaibaGokui','phalanx','jikai','otherPct']},
+  {title:'固定値の軽減', for:'全わざ・1回ごと', keys:['neck','utare','skill180','otherFlat']},
+  {title:'物理', type:'phys', for:'通常攻撃・しっぽアタック', keys:['atk','scala']},
+  {title:'守備力', type:'phys', for:'通常攻撃・しっぽアタック', keys:DEF_KEYS, wide:true},
+  {title:'呪文', type:'spell', for:'メラガイアー・バギ', keys:['makekkai','teppekiSpell','spellRes']},
+  {title:'ブレス', type:'breath', for:'絶望なる吐息', keys:['mamori','fubaha','teppekiBreath','breathRes']},
+  {title:'炎耐性', for:'神速メラガイアー', keys:['teppekiFire','resFire']},
+  {title:'風耐性', for:'太古に封じられしバギ', keys:['teppekiWind','resWind']},
+  {title:'闇耐性', for:'絶望なる吐息', keys:['teppekiDark','resDark']},
+];
+
+// わざごとに、タブ内に出す設定
+function moveGroups(m){
+  const g = [];
+  const own = m.type==='phys' ? ['atk','mult_'+m.id,'hits_'+m.id] : ['base_'+m.id,'hits_'+m.id];
+  g.push(['このわざの数値', own]);
+  if (m.type==='phys') g.push(['守備力', ['scala', ...DEF_KEYS]]);
+  if (m.type==='spell') g.push(['呪文の軽減', ['makekkai','teppekiSpell','spellRes']]);
+  if (m.type==='breath') g.push(['ブレスの軽減', ['mamori','fubaha','teppekiBreath','breathRes']]);
+  if (m.elem) g.push([ELEM[m.elem][0]+'耐性', ELEM[m.elem][1].map(x=>x[1])]);
+  g.push(['防御行動・味方の補助', ['stance','yaibaGokui','phalanx','jikai','otherPct']]);
+  g.push(['固定値の軽減', ['neck','utare','skill180','otherFlat']]);
+  g.push(['HP', ['hp','hpNow']]);
+  return g;
+}
+
+// ===== 状態 =====
+const S = {};
+Object.entries(CTRL).forEach(([k,c])=>S[k]=c.def);
+const $ = id => document.getElementById(id);
+const num = (k, dflt=0) => { const v = parseFloat(S[k]); return isNaN(v) ? dflt : v; };
+const fmt = n => Math.round(n).toLocaleString('ja-JP');
+const d = v => String(+v.toFixed(3));
+const lvOf = k => Math.round(num(k) / CTRL[k].step);
+const lvName = (k, name) => name + 'Lv' + lvOf(k);
+const optText = k => (CTRL[k].opts.find(o=>o[0]===String(S[k]))||['',''])[1];
+
+function ctrlHTML(k){
+  if (k.startsWith('#h:')) return `<h5 class="subh" data-wrap="${k}">${k.slice(3)}</h5>`;
+  if (k==='#out') return `<div class="defout" data-defout></div>`;
+  const c = CTRL[k];
+  if (c.kind==='chk') return `<label class="row" data-wrap="${k}"><input type="checkbox" data-key="${k}"> ${c.label}</label>`;
+  let input;
+  if (c.kind==='num') input = `<input type="number" data-key="${k}" min="0" ${c.step?`step="${c.step}"`:''} ${c.ph?`placeholder="${c.ph}"`:''}>`;
+  else {
+    const opts = c.kind==='lv'
+      ? Array.from({length:7},(_,lv)=>[String(lv*c.step), lv===0?'なし（Lv0）':`Lv${lv}（${c.sign}${lv*c.step}${c.unit}）`])
+      : c.opts;
+    input = `<select data-key="${k}">${opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')}</select>`;
+  }
+  return `<div class="field" data-wrap="${k}">${c.label}${input}</div>`;
+}
+function syncKey(k, except){
+  document.querySelectorAll(`[data-key="${k}"]`).forEach(el=>{
+    if (el===except) return;
+    if (el.type==='checkbox') el.checked = !!S[k]; else el.value = S[k];
+    if (except){ const w = el.closest('[data-wrap]'); w.classList.remove('flash'); void w.offsetWidth; w.classList.add('flash'); }
+  });
+}
+
+// ===== 守備力 =====
+function defCalc(){
+  const scala = num('scala');
+  let ci = 0;
+  const chip = (t, i) => `<span class="chip c${i%6}">${t}</span>`;
+  const K = (name, v) => { const i = ci++; return [chip(name,i), chip(v,i)]; };
+  const scS = scala ? 'スカラ'+(scala>=0.4?'2':'1')+'段階' : '';
+  if (S.defMode==='direct'){
+    const final = num('def');
+    const [sym, val] = K('最終守備力（直接入力）', final);
+    return {final, sym, val, bd: '直接入力では、入れた値をそのまま使います（スカラ・スクルトは計算に入りません）。'};
+  }
+  const sum = ks => ks.reduce((a,k)=>a+num(k),0);
+  const mm = sum(MM_KEYS), eq = sum(EQ_KEYS);
+  const [mS,mV] = K('みのまもり', mm), [eS,eV] = K('防具の基礎守備力', eq);
+  let sym = '('+mS+'＋'+eS+')', val = '('+mV+'+'+eV+')';
+  if (scala){ const [a,b] = K(scS, d(scala)); sym += '×(1+'+a+')'; val += '×(1+'+b+')'; }
+  const names = {shieldSkill:'盾スキル', renkin:'錬金・合成', food:'料理', defPlus:'その他守備力＋'};
+  ADD_KEYS.forEach(k=>{ const v = num(k); if (!v) return; const [a,b] = K(names[k], v); sym += '＋'+a; val += '+'+b; });
+  const final = Math.floor((mm+eq)*(1+scala) + 1e-6) + sum(ADD_KEYS);
+  const lbl = k => k==='kotetsu' ? lvName('kotetsu','鋼鉄の肉体') : CTRL[k].label.replace(/（.*/,'');
+  const parts = ks => ks.filter(k=>num(k)).map(k=>`${lbl(k)} ${num(k)}`).join('＋') || '0';
+  const bd = `みのまもり ${mm} ＝ ${parts(MM_KEYS)}<br>防具の基礎守備力 ${eq} ＝ ${parts(EQ_KEYS)}`;
+  return {final, sym, val, bd};
+}
+
+// ===== 計算 =====
+function compute(m){
+  const hits = Math.max(1, Math.round(num('hits_'+m.id, 1)));
+  let ci = 0;
+  const chip = (t, i) => `<span class="chip c${i%6}">${t}</span>`;
+  const K = (name, v) => { const i = ci++; return [chip(name,i), chip(v,i)]; };
+  let sym = '', val = '';
+
+  // 1. 基礎ダメージ
+  let base, lo, hi;
+  if (m.type==='phys'){
+    const mult = num('mult_'+m.id, 1), atk = num('atk');
+    const def = defCalc().final;
+    let avg;
+    if (atk > def*4/7) avg = atk/2 - def/4;
+    else if (atk > def/2) avg = atk/32;   // 0〜攻撃力÷16 の中央
+    else avg = 0.5;
+    const spread = avg/16 + 1;
+    base = avg * mult; lo = Math.max(0,(avg-spread)*mult); hi = (avg+spread)*mult;
+    const [aS,aV] = K('攻撃力', atk), [defS,defV] = K('最終守備力', def);
+    let mS = '', mV = '';
+    if (mult!==1){ const [xS,xV] = K('わざ倍率', d(mult)); mS = '×'+xS; mV = '×'+xV; }
+    sym = '('+aS+'÷2−'+defS+'÷4)'+mS;
+    val = '('+aV+'÷2−'+defV+'÷4)'+mV;
+  } else {
+    base = lo = hi = num('base_'+m.id);
+    [sym, val] = K('元のダメージ', base);
+  }
+
+  if (m.type==='breath' && S.mamori){
+    const [zS,zV] = K('まもりのきり', 0);
+    return {m, hits, per:0, lo:0, hi:0, sym: sym+'×'+zS, val: val+'×'+zV, note:''};
+  }
+
+  // 2. 割合軽減
+  let stance = 0, stanceName = '', jewel = 0, jewelName = '';
+  if (S.stance!=='none'){
+    stance = 0.25; stanceName = S.stance==='yaiba' ? 'やいばのぼうぎょ' : 'ぼうぎょ';
+    if (S.stance==='yaiba'){ jewel = num('yaibaGokui')/100; jewelName = lvName('yaibaGokui','やいばの極意'); }
+  }
+  let status = 0, statusName = '';
+  if (m.type==='spell'){ status = num('makekkai')/100; statusName = '魔結界'+(status>=0.4?'2':'1')+'段階'; }
+  if (m.type==='breath'){ status = num('fubaha')/100; statusName = status>=0.4 ? 'フバーハ2段階' : 'フバーハ1段階'; }
+  const mul = 1 - (1-stance)*(1-status);
+
+  const pS = [], pV = [];
+  if (stance && status){
+    const [s1,v1] = K(stanceName, d(stance)), [s2,v2] = K(statusName, d(status));
+    pS.push('1−(1−'+s1+')×(1−'+s2+')'); pV.push('1−(1−'+v1+')×(1−'+v2+')');
+  } else if (stance || status){
+    const [s1,v1] = stance ? K(stanceName, d(stance)) : K(statusName, d(status));
+    pS.push(s1); pV.push(v1);
+  }
+  let add = 0;
+  const addTerm = (name, v) => { if (!v) return; add += v; const [s1,v1] = K(name, d(v)); pS.push(s1); pV.push(v1); };
+  addTerm(jewelName, jewel);
+  if (m.type==='spell'){ addTerm(lvName('teppekiSpell','鉄壁の攻撃呪文耐性'), num('teppekiSpell')/100); addTerm('装備の呪文耐性', num('spellRes')/100); }
+  if (m.type==='breath'){ addTerm(lvName('teppekiBreath','鉄壁のブレス耐性'), num('teppekiBreath')/100); addTerm('装備のブレス耐性', num('breathRes')/100); }
+  if (S.phalanx) addTerm('ファランクス', 0.25);
+  if (S.jikai) addTerm('磁界シールド', 0.20);
+  addTerm('その他割合減', num('otherPct')/100);
+  const pct = Math.min(1, mul + add);
+  if (pS.length){
+    const one = pS.length===1 && !(stance && status);
+    sym += '×(1−' + (one ? pS[0] : '(' + pS.join('＋') + ')') + ')';
+    val += '×(1−' + (one ? pV[0] : '(' + pV.join('+') + ')') + ')';
+  }
+
+  // 3. 属性耐性
+  let er = 0;
+  if (m.elem){
+    const eS = [], eV = [];
+    ELEM[m.elem][1].forEach(([name,k])=>{
+      const v = num(k)/100; if (!v) return;
+      er += v; const [s1,v1] = K(CTRL[k].kind==='lv' ? lvName(k, name) : name, d(v)); eS.push(s1); eV.push(v1);
+    });
+    er = Math.min(1, er);
+    if (eS.length){
+      sym += '×(1−' + (eS.length>1 ? '('+eS.join('＋')+')' : eS[0]) + ')';
+      val += '×(1−' + (eV.length>1 ? '('+eV.join('+')+')' : eV[0]) + ')';
+    }
+  }
+
+  // 4. 固定軽減
+  const fS = [], fV = [];
+  let flat = 0;
+  const flatTerm = (name, v) => { if (!v) return; flat += v; const [s1,v1] = K(name, v); fS.push(s1); fV.push(v1); };
+  flatTerm(optText('neck').replace(/（.*/,''), num('neck'));
+  flatTerm(lvName('utare','打たれ名人'), num('utare'));
+  flatTerm('スキル180', S.skill180 ? 10 : 0);
+  flatTerm('その他固定', num('otherFlat'));
+  const f = v => { const x = Math.floor(v*(1-pct)*(1-er) + 1e-6); return x<=0 ? 0 : Math.max(0, x - flat); };
+  if (flat){
+    sym += '−' + (fS.length>1 ? '(' + fS.join('＋') + ')' : fS[0]);
+    val += '−' + (fV.length>1 ? '(' + fV.join('+') + ')' : fV[0]);
+  }
+  const note = mul+add>1 ? '※割合軽減が100%を超えたので1として計算（ダメージ0）。' : '';
+  return {m, hits, per:f(base), lo:f(lo), hi:f(hi), sym, val, note};
+}
+
+function hpNow(){ return String(S.hpNow).trim()==='' ? num('hp') : num('hpNow'); }
+function judge(r, big){
+  const now = hpNow(); if (!(now>0)) return '';
+  const total = r.per*r.hits, left = now - total;
+  const cls = big ? 'hp' : 'judge';
+  let h = left>0
+    ? `<span class="${cls} ok">${big?`HP ${fmt(now)} → `:''}耐える 残り${fmt(left)}</span>`
+    : `<span class="${cls} ng">${big?`HP ${fmt(now)} → `:''}倒れる ${fmt(-left)}不足</span>`;
+  if (r.m.type==='phys' && r.lo!==r.hi && left>0 && now - r.hi*r.hits<=0) h += `<div class="sub">ダメージが最大幅だと倒れる</div>`;
+  return big ? `<div>${h}</div>` : h;
+}
+
+// ===== 画面を組み立て =====
+$('settings').innerHTML = SECTIONS.map(sec=>`
+  <div class="sbox${sec.wide?' wide':''}"><h3>${sec.type?`<span class="type ${TYPE[sec.type][1]}">${TYPE[sec.type][0]}</span>`:''}${sec.title}${sec.for?`<span class="for">（${sec.for}）</span>`:''}</h3>
+  ${sec.wide?`<div class="cols">${sec.keys.map(ctrlHTML).join('')}</div>`:sec.keys.map(ctrlHTML).join('')}</div>`).join('');
+
+const TABS = [{id:'all', name:'全わざ一覧'}, ...MOVES];
+$('tabs').innerHTML = TABS.map(t=>`<button class="tab" role="tab" data-tab="${t.id}" aria-selected="false">
+  ${t.type?`<span class="type ${TYPE[t.type][1]}">${TYPE[t.type][0]}</span>`:''}${t.name}<span class="dmg" id="tabdmg_${t.id}"></span></button>`).join('');
+
+$('panels').innerHTML = `<div class="panel" id="panel_all" hidden>
+    <div class="phead"><h2>全わざ一覧</h2><span class="meta">上の設定で計算した結果です。行をクリックするとそのわざのタブを開きます。</span></div>
+    <div id="overview"></div></div>` +
+  MOVES.map(m=>{
+    const [t,c] = TYPE[m.type];
+    return `<div class="panel" id="panel_${m.id}" hidden>
+      <div class="phead"><span class="type ${c}">${t}</span><h2>${m.name}</h2>
+        <span class="meta">${m.elem?ELEM[m.elem][0]+'属性・':''}${m.area}${m.note?'　'+m.note:''}</span></div>
+      <div class="pgrid">
+        <div id="res_${m.id}" aria-live="polite"></div>
+        <div class="pctrl"><h3>このわざに関係する設定</h3><p>上の「まとめて設定」と連動しています。</p>
+          ${moveGroups(m).map(([h,keys])=>`<div class="grp"><h4>${h}</h4>${keys.map(ctrlHTML).join('')}</div>`).join('')}
+        </div>
+      </div></div>`;
+  }).join('');
+
+Object.keys(CTRL).forEach(k=>syncKey(k));
+
+function openTab(id){
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===id));
+  document.querySelectorAll('.panel').forEach(p=>p.hidden = p.id!=='panel_'+id);
+  try{ localStorage.setItem('dogdora-tab', id); }catch(e){}
+}
+$('tabs').addEventListener('click', e=>{ const b = e.target.closest('.tab'); if (b) openTab(b.dataset.tab); });
+
+function update(){
+  document.querySelectorAll('[data-wrap="yaibaGokui"]').forEach(w=>w.classList.toggle('off', S.stance!=='yaiba'));
+  const direct = S.defMode==='direct';
+  DEF_KEYS.forEach(k=>{ if (k==='defMode' || k==='#out') return;
+    document.querySelectorAll(`[data-wrap="${k}"]`).forEach(w=>w.classList.toggle('hide', k==='def' ? !direct : direct)); });
+  document.querySelectorAll('[data-wrap="scala"]').forEach(w=>w.classList.toggle('hide', direct));
+  const dc = defCalc();
+  document.querySelectorAll('[data-defout]').forEach(o=>o.innerHTML = `最終守備力 ${fmt(dc.final)}${!direct && num('scala')?'（スカラ込み）':''}<small>物理わざのダメージ計算に使う値</small>`);
+  const rs = MOVES.map(compute);
+  rs.forEach(r=>{
+    const total = r.per*r.hits;
+    const range = (r.m.type==='phys' && r.lo!==r.hi) ? `<div class="sub">1回の幅：${fmt(r.lo)}〜${fmt(r.hi)}</div>` : '';
+    $('res_'+r.m.id).innerHTML = `
+      <div class="sub">合計ダメージ（${r.hits}回）</div>
+      <div class="big">${fmt(total)}<small> ダメージ</small></div>
+      <div class="sub">1回あたり ${fmt(r.per)} × ${r.hits}回</div>
+      ${range}${judge(r, true)}
+      ${r.m.type==='phys' ? (()=>{ const dc = defCalc(); return `<div class="formula def"><div class="fl">守備力の計算</div><div class="fsym">${dc.sym}</div><div class="fval">${dc.val}</div><b>= ${fmt(dc.final)}</b><div class="bd">${dc.bd}</div></div>`; })() : ''}
+      <div class="formula"><div class="fl">計算式（1回あたり）</div><div class="fsym">${r.sym}</div><div class="fval">${r.val}</div><b>= ${fmt(r.per)}</b>${r.hits>1?`　× ${r.hits}回 = <b>${fmt(total)}</b>`:''}<div class="fn">${r.note}同じ色の帯どうしが対応しています。小数点以下は切り捨て。</div></div>`;
+    $('tabdmg_'+r.m.id).textContent = fmt(total) + (r.hits>1 ? `（${fmt(r.per)}×${r.hits}）` : '');
+  });
+  $('overview').innerHTML = `<div style="overflow-x:auto"><table class="res">
+    <thead><tr><th>わざ</th><th>1回</th><th>回数</th><th>合計</th><th>HP判定</th></tr></thead>
+    <tbody>${rs.map(r=>{ const [t,c] = TYPE[r.m.type];
+      return `<tr data-open="${r.m.id}"><td><span class="type ${c}">${t}</span>${r.m.name}</td><td>${fmt(r.per)}</td><td>×${r.hits}</td><td class="tot">${fmt(r.per*r.hits)}</td><td>${judge(r,false)}</td></tr>`; }).join('')}</tbody></table></div>`;
+  const worst = rs.filter(r=>r.per*r.hits >= hpNow()).length;
+  $('tabdmg_all').textContent = hpNow()>0 ? `倒れるわざ ${worst}/${rs.length}` : '';
+}
+$('overview').addEventListener('click', e=>{ const tr = e.target.closest('tr[data-open]'); if (tr) openTab(tr.dataset.open); });
+
+function onEdit(e){
+  const el = e.target, k = el.dataset && el.dataset.key;
+  if (!k) return;
+  S[k] = el.type==='checkbox' ? el.checked : el.value;
+  syncKey(k, el);
+  update();
+}
+document.addEventListener('input', onEdit);
+document.addEventListener('change', onEdit);
+
+let first = 'all';
+try{ const t = localStorage.getItem('dogdora-tab'); if (t && TABS.some(x=>x.id===t)) first = t; }catch(e){}
+update();
+openTab(first);
+</script>
+</body>
+</html>
