@@ -164,6 +164,15 @@ const ELEM = {
   dark:['闇', [['鉄壁の闇耐性','teppekiDark'], ['装備の闇耐性','resDark']]],
 };
 
+// ===== 職業ごとの素のみのまもり =====
+// [id, 職業, レベル, みのまもり, 仮の値か]  ※値がわかったらここを書き換える
+const JOBS = [
+  ['ranger',  'レンジャー', 143, 330, true],
+  ['mahosen', '魔法戦士',   143, 370, true],
+  ['mamono',  'まもの使い', 143, 253, true],
+];
+const jobOf = id => JOBS.find(j=>j[0]===id);
+
 // ===== 設定項目（上部とタブ内で共有） =====
 const LV = (label, step, unit, sign='') => ({label, kind:'lv', step, unit, sign, def:'0'});
 const CTRL = {
@@ -177,7 +186,8 @@ const CTRL = {
   atk:{label:'ドグドラの攻撃力', kind:'num', def:1700},
   defMode:{label:'守備力の入れ方', kind:'sel', def:'calc', opts:[['calc','内訳から計算する'],['direct','最終的な守備力を直接入れる']]},
   def:{label:'最終的な守備力（この値をそのまま使います）', kind:'num', def:600},
-  mmBase:{label:'職業・レベルの基本みのまもり', kind:'num', def:300},
+  job:{label:'職業・レベル', kind:'sel', def:'manual', opts:[...JOBS.map(([id,n,lv,mm,tmp])=>[id, `${n} Lv${lv}（みのまもり ${mm}${tmp?'・仮':''}）`]), ['manual','手入力']]},
+  mmBase:{label:'職業・レベルの素のみのまもり', kind:'num', def:300},
   mmSkill:{label:'職業スキル（パッシブ）のみのまもり＋', kind:'num', def:0},
   kotetsu:LV('宝珠「鋼鉄の肉体」（みのまもり＋）', 5, ''),
   mmSeed:{label:'まもりのたね', kind:'num', def:0},
@@ -220,7 +230,7 @@ MOVES.forEach(m=>{
 });
 
 const DEF_KEYS = ['defMode','def',
-  '#h:みのまもり（スカラが掛かる）','mmBase','mmSkill','kotetsu','mmSeed','mmMegami','mmOther',
+  '#h:みのまもり（スカラが掛かる）','job','mmBase','mmSkill','kotetsu','mmSeed','mmMegami','mmOther',
   '#h:防具の基礎守備力（できのよさ込み・錬金は除く／スカラが掛かる）','eqHead','eqBodyU','eqBodyL','eqArm','eqFoot','eqShield','eqAcc',
   '#h:あとから足す分（スカラが掛からない）','shieldSkill','renkin','food','defPlus','#out'];
 const MM_KEYS = ['mmBase','mmSkill','kotetsu','mmSeed','mmMegami','mmOther'];
@@ -310,7 +320,9 @@ function defCalc(){
   const names = {shieldSkill:'盾スキル', renkin:'錬金・合成', food:'料理', defPlus:'その他守備力＋'};
   ADD_KEYS.forEach(k=>{ const v = num(k); if (!v) return; const [a,b] = K(names[k], v); sym += '＋'+a; val += '+'+b; });
   const final = Math.floor((mm+eq)*(1+scala) + 1e-6) + sum(ADD_KEYS);
-  const lbl = k => k==='kotetsu' ? lvName('kotetsu','鋼鉄の肉体') : CTRL[k].label.replace(/（.*/,'');
+  const lbl = k => k==='kotetsu' ? lvName('kotetsu','鋼鉄の肉体')
+    : (k==='mmBase' && jobOf(S.job)) ? jobOf(S.job)[1]+'Lv'+jobOf(S.job)[2]
+    : CTRL[k].label.replace(/（.*/,'');
   const parts = ks => ks.filter(k=>num(k)).map(k=>`${lbl(k)} ${num(k)}`).join('＋') || '0';
   const bd = `みのまもり ${mm} ＝ ${parts(MM_KEYS)}<br>防具の基礎守備力 ${eq} ＝ ${parts(EQ_KEYS)}`;
   return {final, sym, val, bd};
@@ -497,6 +509,8 @@ function onEdit(e){
   if (!k) return;
   S[k] = el.type==='checkbox' ? el.checked : el.value;
   syncKey(k, el);
+  if (k==='job' && jobOf(S.job)){ S.mmBase = jobOf(S.job)[3]; syncKey('mmBase', el); }
+  if (k==='mmBase' && jobOf(S.job) && num('mmBase')!==jobOf(S.job)[3]){ S.job = 'manual'; syncKey('job', el); }
   update();
 }
 document.addEventListener('input', onEdit);
