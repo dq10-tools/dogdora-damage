@@ -1939,6 +1939,30 @@ document.addEventListener('click', e=>{
 document.addEventListener('input', onEdit);
 document.addEventListener('change', onEdit);
 
+// スマホの選択肢一覧は、画面の端で単語の途中でも折り返す（例：「ラストチョーカー（攻 / 30）」）
+//   → 名前・（…）・★… の切れ目でだけ折り返すように、ひとかたまりの中の文字を WORD JOINER（U+2060）でつなぐ
+//   開く直前に、その選択欄の選択肢だけを書き換える。選択肢の文字は計算に使っていない（値は value で読む）
+const WJ = '\u2060';
+function wjText(t){   // 切れ目：（ の前・） の後・★ の前・カッコの外の空白。カッコの中の空白は改行しない空白にする
+  const segs = []; let cur = '', depth = 0;
+  for (const ch of t){
+    if ((ch==='（' || ch==='(' || (ch==='★' && !depth)) && cur){ segs.push(cur); cur = ''; }
+    if (ch===' ' && !depth){ if (cur) segs.push(cur); segs.push(' '); cur = ''; continue; }
+    cur += ch===' ' ? ' ' : ch;
+    if (ch==='（' || ch==='(') depth++;
+    if ((ch==='）' || ch===')') && depth){ depth--; if (!depth){ segs.push(cur); cur = ''; } }
+  }
+  if (cur) segs.push(cur);
+  return segs.map(x=>x===' ' ? x : [...x].join(WJ)).join('');
+}
+function wjSelect(sel){
+  if (!sel || sel.tagName!=='SELECT') return;
+  sel.querySelectorAll('option').forEach(o=>{ if (o.dataset.wj===o.textContent) return;
+    o.textContent = wjText(o.textContent.replaceAll(WJ, '')); o.dataset.wj = o.textContent; });
+}
+if (matchMedia('(pointer:coarse)').matches)
+  ['pointerdown','focusin'].forEach(ev=>document.addEventListener(ev, e=>wjSelect(e.target.closest && e.target.closest('select')), true));
+
 let first = 'all';
 try{ const t = localStorage.getItem('dogdora-tab'); if (t && TABS.some(x=>x.id===t)) first = t; }catch(e){}
 update();
