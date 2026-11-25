@@ -3,23 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ドグドラ被ダメ計算</title>
+<title>ドグドラダメージ計算</title>
 <style>
 :root{
   --bg:#f5f3ef; --panel:#ffffff; --ink:#1f1d1a; --sub:#6b665e; --line:#e2ddd4;
-  --accent:#7a3fb8; --accent-soft:#efe6f8; --phys:#b5532a; --spell:#2a63b5; --breath:#4a2f6e; --other:#5f6b2a;
+  --accent:#7a3fb8; --accent-soft:#efe6f8; --phys:#b5532a; --spell:#2a63b5; --breath:#4a2f6e; --other:#5f6b2a; --mdef:#2f7d6d; --matk:#c2510c;
   --ok:#2f7d4a; --danger:#b3261e; --dim:.42;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --bg:#16151a; --panel:#211f27; --ink:#ece9f1; --sub:#a39ead; --line:#35323d;
-    --accent:#b48be6; --accent-soft:#2e2540; --phys:#e48a5f; --spell:#78a6ee; --breath:#b394e0; --other:#b8c46c;
+    --accent:#b48be6; --accent-soft:#2e2540; --phys:#e48a5f; --spell:#78a6ee; --breath:#b394e0; --other:#b8c46c; --mdef:#5fc7b0; --matk:#f08a5d;
     --ok:#6fcf8f; --danger:#ff8a80;
   }
 }
 :root[data-theme="dark"]{
   --bg:#16151a; --panel:#211f27; --ink:#ece9f1; --sub:#a39ead; --line:#35323d;
-  --accent:#b48be6; --accent-soft:#2e2540; --phys:#e48a5f; --spell:#78a6ee; --breath:#b394e0; --other:#b8c46c;
+  --accent:#b48be6; --accent-soft:#2e2540; --phys:#e48a5f; --spell:#78a6ee; --breath:#b394e0; --other:#b8c46c; --mdef:#5fc7b0; --matk:#f08a5d;
   --ok:#6fcf8f; --danger:#ff8a80;
 }
 *{box-sizing:border-box}
@@ -63,7 +63,7 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;flex:none
 .phead h2{font-size:20px;margin:0}
 .phead .meta{color:var(--sub);font-size:13px}
 .pgrid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:20px;align-items:start}
-.pgrid>[id^=res_]{position:sticky;top:12px}
+.pgrid>[id^=res_]{position:sticky;top:64px}
 @media (max-width:860px){.pgrid{grid-template-columns:minmax(0,1fr)}.pgrid>[id^=res_]{position:static}}
 .pctrl{border:1px dashed var(--line);border-radius:10px;padding:12px}
 .pctrl>h3{font-size:13px;margin:0 0 2px}
@@ -71,6 +71,185 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;flex:none
 .pctrl .grp{border-top:1px solid var(--line);padding-top:8px;margin-top:4px}
 .pctrl .grp:first-of-type{border-top:0;padding-top:0}
 .pctrl .grp h4{font-size:12px;margin:0 0 4px;color:var(--sub)}
+.pctrl .grprow{display:flex;gap:0 12px;border-top:1px solid var(--line);padding-top:8px;margin-top:4px}
+.pctrl .grprow .grp{border-top:0;padding-top:0;margin-top:0;flex:1 1 0;min-width:0;display:block}
+.pctrl .grprow select{width:100%;max-width:100%}
+.restree{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px;align-items:start}
+.pctrl .restree{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+.pctrl .resitems{padding-left:10px}
+.rescat{border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.rescat>summary{cursor:pointer;padding:5px 10px;font-size:13px;font-weight:700;list-style:none;display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+.rescat>summary::-webkit-details-marker{display:none}
+.rescat>summary::before{content:"▸";color:var(--sub);font-size:11px;transition:transform .15s}
+.rescat[open]>summary::before{transform:rotate(90deg)}
+.rescat>summary small{font-weight:400;color:var(--sub);font-size:11px}
+.rescat.has>summary small{color:var(--accent);font-weight:700}
+.resitems{padding:0 10px 4px 22px}
+/* 項目を半分の幅で詰めて並べる */
+.sbox,.pctrl .grp,.resitems,.sbox.wide .cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0 10px;align-items:end;align-content:start}
+.sbox>h3,.pctrl .grp>h4,h5.subh,.defout,label.row,.restree,.sbox.wide .cols,.hint{grid-column:1/-1}
+.field{font-size:11px;line-height:1.35}
+.sbox.wide.full,.sgrid>.sbox{grid-column:1/-1}
+.rowbr{grid-column:1/-1;height:0}
+.equip{grid-column:1/-1;min-width:0}
+.eqtop{margin-bottom:6px;max-width:420px}
+.eqwrap{overflow-x:auto;container-type:inline-size}
+.eqtbl{width:100%;border-collapse:collapse;font-size:12px}
+.eqtbl th,.eqtbl td{border:1px solid var(--line);padding:3px 5px;vertical-align:top}
+.eqtbl thead th{background:color-mix(in srgb,var(--ink) 6%,transparent);font-size:11px;text-align:center}
+.eqtbl tbody th{white-space:nowrap;font-size:11.5px;text-align:center;vertical-align:middle;width:1%}
+.eqtbl tr.k-armor th{background:color-mix(in srgb,var(--phys) 14%,transparent)}
+.eqtbl tr.k-shield th,.eqtbl tr.k-weapon th{background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.eqtbl tr.k-acc th{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.eqtbl td.eqsel{min-width:150px}
+.eqtbl td.eqsel select,.eqtbl td.eqsel input[type=text]{font-size:12px;padding:2px 4px;width:100%}
+.eqtbl td.eqsel,.eqtbl td.eqdef{vertical-align:middle}
+.eqtbl td.eqdef{width:58px}
+.eqtbl td.eqdef input{font-size:12px;padding:2px 4px;width:56px}
+.eqtbl td.eqal{width:220px;min-width:210px}
+.eqfx{font-size:10.5px;color:var(--sub);line-height:1.3}
+.fxtag{display:inline-block;margin:2px 4px 0 0;padding:0 5px;border-radius:4px;font-size:10.5px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--ink)}
+.fxtag.o{background:color-mix(in srgb,var(--ink) 7%,transparent);color:var(--sub)}
+.eqtbl input[type=text]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px}
+.row2{display:flex;gap:4px;align-items:center;font-size:11px;margin-top:2px}
+.al>.alrow:first-child{margin-top:0}
+.al>[data-aldash][hidden]+.alrow{margin-top:0}
+.alrow{display:flex;gap:3px;margin-top:3px}
+.alrow select{font-size:11px;padding:1px 2px;flex:1;min-width:100px}
+.alrow input{font-size:11px;padding:1px 3px;width:44px}
+.almax{font:inherit;font-size:10.5px;padding:0 5px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);cursor:pointer}
+.almax:disabled{opacity:.4;cursor:default}
+.alden{padding-top:4px;margin-top:4px;border-top:1px dashed var(--line);align-items:center}
+.alden[hidden]{display:none}
+.alden .denlab{font-size:10.5px;color:var(--sub);white-space:nowrap;width:52px}
+.alrow[hidden]{display:none}
+.beltnote{flex:1;font-size:10.5px;color:var(--sub);align-self:center}
+[data-beltmax]{align-self:center;white-space:nowrap;padding:1px 6px}
+.onenote{font-size:10.5px;color:var(--sub);margin-top:3px}
+.alrow input:disabled{opacity:.4}
+.alrow select[hidden],.alfix[hidden],.onenote[hidden]{display:none}
+.alfix{flex:1;min-width:100px;font-size:11px;align-self:center;padding:1px 4px}
+.elnote{padding-top:4px;margin-top:4px;border-top:1px dashed var(--line)}
+.nodefnote{font-size:10.5px;color:var(--sub);margin-top:2px}
+.nodefnote[hidden]{display:none}
+.eqtbl tr.nodef>th,.eqtbl tr.nodef>td{background:color-mix(in srgb,var(--ink) 9%,var(--panel));color:var(--sub)}
+.eqtbl tr.nodef select,.eqtbl tr.nodef input{opacity:.65}
+.eqtbl tr.nodef select:disabled,.eqtbl tr.nodef input:disabled{opacity:.5;cursor:not-allowed}
+.eqtbl .alrow.offfx{background:color-mix(in srgb,var(--ink) 9%,var(--panel));border-radius:4px;color:var(--sub)}
+.eqtbl .alrow.offfx select,.eqtbl .alrow.offfx input,.eqtbl .alrow.offfx .almax{opacity:.65}
+.eqtbl .alrow.offfx .alfix,.heartfx .offfx{color:var(--sub)}
+.heartfx .offfx{background:color-mix(in srgb,var(--ink) 9%,var(--panel));border-radius:4px}
+.heartsel{display:flex;gap:3px}
+.eqtbl td.eqsel .heartsel select{flex:1;min-width:0;width:0}
+.eqtbl td.eqsel .heartsel select[data-key="heartLv"]{flex:none;width:58px}
+.heartsel select[hidden],.heartfx[hidden]{display:none}
+.heartfx{font-size:11px;padding:1px 4px;line-height:1.7}
+.albulk{padding-bottom:4px;margin-bottom:2px;border-bottom:1px dashed var(--line)}
+.albulk .albulklab{font-size:10.5px;color:var(--sub);width:44px;text-align:center;align-self:center}
+.kgrp{grid-column:1/-1;margin:8px 0 4px;padding:6px 10px 4px 14px;border-left:4px solid var(--phys);border-radius:0 8px 8px 0;background:color-mix(in srgb,var(--phys) 6%,transparent)}
+.kgrp>h5.subh{border:0;padding:0;margin:0 0 6px;font-size:12.5px;color:var(--phys)}
+.kgrp2{grid-column:1/-1;margin:2px 0 8px 14px;padding:4px 10px;border-left:2px dashed color-mix(in srgb,var(--phys) 45%,transparent);background:var(--panel);border-radius:0 6px 6px 0}
+.subh2{font-size:11.5px;margin:0 0 4px;color:var(--ink)}
+.kgrp2 .psum{margin-bottom:2px}
+.restree{display:block}
+.kgrp.resgrp{border-left-color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,transparent)}
+.resgrp .cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0 10px;align-items:end}
+.resgrp input[type=number],.resgrp select{background:var(--panel)}
+label.row[data-wrap^="ps_"]{grid-column:auto;font-size:12px;padding-bottom:4px}
+.flatrow{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr) minmax(0,.8fr);gap:0 4px;align-items:end}
+.foodrow{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:0 8px;align-items:end}
+.flatrow .field,.foodrow .field{min-width:0}
+.flatrow select,.flatrow input[type=number],.foodrow select{height:32px;padding:4px;font-size:13px}
+.flatrow select{padding:4px 1px;font-size:12px}
+.chkbox{display:flex;align-items:center;gap:3px;height:32px;padding:4px;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;white-space:nowrap;cursor:pointer}
+.foodfx{grid-column:1/-1;font-size:12px;font-weight:700;line-height:1.5}
+.foodfx span{display:block;font-weight:400;font-size:11px;color:var(--sub)}
+.flatsum{grid-column:1/-1;margin-top:6px;font-size:12px;line-height:1.5;display:grid;grid-template-columns:max-content minmax(0,max-content) max-content;width:fit-content;max-width:100%}
+.flatsum div{display:contents}
+.flatsum i,.flatsum em,.flatsum b{padding:3px 6px 3px 2px;border-bottom:1px solid var(--line);font-style:normal}
+.flatsum i{color:var(--sub)}
+.flatsum em{min-width:0;overflow-wrap:anywhere;padding-right:14px}
+.flatsum b{text-align:right;font-variant-numeric:tabular-nums}
+.flatsum .zero em,.flatsum .zero b{color:var(--sub);font-weight:400}
+.flatsum .total>*{border-bottom:0;font-size:14px;font-weight:700}
+.flatsum .total i{color:inherit}
+.flatsum .total em{font-size:11px;font-weight:400;color:var(--sub);align-self:center}
+.psum{grid-column:1/-1;font-size:12px;font-weight:700;margin-bottom:6px}
+.shfx{grid-column:span 2;font-size:11px;color:var(--sub);align-self:center}
+[data-wrap="armorSet"],[data-wrap="shieldSel"]{grid-column:span 2}
+/* 1ページ目：設定（左に装備・右にそのほか） ／ 2ページ目：ダメージ計算（被ダメ・与ダメをタブで切り替え） */
+.wrap{max-width:1560px}
+.pagettl{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:18px;margin:18px 0 10px}
+.pagettl small{font-size:12px;font-weight:normal;color:var(--sub)}
+.pno{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:14px;flex:none;align-self:center}
+.totbox{margin-top:16px;background:var(--panel);border:1px solid color-mix(in srgb,var(--ink) 14%,var(--line));border-top:3px solid var(--tc);border-radius:12px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.totbox>h3{font-size:14px;margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.totbox>h3 small{font-weight:400;font-size:11px;color:var(--sub)}
+.totgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(108px,calc(50% - 4px)),1fr));gap:8px}
+.totcard{padding:2px 4px}
+.totcard h4{font-size:12px;margin:0 0 2px;color:var(--sub);font-weight:700;line-height:1.35}
+.totbig{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.3}
+.totbig small{font-size:11px;font-weight:400;color:var(--sub);margin-left:2px}
+.totcard.zero .totbig{color:var(--sub);font-weight:400}
+.secpair{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch}
+.secpair>.sbox{flex:1 1 250px;min-width:0}
+.secpair>.sbox:first-child{flex-basis:300px}
+.setcols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.setcols .scol{grid-template-columns:minmax(0,1fr);padding:0}
+/* 1ページ目の各欄（装備・守備力・攻撃など）は、背景と分かれるように白い紙にする */
+.setcols .sbox{background:var(--panel);border-color:color-mix(in srgb,var(--ink) 14%,var(--line));border-radius:12px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.setcols .sbox>h3{font-size:14px;padding-bottom:6px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+.page2{margin-top:28px;padding-top:6px;border-top:2px solid var(--line)}
+/* 左上のハンバーガーメニュー */
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;height:52px;padding:0 10px;background:var(--panel);border-bottom:3px solid var(--tc,var(--mdef))}
+.menubtn{flex:none;width:44px;height:44px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:0;border:0;border-radius:8px;background:none;cursor:pointer}
+.menubtn:hover,.menubtn[aria-expanded=true]{background:color-mix(in srgb,var(--ink) 9%,transparent)}
+.menubtn span{display:block;width:22px;height:2px;border-radius:2px;background:var(--ink)}
+.toptitle{font-size:13px;color:var(--sub);white-space:nowrap}
+.toptitle b{margin-left:8px;font-size:16px;color:var(--tc,var(--mdef))}
+.scrim{position:fixed;inset:52px 0 0;z-index:28;background:rgba(0,0,0,.35)}
+.menu{position:fixed;top:52px;bottom:0;left:0;z-index:29;width:min(280px,82vw);padding:12px;overflow:auto;background:var(--panel);box-shadow:3px 0 12px rgba(0,0,0,.18)}
+.scrim[hidden],.menu[hidden],main[hidden]{display:none}
+.menu a{display:block;margin-bottom:8px;padding:10px 14px;border:1px solid var(--line);border-left:5px solid var(--tc);border-radius:6px;color:var(--ink);text-decoration:none;font-size:15px;font-weight:700}
+.menu a small{display:block;font-size:11px;font-weight:normal;color:var(--sub)}
+.menu a:hover,.menu a[aria-current=page]{background:color-mix(in srgb,var(--tc) 14%,var(--panel))}
+.menu a[aria-current=page]{border-color:var(--tc)}
+main[data-page] .pno{background:var(--tc)}
+.savestate{margin-left:auto;font-size:11px;color:var(--sub);white-space:nowrap}
+.savestate.bad{color:var(--danger);font-weight:700}
+.menufoot{margin-top:24px;padding-top:12px;border-top:1px solid var(--line)}
+.menufoot p{margin:0 0 8px;font-size:11px;color:var(--sub)}
+.menufoot button{font:inherit;font-size:12px;padding:8px 10px;margin:0 4px 4px 0;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+.menufoot button.danger,.menufoot b{color:var(--danger)}
+.menufoot button.danger{border-color:var(--danger)}
+.menufoot [hidden]{display:none}
+/* 付箋つきのノート：付箋（タブ）がノート（下の枠）の上に貼ってあり、選んだ付箋だけ手前に出て、同じ色のページとつながる
+   --tc＝付箋の色、--pg＝その付箋のページの色（付箋の色をうすく） */
+.calc .tabs{display:flex;flex-wrap:wrap;gap:2px 4px;padding:0 14px;overflow:visible;align-items:flex-end;margin-bottom:-1px}
+.calc .tab{--pg:color-mix(in srgb,var(--tc) 8%,var(--panel));position:relative;z-index:0;flex:none;font:inherit;font-size:13px;color:var(--ink);cursor:pointer;text-align:left;line-height:1.35;padding:6px 12px 10px;
+  background:color-mix(in srgb,var(--tc) 18%,var(--panel));border:1px solid color-mix(in srgb,var(--tc) 40%,var(--line));border-bottom:none;border-top:4px solid color-mix(in srgb,var(--tc) 70%,var(--panel));
+  border-radius:3px 3px 0 0;box-shadow:1px -1px 3px rgba(0,0,0,.08);transform:translateY(6px);transition:transform .12s}
+.calc .tab:hover{transform:translateY(2px)}
+.calc .tab[aria-selected=true]{z-index:3;transform:none;background:var(--pg);border-color:var(--tc);border-top:5px solid var(--tc);box-shadow:none;padding-bottom:12px;font-weight:700}
+.calc .tab[aria-selected=true]::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:3px;background:var(--pg)}
+/* ページ（ノートの紙）。色は今選んでいる付箋と同じ */
+.calc .panelbox{--pg:color-mix(in srgb,var(--tc) 8%,var(--panel));position:relative;z-index:1;margin:0 0 24px;background:var(--pg);border:1px solid var(--tc);border-radius:4px 14px 14px 14px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+/* 色つきのページの上でも見分けやすいように、計算式と「このわざに関係する設定」の枠は白い紙にする */
+.calc .panelbox .formula{background:var(--panel);border-color:color-mix(in srgb,var(--tc) 30%,var(--line));box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.calc .panelbox .pctrl{background:var(--panel);border:1px solid color-mix(in srgb,var(--tc) 30%,var(--line));box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.who{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 8px;font-size:12px}
+.who[hidden]{display:none}
+.who button{font:inherit;font-size:13px;padding:6px 14px;border:1px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink);cursor:pointer}
+.who button[aria-pressed=true]{border:2px solid var(--tc);font-weight:700}
+.memnote{margin:0 0 10px;font-size:12px;color:var(--sub)}
+/* スマホ幅では4人のタブを2×2に */
+@media (max-width:600px){#memTabs{display:grid;grid-template-columns:1fr 1fr;padding:0 6px}#memPanel{padding:12px 8px}}
+.soon{border:1px dashed var(--line);border-radius:12px;padding:16px 18px;background:var(--panel)}
+.soon h3{margin:0 0 6px;font-size:15px}
+.soon p,.soon li{font-size:13px}
+.soon .sub{color:var(--sub);font-size:12px}
+@media (max-width:1000px){.setcols{grid-template-columns:minmax(0,1fr)}}
+.rescat input[type=number],.rescat select{background:var(--panel);border-color:color-mix(in srgb,var(--line),var(--ink) 18%)}
 
 .big{font-size:46px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
 .big small{font-size:16px;font-weight:600;color:var(--sub)}
@@ -101,37 +280,109 @@ table.res tbody tr:hover{background:var(--accent-soft)}
 h5.subh{font-size:11px;margin:8px 0 4px;color:var(--ink);border-left:3px solid var(--phys);padding-left:6px}
 .sbox.wide{grid-column:span 2}
 @media (max-width:640px){.sbox.wide{grid-column:auto}}
-.sbox.wide .cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0 14px}
+.sbox.wide .cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0 10px}
 .defout{margin:6px 0 4px;padding:6px 10px;border-radius:8px;background:color-mix(in srgb,var(--phys) 12%,transparent);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
 .defout small{font-weight:400;color:var(--sub);font-size:11px;display:block}
 [data-wrap].hide{display:none}
+[data-wrap].off{opacity:.45}
+.shsub{font-weight:normal;color:var(--sub);font-size:11px}
 .formula.def{margin-top:10px}
 .formula .bd{font-size:11px;color:var(--sub);font-family:inherit;margin-top:2px}
 
 footer{color:var(--sub);font-size:12px;padding-bottom:32px}
 footer a{color:var(--accent)}
+/* 装備表が4列で入らない幅（画面幅ではなく表の幅で判定。2列表示の途中の幅でも狭くなるため）：
+   1行目に装備と基礎守備、2行目に錬金・合成を置いて、横スクロールなしにする */
+@container (max-width:540px){
+  .eqtbl,.eqtbl thead,.eqtbl tbody{display:block;width:100%}
+  .eqtbl tr{display:grid;grid-template-columns:58px minmax(0,1fr) 62px;border:1px solid var(--line)}
+  .eqtbl tr+tr,.eqtbl tbody>tr:first-child{border-top:0}
+  .eqtbl tr>th,.eqtbl tr>td{border:0;min-width:0}
+  .eqtbl tr>:nth-child(1){grid-column:1;grid-row:1/3;width:auto;white-space:normal;word-break:keep-all;overflow-wrap:anywhere;display:grid;place-content:center;padding:3px 2px;border-right:1px solid var(--line)}
+  .eqtbl tr>:nth-child(2){grid-column:2;grid-row:1;align-self:center}
+  .eqtbl tr>:nth-child(3){grid-column:3;grid-row:1;align-self:center;width:auto;padding-left:0}
+  .eqtbl tr>:nth-child(4){grid-column:2/4;grid-row:2;width:auto}
+  .eqtbl td.eqsel,.eqtbl td.eqal{min-width:0}
+  .eqtbl td.eqdef input{width:100%}
+  .eqtbl thead tr>th:nth-child(n){align-self:stretch}
+  .eqtbl tr.nodef{background:color-mix(in srgb,var(--ink) 9%,var(--panel))}
+  .eqtbl tr.nodef>td{background:none}
+  .eqtbl th>.nb{display:block}
+  .alrow select,.alfix,.beltnote{min-width:0}
+  .heartsel{flex-wrap:wrap}
+  .eqtbl td.eqsel .heartsel select[data-key="acc_heart"]{flex:1 1 100px}
+}
+/* ===== 余白を詰める：入力欄は中身の幅にする（装備表の中は除く） ===== */
+main .field select{width:auto;max-width:100%;align-self:flex-start}
+main .field input[type=number]{width:7.5em;max-width:100%;align-self:flex-start}
+.flatrow,.foodrow{display:flex;flex-wrap:nowrap;gap:4px 8px;align-items:flex-end}
+.flatrow{flex-wrap:wrap}
+.flatrow .field,.foodrow .field{flex:0 1 auto;min-width:0;margin-bottom:0}
+.flatrow .field>*,.foodrow .field>*{max-width:100%}
+.flatrow input[type=number]{width:4.5em;min-width:2.8em}
+.flatrow .field:not(:last-child),.foodrow .field:last-child{flex:none}
+.flatrow{gap:4px 6px}
+.sbox .resgrp .cols{display:flex;flex-wrap:wrap;gap:0 12px}
+/* 錬金・合成の効果名 */
+.alfix{flex:0 1 auto;margin-right:auto;padding:1px 8px;border-radius:5px;font-weight:700;color:var(--ink);background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.alfix[data-fx=atk]{background:color-mix(in srgb,var(--matk) 22%,transparent)}
+.alfix[data-fx=def]{background:color-mix(in srgb,var(--mdef) 22%,transparent)}
+.eqtbl .alrow.offfx .alfix{background:color-mix(in srgb,var(--ink) 10%,transparent);color:var(--sub);font-weight:400}
 </style>
 </head>
 <body>
+<div class="topbar">
+  <button type="button" class="menubtn" id="menuBtn" aria-label="メニュー" aria-expanded="false" aria-controls="menu"><span></span><span></span><span></span></button>
+  <span class="toptitle">輝晶獣ドグドラ<b id="topPage">被ダメージ</b></span>
+  <span class="savestate" id="saveState" role="status"></span>
+</div>
+<div class="scrim" id="scrim" hidden></div>
+<nav class="menu" id="menu" aria-label="ページの切り替え" hidden>
+  <a href="#def" data-nav="def" style="--tc:var(--mdef)">被ダメージ<small>ドグドラから受けるダメージ</small></a>
+  <a href="#atk" data-nav="atk" style="--tc:var(--matk)">与ダメージ<small>ドグドラに与えるダメージ</small></a>
+  <div class="menufoot">
+    <p>入力は、このブラウザに自動保存されます。</p>
+    <button type="button" id="resetBtn">入力をすべて初期値に戻す</button>
+    <div id="resetAsk" hidden>
+      <p><b>被ダメージと4人分の入力がすべて消えます。元に戻せません。</b></p>
+      <button type="button" id="resetYes" class="danger">初期値に戻す</button>
+      <button type="button" id="resetNo">やめる</button>
+    </div>
+  </div>
+</nav>
+
 <div class="wrap">
+<main data-page="def" style="--tc:var(--mdef)">
 <header>
   <h1>輝晶獣ドグドラ 被ダメージ計算</h1>
-  <p>上でまとめて宝珠・耐性を選び、下のタブでわざごとのダメージと計算式を見ます。タブの中の設定は上と連動しています。数値は攻略サイトの目安値です（下に出典）。</p>
+  <p>「1 設定」で装備・宝珠・耐性・守備力などを入れ、下の「2 被ダメージ計算」でわざごとに見ます。わざのタブの中の設定は、上の設定と連動しています。数値は攻略サイトの目安値です（下に出典）。</p>
 </header>
 
-<details class="settings" open>
-  <summary>まとめて設定（宝珠・耐性・補助など）<small>ここで変えると全タブに反映されます</small></summary>
-  <div class="sgrid" id="settings"></div>
-</details>
+<section class="page1 calc" aria-labelledby="h_set">
+  <h2 class="pagettl" id="h_set"><span class="pno">1</span>設定<small>装備・守備力・宝珠・耐性など。職業タブごとに設定でき、開いているタブの設定で下の計算をします</small></h2>
+  <div class="tabs" role="tablist" id="jobTabs" aria-label="職業"></div>
+  <div class="panelbox" id="jobPanel">
+    <div class="who" id="jobWho" hidden></div>
+    <p class="memnote" id="jobNote"></p>
+    <div class="setcols">
+      <div class="sgrid scol" id="settingsL"></div>
+      <div class="sgrid scol" id="settingsR"></div>
+    </div>
+    <div class="totbox" id="defTotal"></div>
+  </div>
+</section>
 
-<div class="tabs" role="tablist" id="tabs"></div>
-<div class="panelbox" id="panels"></div>
+<section class="page2 calc" aria-labelledby="h_calc">
+  <h2 class="pagettl" id="h_calc"><span class="pno">2</span>被ダメージ計算</h2>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="panelbox" id="panels"></div>
+</section>
 
 <footer>
   <p><b>計算式（攻略サイトの検証による）</b><br>
-  割合軽減 = 1 −（1 − 構え）×（1 − 魔結界・フバーハなどの状態変化）＋ やいばの極意 ＋ 宝珠・装備の呪文/ブレス耐性 ＋ ファランクスなど（100%が上限）<br>
-  1回のダメージ = 基礎ダメージ ×（1 − 割合軽減）×（1 − 属性耐性）− 固定軽減（属性耐性は宝珠と装備を足してから掛ける）</p>
-  <p>わざの数値は通常戦闘の目安です。竜閃砲と救われぬ死魂は守備力無視の攻撃として、守備力・スカラ・呪文/ブレス耐性の影響を受けず、構え・ファランクスなどの割合軽減と固定軽減だけが効く形で計算しています。ダメージはすべて最大値で計算します（物理はダメージのゆれの最大、ほかのわざは攻略情報の最大値。救われぬ死魂はDQ10大辞典の「最大475」）。元のダメージと回数は各タブで変えられます。</p>
+  割合軽減 = 1 −（1 − 構え）×（1 − 魔結界・フバーハなどの状態変化）＋ やいばの極意 ＋ 宝珠・装備の呪文/ブレス耐性（100%が上限）<br>
+  1回のダメージ = 基礎ダメージ ×（1 − 割合軽減）×（1 − 属性耐性）− 被ダメージ軽減（属性耐性は宝珠と装備を足してから掛ける）</p>
+  <p>わざの数値は通常戦闘の目安です。竜閃砲と救われぬ死魂は守備力無視の攻撃として、守備力・スカラ・呪文/ブレス耐性の影響を受けず、構えなどの割合軽減と被ダメージ軽減だけが効く形で計算しています。ダメージはすべて最大値で計算します（物理はダメージのゆれの最大、ほかのわざは攻略情報の最大値。救われぬ死魂はDQ10大辞典の「最大475」）。元のダメージと回数は各タブで変えられます。</p>
   <p>出典：
   <a href="https://mazigappo.jp/e/dq10-kisyouzyu-dogdra" target="_blank" rel="noopener">マジガッポ</a> ／
   <a href="https://wikiwiki.jp/dq10dic2nd/%E3%80%90%E8%BC%9D%E6%99%B6%E7%8D%A3%E3%83%89%E3%82%B0%E3%83%89%E3%83%A9%E3%80%91" target="_blank" rel="noopener">DQ10大辞典（ドグドラ）</a> ／
@@ -142,8 +393,45 @@ footer a{color:var(--accent)}
   <a href="https://wikiwiki.jp/dq10dic2nd/%E3%80%90%E3%82%84%E3%81%84%E3%81%B0%E3%81%AE%E3%81%BC%E3%81%86%E3%81%8E%E3%82%87%E3%80%91" target="_blank" rel="noopener">DQ10大辞典（やいばのぼうぎょ）</a> ／
   <a href="https://xn--10-yg4a1a3kyh.jp/a_hojyu/dq10_hojyu_k_teppekinokogekijumontaisei.html" target="_blank" rel="noopener">極限攻略（鉄壁系宝珠）</a> ／
   <a href="https://xn--10-yg4a1a3kyh.jp/a_hojyu/dq10_hojyu_k_utaremeijin.html" target="_blank" rel="noopener">極限攻略（打たれ名人）</a> ／
+  <a href="https://xn--10-yg4a1a3kyh.jp/a_hojyu/dq10_hojyu_k_kindannochikaraappu.html" target="_blank" rel="noopener">極限攻略（禁断のちからアップ）</a> ／
+  <a href="https://xn--10-yg4a1a3kyh.jp/dq10_ryouri.html" target="_blank" rel="noopener">極限攻略（料理の効果）</a> ／
+  <a href="https://gameranbu.jp/dq10/b285aee96a4d85748f5a" target="_blank" rel="noopener">ゲーム乱舞（料理の一覧）</a> ／
+  <a href="https://luckyroom.blog.jp/archives/88272823.html" target="_blank" rel="noopener">Lucky Room（Lv143のみのまもり）</a> ／
   <a href="https://yukidqx.exblog.jp/25718248/" target="_blank" rel="noopener">ダメージ計算のすべて</a></p>
 </footer>
+</main>
+
+<main data-page="atk" style="--tc:var(--matk)" hidden>
+<header>
+  <h1>輝晶獣ドグドラ 与ダメージ計算</h1>
+  <p>ドグドラに与えるダメージを計算するページです。</p>
+</header>
+
+<section class="calc" aria-labelledby="h_atkset">
+  <h2 class="pagettl" id="h_atkset"><span class="pno">1</span>設定<small>4人それぞれの装備です。被ダメージのページで同じ職業を選んだときの装備と共通です</small></h2>
+  <div class="tabs" role="tablist" id="memTabs"></div>
+  <div class="panelbox" id="memPanel">
+    <p class="memnote" id="memNote"></p>
+    <div class="setcols">
+      <div class="sgrid scol" id="memEquip"></div>
+      <div class="sgrid scol" id="settingsAtk"></div>
+    </div>
+  </div>
+</section>
+
+<section class="page2" aria-labelledby="h_atkcalc">
+  <h2 class="pagettl" id="h_atkcalc"><span class="pno">2</span>与ダメージ計算</h2>
+  <div class="soon">
+    <h3>準備中</h3>
+    <p>まもの使い1・まもの使い2・魔法戦士・レンジャーの4人で、職ごとに特技のダメージを出し、最後に4人の合計でドグドラを倒しきれるかを見られるようにする予定です。</p>
+    <ul>
+      <li>まもの使い：ビーストファング・ライガークラッシュ・ゴッドスマッシュ</li>
+      <li>レンジャー：サマーソルトクロー・ライガークラッシュ・ゴッドスマッシュ</li>
+      <li>魔法戦士：弓ならサンライトアロー・シャイニングボウ／片手剣なら不死鳥天舞・超はやぶさ斬り</li>
+    </ul>
+  </div>
+</section>
+</main>
 </div>
 
 <script>
@@ -158,116 +446,985 @@ const MOVES = [
   {id:'shikon', name:'救われぬ死魂', type:'other', base:475, hits:2, elem:null, area:'対象方向', note:'守備力無視。HP80%以下から使う。蘇生禁止30秒・攻撃力2段階低下。'},
 ];
 const TYPE = {phys:['物理','t-phys'], spell:['呪文','t-spell'], breath:['ブレス','t-breath'], other:['守備力無視','t-other']};
-const ELEM = {
-  fire:['炎', [['鉄壁の炎耐性','teppekiFire'], ['装備の炎耐性','resFire']]],
-  wind:['風', [['鉄壁の風耐性','teppekiWind'], ['装備の風耐性','resWind']]],
-  dark:['闇', [['鉄壁の闇耐性','teppekiDark'], ['装備の闇耐性','resDark']]],
-};
+const ELEM = {fire:['炎'], wind:['風'], dark:['闇']};
+
+// ===== 耐性：カテゴリー → 項目 の階層 =====
+const RES_TYPES = {spell:'攻撃呪文ダメージ減', breath:'ブレス耐性', fire:'炎ダメージ減', wind:'風ダメージ減', dark:'闇ダメージ減'};
+const RES_ALL = Object.keys(RES_TYPES);
+const JEWEL = {spell:'teppekiSpell', breath:'teppekiBreath', fire:'teppekiFire', wind:'teppekiWind', dark:'teppekiDark'};
+const JEWEL_NAME = {spell:'鉄壁の攻撃呪文耐性', breath:'鉄壁のブレス耐性', fire:'鉄壁の炎耐性', wind:'鉄壁の風耐性', dark:'鉄壁の闇耐性'};
+const RES_CATS = [
+  ['jewel','宝珠'],
+  ['food','料理（自動）'],   // 入力欄はない。「料理」で選んだものが入る
+];
+// ===== 料理：★なし・★・★★・★★★ の値 =====
+// 同時に効く料理は1つだけ。会心のテイスト（食べたときにまれに1段階上がる）は入れない
+// 守備力が上がる料理は使わないので入れない
+// ドグドラに関係する物だけ（アイス・ライトと、ストームの雷・ダークの土・ステーキのHPは入れない）
+// 出典：極限攻略「料理の効果」・ゲーム乱舞「料理の一覧と効果」・DQ10大辞典 第二版の各料理
+const TART = [6,10,14,19];
+// [id, 料理名, 計算に使う種類, ★ごとの値, 選択肢に添える文字]
+const FOODS = [
+  ['tartFire',  'ファイアタルト', 'fire', TART, '炎'],
+  ['tartStorm', 'ストームタルト', 'wind', TART, '風'],
+  ['tartDark',  'ダークタルト',   'dark', TART, '闇'],
+  ['steak',     'バトルステーキ', 'atk',  [5,7,10,15], '攻撃力'],
+];
+const FOOD_STARS = [['3','★★★'],['2','★★'],['1','★'],['0','★なし']];
+function foodNow(){
+  const x = FOODS.find(o=>o[0]===S.foodSel); if (!x) return null;
+  const st = FOOD_STARS.find(o=>o[0]===String(S.foodStar)) || FOOD_STARS[0];
+  return {name:x[1]+(st[0]==='0' ? '' : st[1]), type:x[2], v:x[3][+st[0]]};
+}
+const resKey = (cat, t) => cat==='jewel' ? JEWEL[t] : `r_${cat}_${t}`;
 
 // ===== 職業ごとの素のみのまもり =====
-// [id, 職業, レベル, みのまもり, 仮の値か]  ※値がわかったらここを書き換える
+// [id, 職業, レベル, みのまもり]  パッシブを除いた基本値
+// 出典：Lucky Room「ver8.1 守備理論値」（2026-10-27）の A表_ver8.1（画像）の「守備・基本」。同表のスキル110は PASSIVES の合計
 const JOBS = [
-  ['ranger',  'レンジャー', 143, 330, true],
-  ['mahosen', '魔法戦士',   143, 370, true],
-  ['mamono',  'まもの使い', 143, 253, true],
+  ['ranger',  'レンジャー', 143, 329],
+  ['mahosen', '魔法戦士',   143, 373],
+  ['mamono',  'まもの使い', 143, 251],
 ];
 const jobOf = id => JOBS.find(j=>j[0]===id);
 
+// ===== 防具セット（★なしの守備力：極限攻略の各セットページ／★★★で増える守備力：IKEドラクエ10攻略の各防具ページ） =====
+// [id, 区分, セット名, 装備Lv, [頭, からだ上, からだ下, うで, 足]の★なし守備力, 同じ順の★★★で増える守備力]  ※その部位がないセットは0
+// ★で守備力が上がるのは頭・からだ上・からだ下だけ（うで＝きようさ、足＝すばやさ、盾＝ガード率が上がる）
+const ARMOR_GROUPS = [
+  ['yoroi',   '鎧（戦士・パラディン・魔法戦士※要スキル・魔剣士・ガーディアン）'],
+  ['mahosen', '魔法戦士が装備できる（盗賊・どうぐ使い・海賊）'],
+  ['mamono',  'まもの使いが装備できる（武闘家・バトマス・踊り子・ストームカイザー）'],
+  ['ranger',  'レンジャーが装備できる（旅芸人・スーパースター・踊り子・遊び人）'],
+];
+const ARMOR_SETS = [
+  ['s0', 'mamono', 'ラッシュジャケット', 135, [110, 128, 84, 31, 31], [4, 4, 4, 0, 0], ["ラッシュバンド", "ラッシュジャケット", "ラッシュボトム", "ラッシュグローブ", "ラッシュシューズ"]],
+  ['s1', 'yoroi', '機甲兵のよろい', 135, [136, 161, 108, 75, 75], [6, 6, 6, 0, 0], ["機甲兵のレシーバー", "機甲兵のよろい上", "機甲兵のよろい下", "機甲兵のこて", "機甲兵のグリーブ"]],
+  ['s2', 'ranger', 'ミラージュスーツ', 135, [100, 128, 96, 29, 30], [4, 4, 3, 0, 0], ["ミラージュハット", "ミラージュスーツ上", "ミラージュスーツ下", "ミラージュグラブ", "ミラージュブーツ"]],
+  ['s3', 'mahosen', 'ミッションシャツ', 135, [115, 139, 89, 33, 33], [4, 4, 4, 0, 0], ["ミッションベレー", "ミッションシャツ", "ミッションズボン", "ミッショングラブ", "ミッションブーツ"]],
+  ['s4', 'mamono', 'トライドアーマー', 130, [105, 123, 80, 29, 29], [4, 4, 4, 0, 0], ["トライドニット", "トライドアーマー", "トライドズボン", "トライドグローブ", "トライドブーツ"]],
+  ['s5', 'yoroi', 'コスモスアーマー', 130, [130, 155, 102, 71, 71], [6, 6, 6, 0, 0], ["コスモスヘルム", "コスモスアーマー上", "コスモスアーマー下", "コスモスのこて", "コスモスグリーブ"]],
+  ['s6', 'ranger', 'ノクトルケープ', 130, [96, 124, 92, 27, 28], [4, 4, 3, 0, 0], ["ノクトルクラウン", "ノクトルケープ上", "ノクトルケープ下", "ノクトルグローブ", "ノクトルブーツ"]],
+  ['s7', 'mahosen', '月影の装束', 130, [110, 134, 85, 31, 31], [4, 4, 4, 0, 0], ["月影の額当て", "月影の装束上", "月影の装束下", "月影のこて", "月影の深沓"]],
+  ['s8', 'mamono', '迅雷のスーツ', 128, [100, 118, 76, 27, 27], [4, 4, 4, 0, 0], ["迅雷の額当て", "迅雷のスーツ上", "迅雷のスーツ下", "迅雷の手甲", "迅雷のブーツ"]],
+  ['s9', 'yoroi', '常勝のよろい', 128, [124, 149, 96, 67, 67], [6, 6, 6, 0, 0], ["常勝のかぶと", "常勝のよろい上", "常勝のよろい下", "常勝のこて", "常勝のグリーブ"]],
+  ['s10', 'ranger', '妖精郷の舞踏服', 128, [92, 120, 88, 25, 26], [4, 4, 4, 0, 0], ["妖精郷の花髪", "妖精郷の舞踏服上", "妖精郷の舞踏服下", "妖精郷のうでわ", "妖精郷のブーツ"]],
+  ['s11', 'mahosen', '烈風のころも', 128, [105, 129, 81, 29, 29], [4, 4, 4, 0, 0], ["烈風のキャップ", "烈風のころも上", "烈風のころも下", "烈風のグローブ", "烈風のブーツ"]],
+  ['s12', 'mamono', '一角鬼の闘着', 125, [95, 113, 72, 25, 25], [4, 4, 4, 0, 0], ["一角鬼の額当て", "一角鬼の闘着上", "一角鬼の闘着下", "一角鬼の手甲", "一角鬼の脚半"]],
+  ['s13', 'yoroi', '黒夜叉のよろい', 125, [118, 143, 90, 63, 63], [6, 6, 6, 0, 0], ["黒夜叉のかぶと", "黒夜叉のよろい上", "黒夜叉のよろい下", "黒夜叉のこて", "黒夜叉の脚甲"]],
+  ['s14', 'ranger', '瑞雲の道服', 125, [88, 116, 84, 23, 24], [4, 4, 3, 0, 0], ["瑞雲の髪飾り", "瑞雲の道服上", "瑞雲の道服下", "瑞雲のこて", "瑞雲の深沓"]],
+  ['s15', 'mahosen', '隠密の装束', 125, [100, 124, 77, 27, 27], [4, 4, 4, 0, 0], ["隠密のはちまき", "隠密の装束上", "隠密の装束下", "隠密の手甲", "隠密の脚半"]],
+  ['s16', 'mamono', 'イグナイトメイル', 120, [90, 108, 68, 23, 23], [5, 4, 4, 0, 0], ["イグナイトバンド", "イグナイトメイル上", "イグナイトメイル下", "イグナイトグローブ", "イグナイトグリーブ"]],
+  ['s17', 'yoroi', '魔衛隊士のよろい', 120, [112, 137, 84, 59, 59], [6, 6, 5, 0, 0], ["魔衛隊士のかぶと", "魔衛隊士のよろい上", "魔衛隊士のよろい下", "魔衛隊士のこて", "魔衛隊士のグリーブ"]],
+  ['s18', 'ranger', 'プロディトスーツ', 120, [84, 112, 80, 21, 22], [4, 4, 4, 0, 0], ["プロディトヘッド", "プロディトスーツ上", "プロディトスーツ下", "プロディトグローブ", "プロディトシューズ"]],
+  ['s19', 'mahosen', '乱破の忍び装束', 120, [95, 119, 73, 25, 25], [4, 4, 4, 0, 0], ["乱破の額当て", "乱破の忍び装束上", "乱破の忍び装束下", "乱破の手甲", "乱破の脚半"]],
+  ['s20', 'mamono', '天の冒険者のころも', 118, [0, 103, 64, 22, 22], [0, 4, 4, 0, 0], ["", "天の冒険者のころも", "天の冒険者のズボン", "天の冒険者のグラブ", "天の冒険者のブーツ"]],
+  ['s21', 'yoroi', 'ほのおのよろい', 118, [106, 132, 78, 56, 56], [6, 6, 6, 0, 0], ["ほのおのかぶと", "ほのおのよろい上", "ほのおのよろい下", "ほのおのこて", "ほのおのグリーブ"]],
+  ['s22', 'ranger', 'スパングルドレス', 118, [80, 108, 75, 20, 21], [4, 4, 3, 0, 0], ["スパングルフェザー", "スパングルドレス上", "スパングルドレス下", "スパングルグローブ", "スパングルパンプス"]],
+  ['s23', 'mahosen', 'しっこくのマント', 118, [90, 114, 0, 24, 24], [4, 4, 0, 0, 0], ["しっこくのターバン", "しっこくのマント", "", "しっこくのグローブ", "しっこくのブーツ"]],
+  ['s24', 'mamono', '聖域の闘衣', 115, [80, 98, 60, 21, 21], [4, 4, 4, 0, 0], ["聖域の額当て", "聖域の闘衣上", "聖域の闘衣下", "聖域のこて", "聖域のブーツ"]],
+  ['s25', 'yoroi', '蒼穹兵団のよろい', 115, [100, 127, 72, 53, 53], [6, 6, 6, 0, 0], ["蒼穹兵団のかぶと", "蒼穹兵団のよろい上", "蒼穹兵団のよろい下", "蒼穹兵団のこて", "蒼穹兵団のグリーブ"]],
+  ['s26', 'ranger', '聖翼のドレス', 115, [76, 104, 70, 19, 20], [4, 4, 3, 0, 0], ["聖翼の髪飾り", "聖翼のドレス上", "聖翼のドレス下", "聖翼のグローブ", "聖翼のブーツ"]],
+  ['s27', 'mahosen', '空賊のシャツ', 115, [85, 109, 65, 23, 23], [4, 4, 4, 0, 0], ["空賊のバンダナ", "空賊のシャツ", "空賊のズボン", "空賊のグローブ", "空賊のブーツ"]],
+  ['s28', 'mamono', 'ファフニルメイル', 110, [75, 93, 56, 20, 20], [4, 4, 4, 0, 0], ["ファフニルヘルム", "ファフニルメイル上", "ファフニルメイル下", "ファフニルアーム", "ファフニルブーツ"]],
+  ['s29', 'yoroi', '魔侯爵のよろい', 110, [95, 112, 0, 50, 50], [6, 6, 0, 0, 0], ["魔侯爵のかぶと", "魔侯爵のよろい", "", "魔侯爵のこて", "魔侯爵のグリーブ"]],
+  ['s30', 'ranger', 'グレイスフルコート', 110, [72, 100, 65, 0, 19], [4, 4, 3, 0, 0], ["グレイスフルハット", "グレイスフルコート", "グレイスフルボトム", "", "グレイスフルブーツ"]],
+  ['s31', 'mahosen', 'ワンダラーズマント', 110, [80, 104, 0, 22, 22], [4, 4, 0, 0, 0], ["ワンダラーズベレー", "ワンダラーズマント", "", "ワンダラーズグラブ", "ワンダラーズブーツ"]],
+  ['s32', 'mahosen', 'ドラゴンベスト', 108, [75, 99, 57, 21, 21], [4, 4, 4, 0, 0], ["ドラゴンバンド", "ドラゴンベスト上", "ドラゴンベスト下", "ドラゴングローブ", "ドラゴンブーツ"]],
+  ['s33', 'yoroi', 'ミラーアーマー', 108, [92, 120, 66, 48, 48], [6, 6, 6, 0, 0], ["ミラーヘルム", "ミラーアーマー上", "ミラーアーマー下", "ミラーガントレット", "ミラーグリーブ"]],
+  ['s34', 'ranger', 'かぜのマント', 108, [68, 96, 0, 17, 18], [4, 4, 0, 0, 0], ["かぜのぼうし", "かぜのマント", "", "かぜのグローブ", "かぜのブーツ"]],
+  ['s35', 'mamono', '開祖の道着', 108, [70, 90, 52, 19, 19], [4, 4, 4, 0, 0], ["開祖のぼうし", "開祖の道着上", "開祖の道着下", "開祖のてぶくろ", "開祖のブーツ"]],
+  ['s36', 'mamono', 'ガナドールスーツ', 105, [65, 85, 48, 18, 18], [3, 4, 3, 0, 0], ["ガナドールバンド", "ガナドールスーツ上", "ガナドールスーツ下", "ガナドールグローブ", "ガナドールブーツ"]],
+  ['s37', 'yoroi', 'ネヴァンメイル', 105, [86, 114, 61, 45, 45], [4, 6, 3, 0, 0], ["ネヴァンヘルム", "ネヴァンメイル上", "ネヴァンメイル下", "ネヴァングラブ", "ネヴァングリーブ"]],
+  ['s38', 'ranger', 'ヴィーラのころも', 105, [64, 92, 55, 16, 17], [3, 5, 3, 0, 0], ["ヴィーラのバンダナ", "ヴィーラのころも上", "ヴィーラのころも下", "ヴィーラのグローブ", "ヴィーラのサンダル"]],
+  ['s39', 'mahosen', '神技のベスト', 105, [71, 95, 53, 19, 19], [4, 5, 3, 0, 0], ["神技のフード", "神技のベスト", "神技のボトム", "神技のグローブ", "神技のブーツ"]],
+  ['s40', 'mamono', 'レギオンメイル', 100, [60, 82, 44, 17, 17], [3, 4, 3, 0, 0], ["レギオンヘルム", "レギオンメイル上", "レギオンメイル下", "レギオングローブ", "レギオングリーブ"]],
+  ['s41', 'yoroi', 'ヴァルハラメイル', 100, [83, 112, 59, 43, 43], [4, 6, 3, 0, 0], ["ヴァルハラヘルム", "ヴァルハラメイル上", "ヴァルハラメイル下", "ヴァルハラグローブ", "ヴァルハラグリーブ"]],
+  ['s42', 'ranger', 'タンブラーシャツ', 100, [60, 87, 50, 15, 15], [3, 4, 3, 0, 0], ["タンブラーバンダナ", "タンブラーシャツ", "タンブラーボトム", "タンブラーリスト", "タンブラークロッグ"]],
+  ['s43', 'mahosen', '大怪傑の装束', 100, [66, 90, 49, 18, 18], [3, 5, 3, 0, 0], ["大怪傑のはちまき", "大怪傑の装束上", "大怪傑の装束下", "大怪傑のグローブ", "大怪傑のブーツ"]],
+];
+const ARMOR_PARTS = ['eqHead','eqBodyU','eqBodyL','eqArm','eqFoot'];
+
+// ===== 盾（極限攻略の盾一覧より・Lv100以上。★で上がるのはガード率なので守備力は★なしの値） =====
+// [id, 区分, 名前, 装備Lv, 守備力, 耐性(%), 効果]  ※耐性は「宝珠」の欄の合計に自動で入る
+const SHIELDS = [
+  ['h0', 'small', 'メタリオンガード', 135, 30, {}, "アイギスの盾系使用時 魔結界2段階・ファランクス系使用時 スカラ2段階"],
+  ['h1', 'small', '輝紋章の盾', 132, 29, {}, "行動時 5％でキラキラポーン・ガード時30％で必殺チャージ"],
+  ['h2', 'small', 'プロミネンスの盾', 130, 28, {"fire": 3, "wind": 3, "dark": 3}, "全属性ダメージ 3%減・行動時 5%でビッグシールド"],
+  ['h3', 'small', 'アクエリアスガード', 128, 27, {"breath": 12}, "ブレス系ダメージ 12%減・ガード時50%でバーハ"],
+  ['h4', 'small', 'メテオシールド', 125, 26, {"spell": 12}, "攻撃呪文ダメージ12%減・ガード時50%で魔結界・盾ガード率+0.5%"],
+  ['h5', 'small', 'プシューケーの盾', 120, 25, {}, "受けるダメージを5軽減する・どくガード +20%"],
+  ['h6', 'small', 'りんねの盾', 118, 24, {"fire": 3, "wind": 3, "dark": 3}, "全属性ダメージ 3%減"],
+  ['h7', 'small', '輝天の盾', 115, 23, {"spell": 6}, "攻撃呪文ダメージ6%減・ガード時50%で聖女の守り"],
+  ['h8', 'small', 'ミニュアデスの盾', 110, 22, {}, "混乱ガード +20%・封印ガード +20%"],
+  ['h9', 'small', 'ブレスガーダー', 108, 21, {"breath": 10}, "ブレス系ダメージ 10%減"],
+  ['h10', 'small', 'ブルバックラー', 105, 20, {"spell": 10}, "攻撃呪文ダメージ10%減"],
+  ['h11', 'small', '鷲王の盾', 100, 18, {}, "光ダメージ8%減・開戦時50%でスカラ2段階"],
+  ['h12', 'big', 'メタリオンシールド', 135, 97, {}, "ちからの盾系使用時 天光の護り・ちからの盾の時間が15秒増加"],
+  ['h13', 'big', '神樹の大盾', 132, 92, {"wind": 10}, "風・雷ダメージ10%減・行動時 10%で魔結界"],
+  ['h14', 'big', '古代鏡の大盾', 130, 87, {"breath": 13}, "ブレス系ダメージ 13%減・行動時 5%でバーハと魔結界"],
+  ['h15', 'big', 'みずがめの大盾', 128, 82, {}, "呪いガード +100%・いてつくはどうガード+10%"],
+  ['h16', 'big', '天球の大盾', 125, 77, {"spell": 6, "breath": 6}, "攻撃呪文ダメージ6%減・ブレス系ダメージ6%減・盾ガード率+0.7%"],
+  ['h17', 'big', 'フォースシールド', 120, 72, {}, "受けるダメージを10軽減する・ガード時 50%で全属性耐性+5%"],
+  ['h18', 'big', '守護神の大盾', 118, 67, {"spell": 7}, "攻撃呪文ダメージ 7%減・ガード時 50%で守備力 +60"],
+  ['h19', 'big', '輝天の大盾', 115, 62, {"breath": 10}, "光ダメージ10％減・ブレス系ダメージ10%減"],
+  ['h20', 'big', '不落の大盾', 110, 57, {}, "受けるダメージを10軽減する"],
+  ['h21', 'big', '獅子王の大盾', 108, 52, {"spell": 7}, "攻撃呪文ダメージ 7%減・雷ダメージ 10%減"],
+  ['h22', 'big', '魔界の大盾', 105, 47, {"breath": 10}, "ブレス系ダメージ 10%減・ふっとびガード +6%"],
+  ['h23', 'big', '重装兵の大盾', 100, 42, {"dark": 10}, "闇ダメージ10%減・行動時5.0%でスカラとヘヴィチャージ"],
+];
+const shieldOf = id => SHIELDS.find(x=>x[0]===id);
+
+// ===== アクセサリー（IKEドラクエ10攻略のアクセサリー検索より） =====
+// [id, 部位, 名前, 守備力, 耐性(%), 受けるダメージ軽減, 基礎効果]
+const ACCS = [
+  ['a0','face',"いやしのメガネ",2,{},0,""],
+  ['a1','face',"ふちなしメガネ",2,{},0,""],
+  ['a2','face',"マジカルメガネ",2,{},0,""],
+  ['a3','face',"ダンディサングラス",2,{},0,"幻惑ガード+50%"],
+  ['a4','face',"パーティーメガネ",2,{},0,"開戦時10%でためる"],
+  ['a5','face',"かいとうの仮面",2,{},0,""],
+  ['a6','face',"ぐるぐるメガネ",2,{},0,"魅了ガード+50%"],
+  ['a7','face',"オカルトメガネ",2,{},0,"死者の世界の魔物の姿が見える"],
+  ['a8','face',"ファントムマスク",1,{},0,""],
+  ['a9','face',"地中ゴーグル",2,{},0,"地中にいる魔物の姿が見える"],
+  ['a10','face',"教授のメガネ",2,{},0,""],
+  ['a11','face',"プリティサングラス",2,{},0,"幻惑ガード+10%"],
+  ['a12','face',"悪霊の仮面",2,{},0,"開戦時6%で必殺チャージ"],
+  ['a13','face',"黒アイパッチ",2,{},0,"開戦時5%でバイシオン"],
+  ['a14','face',"白アイパッチ",2,{},0,"開戦時10%でリホイミ"],
+  ['a15','face',"ねこひげ",2,{},0,"不意をつく確率+2%"],
+  ['a16','face',"かいけつマスク",2,{},0,"夜の開戦時20%でためる"],
+  ['a17','face',"モノクル",2,{},0,"呪文暴走率+5.0%"],
+  ['a18','face',"マスカレイドマスク",2,{},0,""],
+  ['a19','face',"Ｖジャンプの仮面",2,{},0,"まれに 魔物がフワフワわたアメを落とす"],
+  ['a20','face',"超パーティー仮面",2,{},0,"戦闘開始時5%でためる・戦闘開始時5%でためる"],
+  ['a21','face',"海魔の眼甲",2,{},0,"魔物を倒すと 25%でためる"],
+  ['a22','face',"アクセルギア",2,{},0,"6%でターン消費なし"],
+  ['a23','face',"フワフワメガネ",2,{},0,"まれに 魔物がフワフワわたアメを落とす"],
+  ['a24','face',"ダークアイ",0,{},0,"魅了ガード+50%"],
+  ['a25','face',"Ｖジャンプの仮面改",2,{},0,"たまに 魔物がフワフワわたアメを落とす"],
+  ['a26','face',"ダークグラス",2,{},0,"幻惑ガード+70%"],
+  ['a27','face',"機神の眼甲",2,{},0,"魔物を倒すと 35%でためる"],
+  ['a28','face',"死神のピアス",2,{},0,"9%でターン消費なし"],
+  ['a29','face',"ネレウスマスク",0,{},0,"どくガード+50%"],
+  ['a30','face',"魔犬の仮面",6,{},0,"開戦時10%で必殺チャージ"],
+  ['a31','face',"Ｖロンのピアス",0,{},0,"たまに 魔物がフワフワわたアメを落とす"],
+  ['a32','face',"ラウンドメガネ",4,{},0,""],
+  ['a33','face',"マーシャルピアス",2,{},0,"10.5%でターン消費なし・呪文と特技のダメージ+15"],
+  ['a34','face',"レメディピアス",2,{},0,"10.5%でターン消費なし・呪文と特技の回復量+15"],
+  ['a35','face',"デスマスク",6,{},0,"開戦時10%で必殺チャージ"],
+  ['a36','face',"破壊神の眼甲",20,{},0,"魔物を倒すと 45%でためる"],
+  ['a37','face',"スライムピアス",2,{},0,""],
+  ['a38','face',"サファイアのピアス",2,{},0,""],
+  ['a39','face',"ブルーハートピアス",2,{},0,""],
+  ['a40','face',"黒ぶちメガネ角",2,{},0,""],
+  ['a41','face',"黒ぶちメガネ丸",2,{},0,""],
+  ['a42','face',"フサフサのヒゲ",2,{},0,""],
+  ['a43','face',"フサフサの白ヒゲ",2,{},0,""],
+  ['a44','face',"エラい人のヒゲ",2,{},0,""],
+  ['a45','face',"ハート型メガネ",2,{},0,""],
+  ['a46','face',"星型メガネ",2,{},0,""],
+  ['a47','face',"白ぶちメガネ丸",2,{},0,""],
+  ['a48','face',"スライムベスピアス",3,{},0,""],
+  ['a49','face',"メタスラピアス",3,{},0,""],
+  ['a50','face',"ほしくずのピアス",0,{},0,""],
+  ['a51','face',"ハートのピアス",2,{},0,""],
+  ['a52','face',"芸人殺しのヒゲ",0,{},0,""],
+  ['a53','face',"オーシャングラス",0,{},0,""],
+  ['a54','face',"べっこうメガネ",0,{},0,""],
+  ['a55','face',"リンゴのピアス",0,{},0,""],
+  ['a56','face',"占い師のマスク",0,{},0,""],
+  ['a57','neck',"木彫りのロザリオ",2,{},0,"致死ダメージ時5%で生存"],
+  ['a58','neck',"まもりのペンダント",6,{},0,""],
+  ['a59','neck',"命のネックレス",2,{},0,"戦闘勝利時にHPが3～7回復"],
+  ['a60','neck',"きんのネックレス",2,{},0,""],
+  ['a61','neck',"ちからのペンダント",0,{},0,""],
+  ['a62','neck',"ちょうネクタイ",2,{},0,""],
+  ['a63','neck',"ハートのペンダント",0,{},0,""],
+  ['a64','neck',"バトルチョーカー",0,{},0,""],
+  ['a65','neck',"ようせいの首かざり",2,{},0,"MP吸収ガード+25%"],
+  ['a66','neck',"ラッキーペンダント",2,{},0,"各弱体系耐性+10%"],
+  ['a67','neck',"銀のロザリオ",2,{},0,"致死ダメージ時10%で生存"],
+  ['a68','neck',"魔王のネックレス",0,{},0,""],
+  ['a69','neck',"忠誠のチョーカー",0,{},0,""],
+  ['a70','neck',"金のロザリオ",2,{},0,"致死ダメージ時20%で生存"],
+  ['a71','neck',"智謀の首かざり",0,{},0,""],
+  ['a72','neck',"竜のうろこ",3,{},30,"受けるダメージを30軽減する"],
+  ['a73','neck',"おうじょのあい",0,{},0,""],
+  ['a74','neck',"幻界王の首かざり",25,{},0,"各弱体系耐性+50%"],
+  ['a75','neck',"ラストチョーカー",0,{},0,""],
+  ['a76','neck',"赤竜の首かざり",18,{},35,"受けるダメージを35軽減する"],
+  ['a77','neck',"黄金のロザリオ",17,{},0,"致死ダメージ時20%で生存"],
+  ['a78','neck',"海賊王の首飾り",0,{},0,""],
+  ['a79','finger',"ちからのゆびわ",2,{},0,""],
+  ['a80','finger',"きんのゆびわ",2,{},0,""],
+  ['a81','finger',"はやてのリング",2,{},0,""],
+  ['a82','finger',"ピンクパールリング",2,{},0,""],
+  ['a83','finger',"ひらめきのゆびわ",2,{},0,"戦闘勝利時にMPが1～3回復"],
+  ['a84','finger',"理性のリング",2,{},0,"混乱ガード+50%"],
+  ['a85','finger',"はくあいのゆびわ",2,{},0,"封印ガード+50%"],
+  ['a86','finger',"聖印のゆびわ",2,{},0,"即死ガード+50%"],
+  ['a87','finger',"めざましリング",2,{},0,"眠りガード+50%"],
+  ['a88','finger',"破幻のリング",2,{},0,"幻惑ガード+50%"],
+  ['a89','finger',"破毒のリング",2,{},0,"どくガード+50%"],
+  ['a90','finger',"破呪のリング",2,{},0,"呪いガード+50%"],
+  ['a91','finger',"まんげつリング",2,{},0,"マヒガード+50%"],
+  ['a92','finger',"ソーサリーリング",2,{},0,"戦闘勝利時にMPが3～5回復"],
+  ['a93','finger',"幻界闘士のゆびわ",0,{},0,"攻撃力上昇の時間が5秒増加"],
+  ['a94','finger',"幻界導師のゆびわ",0,{},0,"呪文威力上昇の時間が5秒増加"],
+  ['a95','finger',"武刃将軍のゆびわ",0,{},0,"攻撃力上昇の時間が15秒増加・行動時3.0%でバイシオン"],
+  ['a96','finger',"魔導将軍のゆびわ",0,{},0,"呪文威力上昇の時間が15秒増加・行動時3.0%で早詠みの杖"],
+  ['a97','finger',"軍神のゆびわ",0,{},0,"攻撃力上昇の時間が20秒増加・行動時12%でバイシオン"],
+  ['a98','finger',"神智のゆびわ",0,{},0,"呪文威力上昇の時間が20秒増加・行動時12%で早詠みの杖"],
+  ['a99','finger',"聖守護者のゆびわ",1,{},0,""],
+  ['a100','finger',"ゴージャスなゆびわ",4,{},0,""],
+  ['a101','finger',"断罪のゆびわ",0,{},0,""],
+  ['a102','chest',"セトのブローチ",0,{},0,""],
+  ['a103','chest',"セルケトのブローチ",0,{},0,""],
+  ['a104','chest',"イシスのブローチ",0,{},0,""],
+  ['a105','chest',"オシリスのブローチ",0,{},0,""],
+  ['a106','chest',"アヌビスのブローチ",0,{},0,""],
+  ['a107','chest',"バステトのブローチ",0,{},0,""],
+  ['a108','chest',"セトのアンク",0,{},0,""],
+  ['a109','chest',"セルケトのアンク",0,{},0,""],
+  ['a110','chest',"イシスのアンク",0,{},0,""],
+  ['a111','chest',"オシリスのアンク",0,{},0,""],
+  ['a112','chest',"アヌビスのアンク",0,{},0,""],
+  ['a113','chest',"バステトのアンク",0,{},0,""],
+  ['a114','waist',"おしゃれなベルト",0,{},0,""],
+  ['a115','waist',"隠者のベルト",0,{},0,"不意をつく確率+2％"],
+  ['a116','waist',"ハイドラベルト",0,{},0,"開戦時50%でヘヴィチャージ"],
+  ['a117','waist',"輝石のベルト",0,{},0,"さまざまな効果を 生み出すベルト"],
+  ['a118','waist',"戦神のベルト",0,{},0,"荒ぶる戦神の ちからを秘めた 恐るべきベルト"],
+  ['a119','waist',"剛勇のベルト",0,{},0,"開戦時50%でヘヴィチャージ・開戦時10%で天使の守り"],
+  ['a120','fuda',"しんぴのカード",0,{},0,"合成するとパラメーターが付く"],
+  ['a121','fuda',"不思議のカード",0,{},0,"大中小の魔法円が さまざまな効果を 生み出すカード"],
+  ['a401','fuda',"レプリカード",0,{},0,"不思議のカードの効果をコピーしたカード"],
+  ['a122','other',"ひきよせのすず",0,{},0,"戦いで 魔物に狙われやすくなる"],
+  ['a123','other',"まよけのすず",0,{},0,"戦いで 魔物に狙われにくくなる"],
+  ['a124','other',"竜のおまもり",5,{"fire": 20},0,"炎ダメージ20%減・光ダメージ20%減"],
+  ['a125','other',"パワーチャーム",0,{},0,""],
+  ['a126','other',"うさぎのおまもり",0,{},0,""],
+  ['a127','other',"ロイヤルチャーム",3,{"dark": 20},0,"氷ダメージ20%減・闇ダメージ20%減"],
+  ['a128','other',"ビーナスのなみだ",2,{"wind": 20},0,"風ダメージ20%減・雷ダメージ20%減"],
+  ['a129','other',"大地の竜玉",5,{},0,""],
+  ['a130','other',"幸運のおまもり",0,{},0,"レアドロップ率+1.1倍"],
+  ['a131','other',"大地の大竜玉",8,{},0,""],
+  ['a132','other',"風雷のいんろう",5,{"wind": 26},0,"風ダメージ26%減・雷ダメージ26%減"],
+  ['a133','other',"氷闇の月飾り",5,{"dark": 26},0,"氷ダメージ26%減・闇ダメージ26%減"],
+  ['a134','other',"炎光の勾玉",5,{"fire": 26},0,"炎ダメージ26%減・光ダメージ26%減"],
+  ['a135','other',"紫竜の煌玉",12,{},0,""],
+  ['a136','other',"まもりのルビー",15,{},0,""],
+  ['a137','crest',"はじまりの紋章",0,{},0,""],
+  ['a138','crest',"ハルファスの紋章",0,{},0,""],
+  ['a139','crest',"アガレスの紋章",0,{},0,""],
+  ['a140','crest',"ブエルの紋章",0,{},0,""],
+  ['a141','crest',"アモンの紋章",0,{},0,""],
+  ['a142','crest',"グレモリーの紋章",0,{},0,""],
+  ['a143','crest',"ハルファスの大紋章",5,{},0,""],
+  ['a144','crest',"アガレスの大紋章",5,{},0,""],
+  ['a145','crest',"ブエルの大紋章",5,{},0,""],
+  ['a146','crest',"アモンの大紋章",5,{},0,""],
+  ['a147','crest',"グレモリーの大紋章",5,{},0,""],
+  ['a148','proof',"戦士の証",0,{},0,"約10%で 2回攻撃できる"],
+  ['a149','proof',"僧侶の証",0,{},0,"約10%で HP1で生き残る"],
+  ['a150','proof',"魔法使いの証",0,{},0,"約10%で 2回連続で呪文を唱える"],
+  ['a151','proof',"武闘家の証",0,{},0,"稀に 攻撃を受けた際にカウンター"],
+  ['a152','proof',"盗賊の証",0,{},0,"アイテムを自動で盗むことがある"],
+  ['a153','proof',"旅芸人の証",0,{},0,"獲得ゴールド50%増える"],
+  ['a154','proof',"パラディンの証",0,{},0,"攻撃をガードすると、約33%でマヒさせる"],
+  ['a155','proof',"レンジャーの証",0,{},0,"不意をつく 確率が上がる"],
+  ['a156','proof',"魔法戦士の証",0,{},0,"攻撃すると 約10%でMP回復"],
+  ['a157','proof',"スーパースターの証",0,{},0,"お金を使う特技の消費量と威力が2倍になる"],
+  ['a158','proof',"バトルマスターの証",0,{},0,"攻撃を受けて時々テンション上がる"],
+  ['a159','proof',"賢者の証",0,{},0,"呪文を受けた時 約20%でMP回復"],
+  ['a160','proof',"まもの使いの証",0,{},0,"転生モンスター出現率1.1倍"],
+  ['a161','proof',"どうぐ使いの証",0,{},0,"メタルモンスター出現率1.1倍"],
+  ['a162','proof',"踊り子の証",0,{},0,"1%で行動ターンを消費しない"],
+  ['a163','proof',"占い師の証",0,{},0,"タロット使用時たまにテンション消費しない"],
+  ['a164','proof',"天地雷鳴士の証",0,{},0,"偶にMPを消費しない"],
+  ['a165','proof',"遊び人の証",0,{},0,"きまぐれ率アップ"],
+  ['a166','proof',"デスマスターの証",0,{},0,"デスパワーを偶に消費しない"],
+  ['a167','proof',"魔剣士の証",0,{},0,"魔の波動の増加量5%Up"],
+  ['a168','proof',"海賊の証",0,{},0,"銃撃時たまにテンション消費しない"],
+  ['a169','proof',"ガーディアンの証",0,{},0,"約10%で HP1で生き残る"],
+  ['a170','proof',"竜術士の証",0,{},0,"呪文発動速度+1%"],
+  ['a171','proof',"万能の証",0,{},0,"入手したことがある職業の証と同じ効果"],
+  ['a172','proof',"ルーキーの証",0,{},0,"戦闘経験値2倍(LV29以下)"],
+  ['a173','proof',"絆のエンブレム",0,{},0,"なつき度により主人に絆の力発動・絆時100%でためる"],
+  ['a174','proof',"絆のエンブレム改",0,{},0,"なつき度により主人に絆の力発動・絆時100%でためる"],
+  ['a175','proof',"絆のエンブレム極",0,{},0,"なつき度により主人に絆の力発動・絆時100%でためる"],
+  ['a176','proof',"魔人の勲章",5,{},0,"攻撃時2%でためる"],
+  ['a177','proof',"忠義の勲章",0,{},0,"会心と暴走ダメージ+30"],
+  ['a178','proof',"ガナン帝国の勲章",0,{},0,"会心率と暴走率+1.0%・会心と暴走ダメージ+35"],
+  ['a179','proof',"夢幻魔王の勲章",10,{},0,"攻撃時4%でためる・テンション時ダメージ+100"],
+  ['a180','proof',"邪教司祭の勲章",0,{},0,"会心率と暴走率+1.5%・会心と暴走ダメージ+50"],
+  ['a181','proof',"冥雲魔神の勲章",25,{},0,"攻撃時4%でためる・テンション時ダメージ+400"],
+  ['a182','heart',"旅立ちのこころ",0,{},0,""],
+  ['a184','heart',"アスバルのこころ",0,{},0,"アスバル召喚"],
+  ['a185','heart',"イルーシャのこころ",0,{},0,"イルーシャ召喚"],
+  ['a186','heart',"ヴァレリアのこころ",0,{},0,"ヴァレリア召喚"],
+  ['a187','heart',"エステラのこころ",0,{},0,"エステラ召喚"],
+  ['a188','heart',"シンイのこころ",0,{},0,"シンイ召喚"],
+  ['a189','heart',"ヒューザのこころ",0,{},0,"ヒューザ召喚"],
+  ['a190','heart',"ユシュカのこころ",0,{},0,"ユシュカ召喚"],
+  ['a191','heart',"ハクオウのこころ",0,{},0,"ハクオウ召喚"],
+  ['a192','heart',"ラダガートのこころ",0,{},0,"ラダ・ガート召喚"],
+  ['a193','heart',"ギルガランのこころ",40,{},0,"ギルガラン召喚"],
+  ['a194','heart',"ユーライザのこころ",0,{},0,"ユーライザ召喚"],
+  ['a195','heart',"リナーシェのこころ",0,{},0,"リナーシェ召喚"],
+  ['a196','heart',"カブのこころ",0,{},0,"カブ召喚"],
+  ['a197','heart',"ドルタムのこころ",40,{},5,"ドルタム召喚"],
+  ['a198','heart',"ナンナのこころ",0,{},0,"ナンナ召喚"],
+  ['a199','heart',"アシュレイのこころ",0,{},0,"アシュレイ召喚"],
+  ['a200','heart',"レオーネのこころ",30,{},0,"レオーネ召喚"],
+  // こころ2：まもののこころ10種（能力値は上がらない）とガナサダイのこころ。出典：IKE /mamop/kokoro・/ikai/ganasa_kokoro
+  ['a301','heart2',"スライムのこころ",0,{},0,"召喚：スラ・フラッシュ"],
+  ['a302','heart2',"モーモンのこころ",0,{},0,"召喚：フワポワダンス"],
+  ['a303','heart2',"ドラキーのこころ",0,{},0,"召喚：連続ドルマドン"],
+  ['a304','heart2',"リザードマンのこころ",0,{},0,"召喚：らいめい斬り"],
+  ['a305','heart2',"メタッピーのこころ",0,{},0,"召喚：魔道集束砲"],
+  ['a306','heart2',"スライムナイトのこころ",0,{},0,"召喚：スラ・クロスブレイク"],
+  ['a307','heart2',"さまようよろいのこころ",0,{},0,"召喚：キングダムスラッシュ"],
+  ['a308','heart2',"パペットマンのこころ",0,{},0,"召喚：パペットマジック"],
+  ['a309','heart2',"エンタシスマンのこころ",0,{},0,"召喚：いてつく一発芸"],
+  ['a310','heart2',"フォンデュのこころ",0,{},0,"召喚：イオマータ"],
+  ['a311','heart2',"ガナサダイのこころ",0,{},0,"攻撃力+6・最大HP+5・攻撃魔力+15・必殺チャージ+0.5%"],
+];
+const accOf = id => ACCS.find(x=>x[0]===id);
+// アクセ本体の攻撃力（ない物は0。キャラのこころは HEART_LV、ガナサダイは +6）
+// 出典：IKEドラクエ10攻略のアクセ一覧。各アイテムの詳細ページと201件すべて照合
+const ACC_ATK = {
+  a61:5, a64:7, a69:10, a70:3, a72:3, a75:30, a76:18, a77:18,   // 首
+  a79:2, a93:6, a95:10, a97:12,                                  // 指
+  a102:5, a108:7,                                                // 胸
+  a125:5,                                                        // 他
+  a138:5, a143:5,                                                // 紋章
+  a176:3, a178:5, a179:5, a180:5, a181:10,                       // 証
+};
+
+
+// ===== 武器（ツメ・片手剣・弓 Lv100以上 / IKEドラクエ10攻略より） =====
+// [id, 種類, 名前, Lv, ステータス, 基礎効果]
+const WEP_CATS = ['ツメ','片手剣','弓'];
+const WEAPONS = [
+  ["w01","ツメ","断罪のジャマダハル",100,{"atk": 104, "share": 15, "spd": 28, "dex": 28, "wt": 14},["全ての攻撃ダメージ+3.0%"]],
+  ["w02","ツメ","ルーンクラブクロー",105,{"atk": 111, "share": 15, "wt": 14},["かいしん率+3.0%", "会心＆暴走ダメージ+50"]],
+  ["w03","ツメ","呪眼のツメ",108,{"atk": 119, "share": 15, "spd": 30, "dex": 30, "wt": 14},["攻撃時6%で呪い", "攻撃時10%でボミエ2段階"]],
+  ["w04","ツメ","ドラゴンクロー絶",110,{"atk": 127, "share": 15, "spd": 32, "dex": 32, "wt": 14},["ドラゴン系にダメージ+15%", "全ての攻撃ダメージ+3.0%"]],
+  ["w05","ツメ","輝天のツメ",115,{"atk": 135, "share": 15, "spd": 32, "dex": 32, "wt": 14},["かいしん率+3%", "特技のダメージ+15"]],
+  ["w06","ツメ","ゴッドクロー",118,{"atk": 143, "share": 15, "spd": 32, "dex": 32, "wt": 14},["行動時5%でチャージ時間-10秒", "かいしん率+3%"]],
+  ["w07","ツメ","セーラスクロー",120,{"atk": 151, "share": 15, "spd": 32, "dex": 32, "wt": 14},["かいしん率+3%", "会心と暴走時ダメージ+50"]],
+  ["w08","ツメ","オフビートクロー",125,{"atk": 157, "share": 15, "spd": 34, "dex": 34, "wt": 14},["全ての攻撃ダメージ+3.0%", "攻撃時10%でボミエ2段階"]],
+  ["w09","ツメ","機殴竜殺",128,{"atk": 163, "share": 15, "spd": 34, "dex": 34, "wt": 14},["マシン系にダメージ+15%", "ドラゴン系にダメージ+15%"]],
+  ["w10","ツメ","キャンサークロー",130,{"atk": 169, "share": 15, "spd": 34, "dex": 34, "wt": 14},["会心率+3%", "会心と暴走時のダメージ+100"]],
+  ["w11","ツメ","呪星のツメ",132,{"atk": 175, "share": 15, "spd": 34, "dex": 34, "wt": 14},["攻撃時6%で 呪い", "攻撃時10%で ルカニ2段階"]],
+  ["w12","ツメ","鋼神のツメ",135,{"atk": 181, "share": 15, "spd": 36, "dex": 36, "wt": 14},["ゴッドスマッシュのダメージ+500", "ゴッドスマッシュ使用時 バイシオン"]],
+  ["w13","片手剣","邪紋のつるぎ",100,{"atk": 156, "hp": 3, "share": 26, "wt": 10},["状態異常の成功率+10%", "攻撃時5%でヘナトス"]],
+  ["w14","片手剣","呪印のつるぎ",105,{"atk": 165, "share": 26, "wt": 10},["攻撃時5%でぶきみなひかり", "武器ガード率+2.0%"]],
+  ["w15","片手剣","デッドリーソード",108,{"atk": 175, "share": 26, "wt": 15},["かいしん率+1.2%", "会心と暴走ダメージ+15"]],
+  ["w16","片手剣","鳴神のつるぎ",110,{"atk": 187, "share": 26, "matk": 15, "wt": 16},["特技のダメージ+10", "攻撃時8%で雷と光耐性ダウン"]],
+  ["w17","片手剣","輝天のつるぎ",115,{"atk": 201, "share": 26, "matk": 20, "wt": 16},["攻撃時10%でチャージ時間-10秒", "2%でターン消費しない"]],
+  ["w18","片手剣","妖精の剣",118,{"atk": 215, "share": 26, "matk": 22, "wt": 16},["攻撃時5%でスカラ", "全属性攻撃ダメージ+3%"]],
+  ["w19","片手剣","セーラスソード",120,{"atk": 229, "share": 26, "matk": 22, "wt": 16},["かいしん率+1.2%", "会心と暴走ダメージ+15"]],
+  ["w20","片手剣","コメットソード",125,{"atk": 243, "share": 26, "matk": 24, "wt": 16},["特技のダメージ+15", "武器ガード率+2.0%"]],
+  ["w21","片手剣","不浄の滅剣",128,{"atk": 256, "share": 26, "matk": 24, "wt": 16},["行動時10%で バイシオン", "ゾンビ系にダメージ+15%"]],
+  ["w22","片手剣","レオンソード",130,{"atk": 267, "share": 26, "matk": 24, "wt": 16},["攻撃時10%で チャージ時間-10秒", "2.0%でターン消費なし"]],
+  ["w23","片手剣","守護竜のつるぎ",132,{"atk": 276, "share": 26, "matk": 24, "wt": 16},["行動時5%で スカラ2段階", "全ての属性のダメージ+3.0%"]],
+  ["w24","片手剣","幽紋刀",135,{"atk": 285, "share": 26, "matk": 26, "wt": 16},["超はやぶさ斬りのダメージ+150", "風属性のダメージ+5.0%"]],
+  ["w25","弓","イルミンズールの弓",100,{"atk": 189, "share": 10, "matk": 60, "heal": 60, "wt": 15},["開戦時50%でチャージ時間-10秒", "呪文発動速度+5%"]],
+  ["w26","弓","威光弓",105,{"atk": 199, "share": 11, "matk": 65, "heal": 65, "wt": 15},["攻撃時8.0%で光耐性ダウン"]],
+  ["w27","弓","緋赤鳥の弓",108,{"atk": 211, "share": 11, "matk": 70, "heal": 70, "wt": 15},["呪文発動速度+5%", "攻撃時5%でルカニ"]],
+  ["w28","弓","シェキナーの弓",110,{"atk": 225, "share": 11, "matk": 75, "heal": 75, "wt": 15},["特技のダメージ+20", "全ての光攻撃ダメージ+5.0%"]],
+  ["w29","弓","輝天の弓",115,{"atk": 241, "share": 11, "matk": 80, "heal": 80, "wt": 15},["攻撃時8%で光耐性ダウン", "攻撃時8%で闇耐性ダウン"]],
+  ["w30","弓","ムーンシューター",118,{"atk": 257, "share": 11, "matk": 85, "heal": 85, "wt": 15},["必殺チャージ率+1%", "必殺チャージ時早詠みの杖"]],
+  ["w31","弓","セーラスショット",120,{"atk": 273, "share": 11, "matk": 90, "heal": 90, "wt": 15},["怪人系にダメージ+15%", "状態異常の成功率+10%"]],
+  ["w32","弓","パピルサグの弓",125,{"atk": 286, "share": 11, "matk": 95, "heal": 95, "wt": 15},["特技のダメージ+20", "全ての光攻撃ダメージ+5.0%"]],
+  ["w33","弓","光陰如箭",128,{"atk": 296, "share": 11, "matk": 100, "heal": 100, "wt": 15},["攻撃時8%で光と闇耐性低下", "行動時10%で早詠みの杖"]],
+  ["w34","弓","フルムの弓",130,{"atk": 306, "share": 11, "matk": 105, "heal": 105, "wt": 15},["全ての属性攻撃ダメージ+3%", "呪文と特技の効果範囲+1m"]],
+  ["w35","弓","ニンフの妖弓",132,{"atk": 316, "share": 11, "matk": 110, "heal": 110, "wt": 15},["かいしん率+2.0%", "攻撃時10%で ルカニとぶきみなひかり"]],
+  ["w36","弓","グリームシューター",135,{"atk": 326, "share": 11, "matk": 115, "heal": 115, "wt": 15},["サンライトアローのダメージ+100", "サンライトアローのチャージ時間-10秒"]],
+];
+const wepOf = id => WEAPONS.find(w=>w[0]===id);
+const CATS_2H = ['ツメ','弓'];   // 両手武器（盾は装備できない）
+const is2h = () => { const w = wepOf(S.wepSel); return !!(w && CATS_2H.includes(w[1])); };
+const ST_NAMES = {atk:'攻撃力',def:'守備力',hp:'HP',mp:'MP',share:'おしゃれさ',spd:'すばやさ',dex:'きようさ',matk:'攻撃魔力',heal:'回復魔力',wt:'重さ'};
+// 基礎効果を、与ダメージ計算で使える形に読み取る（読めないものは other）
+function parseFx(txt){
+  const t = txt.replace(/\s+/g,'').replace(/＆/g,'と'); let m;
+  if ((m = t.match(/^全ての攻撃ダメージ\+([\d.]+)%$/))) return {k:'allDmg', v:+m[1], label:`全攻撃ダメージ+${m[1]}%`};
+  if ((m = t.match(/^全(?:ての)?属性(?:攻撃)?(?:の)?ダメージ\+([\d.]+)%$/))) return {k:'elemAll', v:+m[1], label:`全属性ダメージ+${m[1]}%`};
+  if ((m = t.match(/^(?:全ての)?([炎氷風雷土闇光])(?:属性)?(?:攻撃)?(?:の)?ダメージ\+([\d.]+)%$/))) return {k:'elem', el:m[1], v:+m[2], label:`${m[1]}属性ダメージ+${m[2]}%`};
+  if ((m = t.match(/^(\S+系)にダメージ\+([\d.]+)%$/))) return {k:'race', race:m[1], v:+m[2], label:`${m[1]}特効+${m[2]}%`};
+  if ((m = t.match(/^特技のダメージ\+(\d+)$/))) return {k:'skillFlat', v:+m[1], label:`特技ダメージ+${m[1]}`};
+  if ((m = t.match(/^(?:かいしん|会心)率\+([\d.]+)%$/))) return {k:'crit', v:+m[1], label:`会心率+${m[1]}%`};
+  if ((m = t.match(/^会心と暴走(?:時)?(?:の)?ダメージ\+(\d+)$/))) return {k:'critFlat', v:+m[1], label:`会心・暴走ダメージ+${m[1]}`};
+  if ((m = t.match(/^(.+)のダメージ\+(\d+)$/))) return {k:'moveFlat', move:m[1], v:+m[2], label:`${m[1]}+${m[2]}`};
+  return {k:'other', label:txt};
+}
+// 今の武器の情報（与ダメージ計算用）
+function wepEffects(){ const w = wepOf(S.wepSel); return w ? {cat:w[1], name:w[2], st:w[4], fx:w[5].map(parseFx)} : null; }
+function wepOpts(p){
+  return opt('none','なし') + (p ? p.wep : WEP_CATS).map(c=>`<optgroup label="${c}${CATS_2H.includes(c)?'（両手）':''}">${WEAPONS.filter(w=>w[1]===c).map(w=>opt(w[0], `Lv${w[3]} ${w[2]}（攻${w[4].atk||0}）`)).join('')}</optgroup>`).join('');
+}
+function wepFxHTML(){
+  const e = wepEffects(); if (!e) return '';
+  const st = Object.entries(e.st).filter(([k])=>k!=='wt').map(([k,v])=>`${ST_NAMES[k]}${v}`).join('・');
+  return `<div>${st}${e.cat==='弓'?'・<b>両手</b>':''}</div><div>${e.fx.map(f=>`<span class="fxtag${f.k==='other'?' o':''}">${f.label}</span>`).join('')}</div>`;
+}
+
+// ===== 装備表 =====
+const EQ_ROWS = [
+  ['weapon','右手/両手','weapon'], ['shield','左手（盾）','shield'],
+  ['head','頭','armor',0], ['bodyU','からだ上','armor',1], ['bodyL','からだ下','armor',2], ['arm','うで','armor',3], ['foot','足','armor',4],
+  ['face','顔アクセ','acc'], ['neck','首アクセ','acc'], ['finger','指アクセ','acc'], ['chest','胸アクセ','acc'], ['waist','腰アクセ','acc'],
+  ['fuda','札アクセ','acc'], ['other','他アクセ','acc'], ['crest','紋章アクセ','acc'], ['proof','証アクセ','acc'],
+  ['heart','キャラのこころ','acc'], ['heart2','まもののこころ','acc'],
+];
+const ACC_ROWS = EQ_ROWS.filter(r=>r[2]==='acc').map(r=>r[0]);
+const AL_N = 3;
+
+// ===== 錬金（武器・防具・盾）／合成（アクセ）で付けられる効果 =====
+// [効果（#に値が入る）, 最大値（通常錬金は超大成功込み・パルプンテ限定は上級の値・合成は確認できた最大）, 計算に使う種類, パルプンテ限定, 有効な武器]
+// 出典：あせろぐ「装備錬金効果の基礎仕様まとめ」(Ver7.6後期)、IKEドラクエ10攻略「錬金」
+const REN_ELEM = [['炎','fire'],['氷','ice'],['風','wind'],['雷','thunder'],['土','earth'],['闇','dark'],['光','light']];
+const GUARD5 = ['眠り','マヒ','混乱','封印','幻惑'].map(x=>[`${x}ガード+#%`,60]);
+const ATK_PAL = ['どく','マヒ','混乱','幻惑','魅了','封印'].map(x=>[`攻撃時#%で${x}`,4,'',1]);
+const REN = {
+  weapon:[['攻撃力+#',9,'atk'],['会心率+#%',1.6,'crit'],['攻撃時#%でヘナトス',5],['攻撃時#%でルカニ',5],
+    ['呪文発動速度+#%',6,'',1],['MP消費しない率+#%',5,'',1],['呪文暴走率+#%',1.4,'',1],
+    ['おしゃれさ+#',15,'',1,'片手剣'],['武器ガード率+#%',1.4,'',1,'片手剣'],
+    ['攻撃時#%で眠り',4,'',1],...ATK_PAL,['攻撃時#%でマホ系解除',30,'',1],['攻撃時#%でリホ系解除',30,'',1],['開戦時#%で会心率上昇',10,'',1]],
+  shield:[['盾ガード率+#%',1.6],['ブレス耐性+#%',14,'breath'],['攻撃呪文ダメージ減+#%',8,'spell'],['呪いガード+#%',60],['しばりガード+#%',90],
+    ['おびえガード+#%',90,'',1],['転びガード+#%',90,'',1],['踊らされガード+#%',90,'',1],
+    ...REN_ELEM.map(([e,c])=>[`${e}ダメージ減+#%`,18,c,1]),['開戦時#%で盾ガード率上昇',10,'',1]],
+  head:[['最大HP+#',7],['最大MP+#',15],...GUARD5,['即死ガード+#%',60],['おびえガード+#%',90],
+    ['どくガード+#%',60,'',1],['開戦時#%でピオラ',10,'',1]],
+  bodyU:[['守備力+#',9,'def'],['攻撃魔力+#',18],['回復魔力+#',18],['ブレス耐性+#%',14,'breath'],['攻撃呪文ダメージ減+#%',8,'spell'],
+    ['呪いガード+#%',60],['即死ガード+#%',60],
+    ...REN_ELEM.map(([e,c])=>[`${e}ダメージ減+#%`,18,c,1]),['おもさ+#',15,'',1],['開戦時#%でスカラ',10,'',1]],
+  bodyL:[['守備力+#',9,'def'],['攻撃魔力+#',15],['回復魔力+#',15],...GUARD5,['MP吸収ガード+#%',60],
+    ['どくガード+#%',60,'',1],['開戦時#%でマホキテ',10,'',1]],
+  arm:[['きようさ+#',18],['会心率+#%',1.6,'crit'],['呪文発動速度+#%',6],['呪文暴走率+#%',1.4],['MP消費しない率+#%',5],
+    ['攻撃時#%で眠り',5],['攻撃時#%でヘナトス',5],['攻撃時#%でルカニ',5],
+    ...ATK_PAL,['通常ドロップ率#倍',1.5,'',1],['レアドロップ率#倍',1.5,'',1]],
+  foot:[['すばやさ+#',15],['みかわし率+#%',1.4],['おもさ+#',15],['おしゃれさ+#',15],['転びガード+#%',90],['踊らされガード+#%',90],
+    ['不意をつく確率+#%',4,'',1],['移動速度+#%',3,'',1]],
+};
+const ACC_COMP = {"いやしのメガネ":[["最大MP+#",1.0,""],["守備力+#",2.0,"def"],["回復魔力+#",3.0,""],["おしゃれさ+#",2.0,""]],"ふちなしメガネ":[["守備力+#",2.0,"def"],["攻撃魔力+#",3.0,""],["回復魔力+#",3.0,""],["おしゃれさ+#",2.0,""]],"マジカルメガネ":[["最大MP+#",1.0,""],["攻撃魔力+#",3.0,""]],"ダンディサングラス":[["おしゃれさ+#",5.0,""],["幻惑ガード+#%",10.0,""]],"パーティーメガネ":[["守備力+#",2.0,"def"],["おしゃれさ+#",2.0,""],["開戦時#%でためる",2.0,""]],"かいとうの仮面":[["守備力+#",1.0,"def"],["すばやさ+#",1.0,""],["きようさ+#",1.0,""],["おしゃれさ+#",2.0,""]],"ぐるぐるメガネ":[["おしゃれさ+#",2.0,""],["魅了ガード+#%",10.0,""]],"オカルトメガネ":[["守備力+#",2.0,"def"],["おしゃれさ+#",4.0,""]],"ファントムマスク":[["すばやさ+#",2.0,""],["きようさ+#",2.0,""],["おしゃれさ+#",4.0,""]],"地中ゴーグル":[["守備力+#",2.0,"def"],["おしゃれさ+#",4.0,""]],"教授のメガネ":[["最大MP+#",2.0,""],["守備力+#",2.0,"def"],["攻撃魔力+#",3.0,""],["回復魔力+#",3.0,""]],"プリティサングラス":[],"悪霊の仮面":[["最大HP+#",2.0,""],["最大MP+#",2.0,""],["守備力+#",2.0,"def"],["攻撃魔力+#",2.0,""],["回復魔力+#",2.0,""],["すばやさ+#",2.0,""],["きようさ+#",2.0,""],["おもさ+#",2.0,""],["おしゃれさ+#",2.0,""],["開戦時#%で必殺チャージ",2.0,""]],"黒アイパッチ":[["最大HP+#",2.0,""],["守備力+#",2.0,"def"],["開戦時#%でバイシオン",2.0,""]],"白アイパッチ":[["最大HP+#",2.0,""],["守備力+#",2.0,"def"],["開戦時#%でリホイミ",2.0,""]],"ねこひげ":[["すばやさ+#",4.0,""],["不意をつく確率+#%",1.5,""]],"かいけつマスク":[["きようさ+#",2.0,""],["おしゃれさ+#",2.0,""],["夜の開戦時#%でためる",2.0,""]],"モノクル":[["攻撃魔力+#",2.0,""],["回復魔力+#",2.0,""],["呪文暴走率+#%",2.0,""]],"マスカレイドマスク":[["最大HP+#",1.0,""],["守備力+#",1.0,"def"],["攻撃魔力+#",1.0,""],["回復魔力+#",1.0,""],["きようさ+#",1.0,""],["おしゃれさ+#",2.0,""]],"Ｖジャンプの仮面":[],"超パーティー仮面":[],"海魔の眼甲":[["最大HP+#",2.0,""],["魔物を倒すと#%でためる",5.0,""]],"アクセルギア":[["最大HP+#",2.0,""],["すばやさ+#",4.0,""],["#%でターン消費なし",1.5,""]],"フワフワメガネ":[],"ダークアイ":[["最大HP+#",2.0,""],["攻撃魔力+#",3.0,""],["魅了ガード+#%",10.0,""]],"Ｖジャンプの仮面改":[],"ダークグラス":[["攻撃力+#",2.0,""],["最大HP+#",2.0,""],["幻惑ガード+#%",10.0,""]],"機神の眼甲":[["最大HP+#",2.0,""],["味方死亡時#%で聖女の守り",2.0,""],["味方死亡時#%でためる",2.0,""]],"死神のピアス":[["特技のダメージ+#",5.0,""],["特技の回復量+#",5.0,""],["呪文のダメージ+#",5.0,""],["呪文の回復量+#",5.0,""]],"ネレウスマスク":[["最大HP+#",2.0,""],["どくガード+#%",10.0,""]],"魔犬の仮面":[["必殺チャージ時スカラ#段階",2.0,""],["必殺チャージ時魔結界#段階",2.0,""],["必殺チャージ時ピオラ#段階",2.0,""],["必殺チャージ時#%で聖騎士の堅陣",10.0,""]],"Ｖロンのピアス":[],"ラウンドメガネ":[["守備力+#",2.0,"def"]],"マーシャルピアス":[["特技のダメージ+#",5.0,""],["呪文のダメージ+#",5.0,""]],"レメディピアス":[["特技の回復量+#",5.0,""],["呪文の回復量+#",5.0,""]],"デスマスク":[["必殺チャージ時スカラ#段階",2.0,""],["必殺チャージ時魔結界#段階",2.0,""],["必殺チャージ時ピオラ#段階",2.0,""],["必殺チャージ時#%で聖騎士の堅陣",10.0,""]],"破壊神の眼甲":[["最大HP+#",2.0,""],["味方死亡時#%で聖女の守り",2.0,""],["味方死亡時#%でためる",2.0,""]],"スライムピアス":[["最大HP+#",1.0,""],["守備力+#",2.0,"def"],["きようさ+#",2.0,""],["おしゃれさ+#",2.0,""]],"サファイアのピアス":[],"ブルーハートピアス":[],"黒ぶちメガネ角":[["守備力+#",2.0,"def"],["おしゃれさ+#",4.0,""]],"黒ぶちメガネ丸":[["守備力+#",2.0,"def"],["おしゃれさ+#",4.0,""]],"フサフサのヒゲ":[["最大HP+#",1.0,""],["守備力+#",1.0,"def"],["攻撃魔力+#",1.0,""],["回復魔力+#",1.0,""],["きようさ+#",1.0,""],["おしゃれさ+#",2.0,""]],"フサフサの白ヒゲ":[["最大HP+#",1.0,""],["守備力+#",1.0,"def"],["攻撃魔力+#",1.0,""],["回復魔力+#",1.0,""],["きようさ+#",1.0,""],["おしゃれさ+#",2.0,""]],"エラい人のヒゲ":[["最大HP+#",1.0,""],["守備力+#",1.0,"def"],["攻撃魔力+#",1.0,""],["回復魔力+#",1.0,""],["きようさ+#",1.0,""],["おしゃれさ+#",2.0,""]],"ハート型メガネ":[],"星型メガネ":[],"白ぶちメガネ丸":[],"スライムベスピアス":[["最大HP+#",1.0,""],["守備力+#",2.0,"def"],["きようさ+#",2.0,""],["おしゃれさ+#",2.0,""]],"メタスラピアス":[],"ほしくずのピアス":[["守備力+#",2.0,"def"],["すばやさ+#",5.0,""],["おしゃれさ+#",2.0,""]],"ハートのピアス":[],"芸人殺しのヒゲ":[],"オーシャングラス":[["守備力+#",2.0,"def"],["おしゃれさ+#",4.0,""]],"べっこうメガネ":[],"リンゴのピアス":[],"占い師のマスク":[],"木彫りのロザリオ":[["最大HP+#",3.0,""],["守備力+#",4.0,"def"],["致死ダメージ時#%で生存",5.0,""]],"まもりのペンダント":[["最大HP+#",2.0,""],["守備力+#",3.0,"def"]],"命のネックレス":[["最大HP+#",3.0,""],["守備力+#",2.0,"def"],["戦闘勝利時にHPが#回復",2.0,""]],"きんのネックレス":[["最大HP+#",1.0,""],["守備力+#",1.0,"def"],["おもさ+#",2.0,""]],"ちからのペンダント":[["最大HP+#",2.0,""],["攻撃力+#",2.0,""]],"ちょうネクタイ":[["守備力+#",1.0,"def"],["すばやさ+#",1.0,""],["きようさ+#",1.0,""],["おしゃれさ+#",5.0,""]],"ハートのペンダント":[["最大HP+#",3.0,""],["守備力+#",2.0,"def"],["おしゃれさ+#",3.0,""]],"バトルチョーカー":[["最大HP+#",2.0,""],["攻撃力+#",5.0,""]],"ようせいの首かざり":[["守備力+#",2.0,"def"],["MP吸収ガード+#%",10.0,""]],"ラッキーペンダント":[["最大HP+#",1.0,""],["守備力+#",2.0,"def"],["各弱体系耐性+#%",5.0,""]],"銀のロザリオ":[["最大HP+#",3.0,""],["守備力+#",4.0,"def"],["致死ダメージ時#%で生存",5.0,""]],"魔王のネックレス":[["最大MP+#",3.0,""],["攻撃魔力+#",5.0,""]],"忠誠のチョーカー":[["最大HP+#",2.0,""],["攻撃力+#",5.0,""]],"金のロザリオ":[["最大HP+#",3.0,""],["攻撃力+#",5.0,""],["守備力+#",5.0,"def"]],"智謀の首かざり":[["炎の攻撃ダメージ+#%",1.0,""],["氷の攻撃ダメージ+#%",1.0,""],["風の攻撃ダメージ+#%",1.0,""],["雷の攻撃ダメージ+#%",1.0,""],["土の攻撃ダメージ+#%",1.0,""],["闇の攻撃ダメージ+#%",1.0,""],["光の攻撃ダメージ+#%",1.0,""]],"竜のうろこ":[["最大HP+#",3.0,""],["攻撃力+#",5.0,""],["守備力+#",5.0,"def"]],"おうじょのあい":[["レアドロップ率+#倍",1.1,""],["転生モンスター出現率#倍",1.1,""],["メタルモンスター出現率#倍",1.1,""]],"幻界王の首かざり":[["最大HP+#",5.0,""],["各弱体系耐性+#%",25.0,""]],"ラストチョーカー":[["攻撃力+#",10.0,""]],"赤竜の首かざり":[["最大HP+#",3.0,""],["攻撃力+#",5.0,""],["守備力+#",5.0,"def"]],"黄金のロザリオ":[["最大HP+#",3.0,""],["攻撃力+#",5.0,""],["致死ダメージ時#%で生存",1.0,""]],"海賊王の首飾り":[["通常ドロップ率+#倍",1.1,""],["おしゃれ+#",5.0,""]],"ちからのゆびわ":[["最大HP+#",2.0,""],["攻撃力+#",3.0,""]],"きんのゆびわ":[["守備力+#",1.0,"def"],["すばやさ+#",1.0,""],["きようさ+#",1.0,""],["おしゃれさ+#",1.0,""],["おもさ+#",1.0,""]],"はやてのリング":[["守備力+#",2.0,"def"],["すばやさ+#",3.0,""]],"ピンクパールリング":[["最大MP+#",2.0,""],["守備力+#",2.0,"def"],["おしゃれさ+#",5.0,""]],"ひらめきのゆびわ":[["最大MP+#",4.0,""],["戦闘勝利時にMPが#回復",1.0,""]],"理性のリング":[["守備力+#",2.0,"def"],["混乱ガード+#%",10.0,""]],"はくあいのゆびわ":[["守備力+#",2.0,"def"],["封印ガード+#%",10.0,""]],"聖印のゆびわ":[["守備力+#",2.0,"def"],["即死ガード+#%",10.0,""]],"めざましリング":[["守備力+#",2.0,"def"],["眠りガード+#%",10.0,""]],"破幻のリング":[["守備力+#",2.0,"def"],["幻惑ガード+#%",10.0,""]],"破毒のリング":[["守備力+#",2.0,"def"],["どくガード+#%",10.0,""]],"破呪のリング":[["守備力+#",2.0,"def"],["呪いガード+#%",10.0,""]],"まんげつリング":[["守備力+#",2.0,"def"],["マヒガード+#%",10.0,""]],"ソーサリーリング":[["最大MP+#",4.0,""],["戦闘勝利時にMPが#回復",1.0,""]],"幻界闘士のゆびわ":[["攻撃力+#",2.0,""],["攻撃力上昇の時間が#秒増加",5.0,""]],"幻界導師のゆびわ":[["攻撃魔力+#",2.0,""],["呪文威力上昇の時間が#秒増加",5.0,""]],"武刃将軍のゆびわ":[["行動時#%でバイシオン",3.0,""],["最大HP+#",2.0,""]],"魔導将軍のゆびわ":[["行動時#%で早詠みの杖",3.0,""],["最大HP+#",2.0,""]],"軍神のゆびわ":[["死亡時#%で攻撃力上昇が残る",10.0,""],["開戦時#%でバイシオン",100.0,""]],"神智のゆびわ":[["死亡時#%で呪文威力上昇が残る",10.0,""],["死亡時#%で詠唱時間短縮が残る",10.0,""],["開戦時#%で早詠みの杖",100.0,""]],"聖守護者のゆびわ":[["眠りガード+#%",30.0,""],["マヒガード+#%",30.0,""],["混乱ガード+#%",30.0,""],["封印ガード+#%",30.0,""],["幻惑ガード+#%",30.0,""],["呪いガード+#%",30.0,""],["即死ガード+#%",30.0,""],["どくガード+#%",30.0,""]],"ゴージャスなゆびわ":[["守備力+#",2.0,"def"]],"断罪のゆびわ":[],"セトのブローチ":[["最大MP+#",4.0,""],["攻撃力+#",3.0,""]],"セルケトのブローチ":[["最大HP+#",3.0,""],["攻撃魔力+#",5.0,""]],"イシスのブローチ":[["最大HP+#",3.0,""],["回復魔力+#",5.0,""]],"オシリスのブローチ":[["最大MP+#",3.0,""],["守備力+#",3.0,"def"],["おもさ+#",2.0,""]],"アヌビスのブローチ":[["最大HP+#",4.0,""],["最大MP+#",4.0,""]],"バステトのブローチ":[["おしゃれさ+#",4.0,""],["最大HP+#",2.0,""],["最大MP+#",2.0,""]],"セトのアンク":[["最大MP+#",4.0,""],["攻撃力+#",3.0,""]],"セルケトのアンク":[["最大HP+#",3.0,""],["攻撃魔力+#",5.0,""]],"イシスのアンク":[["最大HP+#",3.0,""],["回復魔力+#",5.0,""]],"オシリスのアンク":[["最大MP+#",3.0,""],["守備力+#",3.0,"def"],["おもさ+#",2.0,""]],"アヌビスのアンク":[["最大HP+#",4.0,""],["最大MP+#",4.0,""]],"バステトのアンク":[["おしゃれさ+#",4.0,""],["最大HP+#",2.0,""],["最大MP+#",2.0,""]],"おしゃれなベルト":[["守備力+#",1.0,"def"],["すばやさ+#",1.0,""],["きようさ+#",1.0,""],["おしゃれさ+#",2.0,""]],"隠者のベルト":[["最大HP+#",2.0,""],["最大MP+#",2.0,""],["守備力+#",2.0,"def"],["不意をつく確率+#%",1.0,""]],"ハイドラベルト":[["最大HP+#",3.0,""],["おもさ+#",4.0,""]],"輝石のベルト":[],"戦神のベルト":[],"剛勇のベルト":[["最大HP+#",3.0,""],["おもさ+#",3.0,""],["開戦時#%でヘヴィチャージ",25.0,""],["開戦時#%で天使の守り",7.0,""],["攻撃力+#",4.0,""]],"しんぴのカード":[["最大HP+#",4.0,""],["最大MP+#",4.0,""],["攻撃力+#",2.0,""],["守備力+#",4.0,"def"],["攻撃魔力+#",4.0,""],["回復魔力+#",4.0,""],["すばやさ+#",4.0,""],["きようさ+#",4.0,""],["おしゃれさ+#",4.0,""],["おもさ+#",2.0,""]],"不思議のカード":[],"ひきよせのすず":[["最大HP+#",2.0,""],["攻撃力+#",2.0,""],["おしゃれさ+#",4.0,""]],"まよけのすず":[["最大MP+#",2.0,""],["守備力+#",2.0,"def"],["おしゃれさ+#",4.0,""]],"竜のおまもり":[["最大HP+#",2.0,""],["おしゃれさ+#",4.0,""],["炎ダメージ#%減",3.0,"fire"],["光ダメージ#%減",3.0,"light"]],"パワーチャーム":[["最大HP+#",2.0,""],["攻撃力+#",3.0,""]],"うさぎのおまもり":[["最大HP+#",2.0,""],["最大MP+#",2.0,""],["守備力+#",2.0,"def"],["すばやさ+#",4.0,""],["おしゃれさ+#",2.0,""]],"ロイヤルチャーム":[["最大HP+#",2.0,""],["おしゃれさ+#",4.0,""],["氷ダメージ#%減",3.0,"ice"],["闇ダメージ#%減",3.0,"dark"]],"ビーナスのなみだ":[["最大HP+#",2.0,""],["おしゃれさ+#",4.0,""],["風ダメージ#%減",3.0,"wind"],["雷ダメージ#%減",3.0,"thunder"]],"大地の竜玉":[["最大HP+#",5.0,""]],"幸運のおまもり":[["きようさ+#",1.0,""],["レアドロップ率+#倍",1.1,""]],"大地の大竜玉":[["最大HP+#",5.0,""]],"風雷のいんろう":[["すばやさときようさ+#",5.0,""],["HPとすばやさ+#",4.0,""],["HPときようさ+#",4.0,""],["HPとおもさ+#",3.0,""],["攻撃力+#",3.0,""]],"氷闇の月飾り":[["すばやさときようさ+#",5.0,""],["HPとすばやさ+#",4.0,""],["HPときようさ+#",4.0,""],["HPとおもさ+#",3.0,""],["攻撃力+#",3.0,""]],"炎光の勾玉":[["すばやさときようさ+#",5.0,""],["HPとすばやさ+#",4.0,""],["HPときようさ+#",4.0,""],["HPとおもさ+#",3.0,""],["攻撃力+#",3.0,""]],"紫竜の煌玉":[["最大HP+#",5.0,""]],"まもりのルビー":[["守備力+#",5.0,"def"]],"はじまりの紋章":[["最大HP+#",1.0,""],["最大MP+#",1.0,""],["おしゃれさ+#",1.0,""]],"ハルファスの紋章":[["こうげき力とすばやさ+#",5.0,""],["こうげき力ときようさ+#",5.0,""],["こうげき力としゅび力+#",5.0,"def"]],"アガレスの紋章":[["こうげき魔力とすばやさ+#",5.0,""],["こうげき魔力ときようさ+#",5.0,""],["こうげき魔力としゅび力+#",5.0,"def"]],"ブエルの紋章":[["かいふく魔力とすばやさ+#",5.0,""],["かいふく魔力ときようさ+#",5.0,""],["かいふく魔力としゅび力+#",5.0,"def"]],"アモンの紋章":[["おもさとすばやさ+#",5.0,""],["おもさときようさ+#",5.0,""],["おもさとしゅび力+#",5.0,"def"]],"グレモリーの紋章":[["おしゃれさとすばやさ+#",5.0,""],["おしゃれさときようさ+#",5.0,""],["おしゃれさとしゅび力+#",5.0,"def"]],"ハルファスの大紋章":[["こうげき力とすばやさ+#",5.0,""],["こうげき力ときようさ+#",5.0,""],["こうげき力としゅび力+#",5.0,"def"]],"アガレスの大紋章":[["こうげき魔力とすばやさ+#",5.0,""],["こうげき魔力ときようさ+#",5.0,""],["こうげき魔力としゅび力+#",5.0,"def"]],"ブエルの大紋章":[["かいふく魔力とすばやさ+#",5.0,""],["かいふく魔力ときようさ+#",5.0,""],["かいふく魔力としゅび力+#",5.0,"def"]],"アモンの大紋章":[["おもさとすばやさ+#",5.0,""],["おもさときようさ+#",5.0,""],["おもさとしゅび力+#",5.0,"def"]],"グレモリーの大紋章":[["おしゃれさとすばやさ+#",5.0,""],["おしゃれさときようさ+#",5.0,""],["おしゃれさとしゅび力+#",5.0,"def"]],"戦士の証":[],"僧侶の証":[],"魔法使いの証":[],"武闘家の証":[],"盗賊の証":[],"旅芸人の証":[],"パラディンの証":[],"レンジャーの証":[],"魔法戦士の証":[],"スーパースターの証":[],"バトルマスターの証":[],"賢者の証":[],"まもの使いの証":[],"どうぐ使いの証":[],"踊り子の証":[],"占い師の証":[],"天地雷鳴士の証":[],"遊び人の証":[],"デスマスターの証":[],"魔剣士の証":[],"海賊の証":[],"ガーディアンの証":[],"竜術士の証":[],"万能の証":[],"ルーキーの証":[],"絆のエンブレム":[["絆時#%で主人にバイキルト",50.0,""],["絆時50%で主人に#回スカラ",2.0,""],["絆時#%で主人にマホステ",50.0,""],["絆時#%で主人に聖女の守り",50.0,""],["絆時#%で主人に弓聖の守り星",50.0,""],["絆時#%で主人にまもりのきり",50.0,""],["絆時50%で主人のHP#回復",100.0,""],["絆時50%で主人のMP#回復",20.0,""]],"絆のエンブレム改":[["絆時#%で主人にバイキルト",50.0,""],["絆時50%で主人に#回スカラ",2.0,""],["絆時#%で主人に魔力かくせい",50.0,""],["絆時#%で主人に聖なる祈り",50.0,""],["絆時#%で主人に早詠みの杖",50.0,""],["絆時#%で主人にマホステ",50.0,""],["絆時#%で主人に聖女の守り",50.0,""],["絆時#%で主人に弓聖の守り星",50.0,""],["絆時#%で主人にまもりのきり",50.0,""],["絆時50%で主人のHP#回復",100.0,""],["絆時50%で主人のMP#回復",20.0,""]],"絆のエンブレム極":[["絆時#%で主人にバイキルト",100.0,""],["絆時100%で主人に#回スカラ",2.0,""],["絆時#%で主人に魔力かくせい",100.0,""],["絆時#%で主人に聖なる祈り",100.0,""],["絆時#%で主人に早詠みの杖",100.0,""],["絆時#%で主人にマホステ",100.0,""],["絆時#%で主人に聖女の守り",100.0,""],["絆時#%で主人に弓聖の守り星",100.0,""],["絆時#%で主人にまもりのきり",100.0,""],["絆時100%で主人に#回魔結界",2.0,""],["絆時#%で主人に心頭滅却",100.0,""],["絆時100%で主人に#回ピオラ",2.0,""]],"魔人の勲章":[["きようさ+#",4.0,""],["おもさ+#",2.0,""],["攻撃時#%でためる",1.0,""]],"忠義の勲章":[["会心率と暴走率+#%",0.5,""],["最大HP+#",3.0,""],["きようさ+#",5.0,""]],"ガナン帝国の勲章":[["会心と暴走ダメージ+#",5.0,""],["最大HP+#",2.0,""]],"夢幻魔王の勲章":[["テンション時ダメージ+#",30.0,""],["行動時#%でテンション消費なし",2.0,""]],"邪教司祭の勲章":[["会心と暴走ダメージ+#",10.0,""]],"冥雲魔神の勲章":[["テンション時ダメージ+#",50.0,""],["行動時#%でテンション消費なし",2.0,""]],"旅立ちのこころ":[["最大HP+#",1.0,""],["最大MP+#",1.0,""]],"こころの器":[],"アスバルのこころ10":[],"イルーシャのこころ10":[],"ヴァレリアのこころ10":[],"エステラのこころ10":[],"シンイのこころ10":[],"ヒューザのこころ10":[],"ユシュカのこころ10":[],"ハクオウのこころ10":[],"ラダガートのこころ10":[],"ギルガランのこころ10":[],"ユーライザのこころ10":[],"リナーシェのこころ10":[],"カブのこころ10":[],"ドルタムのこころ10":[],"ナンナのこころ10":[],"アシュレイのこころ10":[],"レオーネのこころ10":[]};
+
+// 表示する効果：攻撃（与ダメージ）と被ダメージにかかわるものだけ
+// 被ダメ：守備力（しゅび力の組も）・ブレス耐性・攻撃呪文ダメージ減・計算する属性のダメージ減
+// 攻撃：攻撃力（こうげき力の組も）・会心・特技/呪文のダメージ・テンション時ダメージ・属性の攻撃ダメージ
+// 攻撃時の効果（攻撃時ルカニなど）は残す。ほかの確率で起きる効果（開戦時・行動時など）は入れない
+const alKeep = o => { const t = o[0];
+  if (/^(開戦時|夜の開戦時|行動時|必殺|絆時|死亡時|味方死亡時|魔物を倒すと|戦闘勝利時)/.test(t)) return false;
+  const m = t.match(/^([炎氷風雷土闇光])ダメージ/); if (m) return !!RES_TYPES[{炎:'fire',氷:'ice',風:'wind',雷:'thunder',土:'earth',闇:'dark',光:'light'}[m[1]]];
+  return /^攻撃時|^(守備力|攻撃力)\+|しゅび力|こうげき力と|ブレス耐性|攻撃呪文ダメージ減|会心|特技のダメージ|呪文のダメージ|テンション時ダメージ|の攻撃ダメージ\+/.test(t); };
+const ACC_DEN = {"機神の眼甲":[["最大HP+2","魔物を倒すと2%でためる","魔物を倒すと3%でためる","魔物を倒すと5%でためる"],[]],"死神のピアス":[["最大HP+2","すばやさ+4","1%でターン消費なし","1.5%でターン消費なし"],[]],"魔犬の仮面":[["最大HP+2","最大MP+2","守備力+2","攻撃魔力+2","回復魔力+2","すばやさ+2","きようさ+2","おもさ+2","おしゃれさ+2","開戦時2%で必殺チャージ"],[]],"マーシャルピアス":[["最大HP+2","すばやさ+4","1%でターン消費なし","1.5%でターン消費なし"],["特技のダメージ+5","特技の回復量+5","呪文のダメージ+5","呪文の回復量+5"]],"レメディピアス":[["最大HP+2","すばやさ+4","1%でターン消費なし","1.5%でターン消費なし"],["特技のダメージ+5","特技の回復量+5","呪文のダメージ+5","呪文の回復量+5"]],"デスマスク":[["最大HP+2","最大MP+2","守備力+2","攻撃魔力+2","回復魔力+2","すばやさ+2","きようさ+2","おもさ+2","おしゃれさ+2","開戦時2%で必殺チャージ"],["必殺チャージ時バイキルト","必殺チャージ時魔力かくせい","必殺チャージ時聖なる祈り","必殺チャージ時早詠みの杖","必殺チャージ時スカラ2段階","必殺チャージ時魔結界2段階","必殺チャージ時心頭滅却","必殺チャージ時ピオラ2段階","必殺チャージ時弓聖の守り星","必殺チャージ時ホップスティック","必殺チャージ時10%で聖騎士の堅陣"]],"破壊神の眼甲":[["最大HP+2","魔物を倒すと2%でためる","魔物を倒すと3%でためる","魔物を倒すと5%でためる"],["最大HP+2","味方死亡時1%で聖女の守り","味方死亡時2%で聖女の守り","味方死亡時1%でためる","味方死亡時2%でためる"]],"忠誠のチョーカー":[["最大HP+2","攻撃力+2","攻撃力+3","攻撃力+5"],[]],"金のロザリオ":[["最大HP+3","最大HP+2","守備力+4","守備力+3","致死ダメージ時5%で生存"],[]],"智謀の首かざり":[["最大MP+2","最大MP+3","攻撃魔力+3","攻撃魔力+5"],[]],"ラストチョーカー":[["最大HP+2","攻撃力+2","攻撃力+3","攻撃力+5"],["最大HP+1","最大HP+2","攻撃力+2","攻撃力+3","攻撃力+5"]],"赤竜の首かざり":[["最大HP+2","最大HP+3","攻撃力+3","攻撃力+5","守備力+5"],[]],"黄金のロザリオ":[["最大HP+3","最大HP+2","守備力+4","守備力+3","致死ダメージ時5%で生存"],["最大HP+3","最大HP+2","攻撃力+5","攻撃力+3","守備力+5"]],"武刃将軍のゆびわ":[["攻撃力+2","攻撃力上昇の時間が3秒増加","攻撃力上昇の時間が4秒増加","攻撃力上昇の時間が5秒増加"],[]],"魔導将軍のゆびわ":[["攻撃魔力+2","呪文威力上昇の時間が3秒増加","呪文威力上昇の時間が4秒増加","呪文威力上昇の時間が5秒増加"],[]],"軍神のゆびわ":[["攻撃力+2","攻撃力上昇の時間が3秒増加","攻撃力上昇の時間が4秒増加","攻撃力上昇の時間が5秒増加"],["行動時1.0%でバイシオン","行動時2.0%でバイシオン","行動時3.0%でバイシオン","最大HP+1","最大HP+2"]],"神智のゆびわ":[["攻撃魔力+2","呪文威力上昇の時間が3秒増加","呪文威力上昇の時間が4秒増加","呪文威力上昇の時間が5秒増加"],["行動時1.0%で早詠みの杖","行動時2.0%で早詠みの杖","行動時3.0%で早詠みの杖","最大HP+1","最大HP+2"]],"セトのアンク":[["最大MP+3","最大MP+4","攻撃力+2","攻撃力+3"],[]],"セルケトのアンク":[["最大HP+2","最大HP+3","攻撃魔力+4","攻撃魔力+5"],[]],"イシスのアンク":[["最大HP+2","最大HP+3","回復魔力+4","回復魔力+5"],[]],"オシリスのアンク":[["最大MP+2","最大MP+3","守備力+3","おもさ+2"],[]],"アヌビスのアンク":[["最大HP+3","最大HP+4","最大MP+3","最大MP+4"],[]],"バステトのアンク":[["おしゃれさ+3","おしゃれさ+4","最大HP+2","最大MP+2"],[]],"剛勇のベルト":[["最大HP+2","最大HP+3","おもさ+3","おもさ+4"],[]],"大地の大竜玉":[["最大HP+3","最大HP+4","最大HP+5"],[]],"風雷のいんろう":[["最大HP+2","おしゃれさ+4","風ダメージ3%減","雷ダメージ3%減"],[]],"氷闇の月飾り":[["最大HP+2","おしゃれさ+4","氷ダメージ3%減","闇ダメージ3%減"],[]],"炎光の勾玉":[["最大HP+2","おしゃれさ+4","炎ダメージ3%減","光ダメージ3%減"],[]],"紫竜の煌玉":[["最大HP+3","最大HP+4","最大HP+5"],["最大HP+3","最大HP+4","最大HP+5"]],"ハルファスの大紋章":[["こうげき力とすばやさ+1","こうげき力とすばやさ+2","こうげき力とすばやさ+3","こうげき力とすばやさ+4","こうげき力とすばやさ+5","こうげき力ときようさ+1","こうげき力ときようさ+2","こうげき力ときようさ+3","こうげき力ときようさ+4","こうげき力ときようさ+5","こうげき力としゅび力+1","こうげき力としゅび力+2","こうげき力としゅび力+3","こうげき力としゅび力+4","こうげき力としゅび力+5"],[]],"アガレスの大紋章":[["こうげき魔力とすばやさ+1","こうげき魔力とすばやさ+2","こうげき魔力とすばやさ+3","こうげき魔力とすばやさ+4","こうげき魔力とすばやさ+5","こうげき魔力ときようさ+1","こうげき魔力ときようさ+2","こうげき魔力ときようさ+3","こうげき魔力ときようさ+4","こうげき魔力ときようさ+5","こうげき魔力としゅび力+1","こうげき魔力としゅび力+2","こうげき魔力としゅび力+3","こうげき魔力としゅび力+4","こうげき魔力としゅび力+5"],[]],"ブエルの大紋章":[["かいふく魔力とすばやさ+1","かいふく魔力とすばやさ+2","かいふく魔力とすばやさ+3","かいふく魔力とすばやさ+4","かいふく魔力とすばやさ+5","かいふく魔力ときようさ+1","かいふく魔力ときようさ+2","かいふく魔力ときようさ+3","かいふく魔力ときようさ+4","かいふく魔力ときようさ+5","かいふく魔力としゅび力+1","かいふく魔力としゅび力+2","かいふく魔力としゅび力+3","かいふく魔力としゅび力+4","かいふく魔力としゅび力+5"],[]],"アモンの大紋章":[["おもさとすばやさ+1","おもさとすばやさ+2","おもさとすばやさ+3","おもさとすばやさ+4","おもさとすばやさ+5","おもさときようさ+1","おもさときようさ+2","おもさときようさ+3","おもさときようさ+4","おもさときようさ+5","おもさとしゅび力+1","おもさとしゅび力+2","おもさとしゅび力+3","おもさとしゅび力+4","おもさとしゅび力+5"],[]],"グレモリーの大紋章":[["おしゃれさとすばやさ+1","おしゃれさとすばやさ+2","おしゃれさとすばやさ+3","おしゃれさとすばやさ+4","おしゃれさとすばやさ+5","おしゃれさときようさ+1","おしゃれさときようさ+2","おしゃれさときようさ+3","おしゃれさときようさ+4","おしゃれさときようさ+5","おしゃれさとしゅび力+1","おしゃれさとしゅび力+2","おしゃれさとしゅび力+3","おしゃれさとしゅび力+4","おしゃれさとしゅび力+5"],[]],"絆のエンブレム改":[["絆時50%で主人にバイキルト","絆時50%で主人に2回スカラ","絆時50%で主人にマホステ","絆時50%で主人に聖女の守り","絆時50%で主人に弓聖の守り星","絆時50%で主人にまもりのきり","絆時50%で主人のHP100回復","絆時50%で主人のMP20回復"],[]],"絆のエンブレム極":[["絆時50%で主人にバイキルト","絆時50%で主人に2回スカラ","絆時50%で主人にマホステ","絆時50%で主人に聖女の守り","絆時50%で主人に弓聖の守り星","絆時50%で主人にまもりのきり","絆時50%で主人のHP100回復","絆時50%で主人のMP20回復"],["絆時50%で主人にバイキルト","絆時50%で主人に2回スカラ","絆時50%で主人に魔力かくせい","絆時50%で主人に聖なる祈り","絆時50%で主人に早詠みの杖","絆時50%で主人にマホステ","絆時50%で主人に聖女の守り","絆時50%で主人に弓聖の守り星","絆時50%で主人にまもりのきり","絆時50%で主人のHP100回復","絆時50%で主人のMP20回復"]],"ガナン帝国の勲章":[["会心率と暴走率+0.2%","会心率と暴走率+0.5%","最大HP+2","最大HP+3","きようさ+4","きようさ+5"],[]],"夢幻魔王の勲章":[["きようさ+4","おもさ+2","攻撃時0.5%でためる","攻撃時1.0%でためる"],[]],"邪教司祭の勲章":[["会心率と暴走率+0.2%","会心率と暴走率+0.5%","最大HP+2","最大HP+3","きようさ+4","きようさ+5"],["会心と暴走ダメージ+1","会心と暴走ダメージ+3","会心と暴走ダメージ+5","最大HP+1","最大HP+2"]],"冥雲魔神の勲章":[["きようさ+4","おもさ+2","攻撃時0.5%でためる","攻撃時1.0%でためる"],["テンション時ダメージ+30","テンション時ダメージ+20","テンション時ダメージ+10","行動時2.0%でテンション消費なし","行動時1.5%でテンション消費なし","行動時1.0%でテンション消費なし"]]};
+// 伝承効果：第二世代は1つ（第一伝承）、第三世代は2つ（第一伝承＋第二伝承）。出典：IKEドラクエ10攻略の各アクセのページ
+// 効果は値が決まっているので、選ぶだけ。[元の文字, テンプレート, 値, 計算に使う種類]
+const DEN_N = 2;
+const DEN_ROWS = ['finger','waist'];  // 伝承の枠があるのは指・腰だけ（ほかは各行のMaxに含める）
+const ELEM_JA = {炎:'fire',氷:'ice',風:'wind',雷:'thunder',土:'earth',闇:'dark',光:'light'};
+function denParse(txt){
+  const m = txt.match(/\d+(?:\.\d+)?/); if (!m) return null;
+  const tpl = txt.replace(m[0], '#'), v = +m[0];
+  const em = tpl.match(/^([炎氷風雷土闇光])ダメージ#%減$/);
+  const calc = (tpl.startsWith('守備力+') || tpl.includes('しゅび力')) ? 'def' : em ? ELEM_JA[em[1]] : '';
+  return [txt, tpl, v, calc];
+}
+// そのアクセで選べる伝承効果（攻撃・被ダメに関係するものだけ）。k＝0:第一伝承 1:第二伝承
+// からだ下：被ダメージのページでは守備力の1行だけ（錬金3枠の合計）
+//   指・腰は、どちらのページでも同じ枠・同じ選択肢（被ダメに関係しない効果はグレー）
+const ONE_DEF_SLOTS = ['bodyL'];
+const oneDef = slot => defView() && ONE_DEF_SLOTS.includes(slot);
+// 被ダメージのページでは、錬金、アクセの合成・伝承・ベルト・こころの効果は被ダメに効くものだけ（守備力・計算する耐性・被ダメ軽減）
+const defView = () => inDef;
+const isDefFx = calc => calc==='def' || calc==='flat' || !!RES_TYPES[calc];
+// アクセだけは、被ダメージのページでも攻撃力を出す（グレーで表示・計算には使わない）
+const accForView = L => defView() ? L.filter(o=>isDefFx(o[2]) || o[2]==='atk') : L;
+const forView = (L, i) => defView() ? L.filter(o=>isDefFx(o[i])) : L;   // i＝計算に使う種類の位置
+function denList(slot, k){
+  const a = accOf(S['acc_'+slot]); const L = a && ACC_DEN[a[2]]; if (!L) return null;
+  return L[k].map(denParse).filter(o=>o && alKeep([o[1]]));
+}
+const denOpt = (slot, k, txt) => (denList(slot, k)||[]).find(o=>o[0]===txt);
+function denOptsHTML(slot, k){
+  const L = denList(slot, k);
+  if (!L) return opt('', '—');
+  if (!L.length) return opt('', ACC_DEN[accOf(S['acc_'+slot])[2]][k].length ? '—（攻撃・被ダメに関係する効果なし）' : '—（この伝承はなし）');
+  return opt('','—（選ばない）') + L.map(o=>opt(o[0], o[0])).join('');
+}
+// ===== 輝石のベルト・戦神のベルトの効果（合成ではなく、5枠まで・同じ効果は1つ） =====
+// [効果, 最大値, 計算に使う種類, 0, '', 選択肢の見出し]。出典：IKEドラクエ10攻略 /roylaby/belt/・/jyashin/belt（どちらもVer7.4の強化後）
+//   ※戦神は /item/戦神のベルト の表が強化前の値（攻撃力+14など）のままなので使わない
+// 入れるもの：攻撃・被ダメにかかわる効果。系統はドグドラのドラゴン系、武器はツメ・片手剣・弓だけ。開戦時は入れない
+const BELT_N = 5;
+const BELT_ELS = ['炎','氷','風','雷','土','闇','光'];
+const BELTS = {
+  '輝石のベルト': [
+    ['攻撃力+#',14,'atk',0,'','能力'], ['守備力+#',24,'def',0,'','能力'], ['会心率+#%',2,'crit',0,'','能力'],
+    ['ドラゴン系にダメージ+#%',10,'',0,'','系統'],
+    ...BELT_ELS.map(e=>[`${e}の特技ダメージ+#%`,12,'',0,'','属性の特技']),
+    ...BELT_ELS.filter(e=>e!=='雷').map(e=>[`${e}の呪文ダメージ+#%`,12,'',0,'','属性の呪文']),
+    ...[['どく',5],['眠り',5],['マヒ',5],['混乱',5],['幻惑',5],['魅了',5],['封印',5],['ヘナトス',5],['ルカニ',5],
+        ['リホ系解除',50],['マホ系解除',25],['テンション下げ',24],['ぶきみなひかり',5],['魔導の書',5],['猛毒',5]]
+      .map(([e,v])=>[`攻撃時#%で${e}`,v,'',0,'','攻撃時']),
+  ],
+  '戦神のベルト': [
+    ['攻撃力+#',25,'atk',0,'','能力'], ['会心率と暴走率+#%',2,'crit',0,'','能力'],
+    ['ドラゴン系にダメージ+#%',12,'',0,'','系統'],
+    ...WEP_CATS.flatMap(w=>BELT_ELS.map(e=>[`${w}装備時 ${e}属性攻撃ダメージ+#%`,15,'',0,'',`${w}装備時`])),
+  ],
+};
+// ===== 合成ではなく「追加効果」を自分で付けるアクセ（IKE の一覧では合成欄が空なので、ここに別に持つ） =====
+// 不思議のカード・レプリカード：違う効果を3種類まで。Lv10で攻撃力+15・守備力+25（同時に付く）。出典：IKE /ftou/fcard・/ftou/repcard
+const CARD_FX = {atk:15, def:25};
+const isCard = a => !!a && (a[2]==='不思議のカード' || a[2]==='レプリカード');
+// 断罪のゆびわ：能力・系統・属性から1つずつ。5段階目の値。出典：IKE /shinen/ring（/item/ の表は4段階目のままなので使わない）
+const DANZAI = [['攻撃力+#',6,'atk',0,'','能力'], ['守備力+#',20,'def',0,'','能力'],
+  ['ドラゴン系にダメージ+#%',11,'',0,'','系統'],
+  ...['炎','氷','風','雷','土','闇','光'].map(e=>[`${e}の攻撃ダメージ+#%`,5,'',0,'','属性'])];
+function ringList(slot){
+  if (slot!=='finger') return null;
+  const a = accOf(S.acc_finger); return a && a[2]==='断罪のゆびわ' ? DANZAI : null;
+}
+function beltList(slot){
+  if (slot!=='waist') return null;
+  const a = accOf(S.acc_waist), L = a && BELTS[a[2]]; return L || null;
+}
+const alMax = slot => slot==='waist' ? BELT_N : AL_N;        // 行として用意する数
+const alN = slot => {
+  if (oneDef(slot)) return oneRows(slot).length || 1;
+  const b = beltList(slot); if (b) return Math.min(BELT_N, b.length);
+  const r = ringList(slot); return r ? new Set(r.map(o=>o[5])).size : AL_N;   // 断罪は種類の数だけ
+};         // 今使える数
+// その行で今選べる効果の一覧
+// ===== 指・腰以外のアクセ：付く効果だけを1行ずつ（攻撃力／守備力／例外として属性） =====
+// 最大値 ＝ 合成の最大×3 ＋ 第一伝承の最大 ＋ 第二伝承の最大（その効果が付く分だけ）
+// 攻撃力と守備力のどちらかになるもの（赤竜など）は1行で切替。攻撃力を最大にしても守備力が同時に付くもの（ハルファス・ロザリオ）は2行
+const atkDefOnly = slot => ACC_ROWS.includes(slot) && slot!=='finger' && slot!=='waist';
+const ONE_ATK = 0, ONE_DEF = 1, ONE_EL = 2;
+const RE_ATK = /^攻撃力\+|こうげき力/, RE_DEF = /^守備力\+|しゅび力/;
+const RE_EL = /^[炎氷風雷土闇光](ダメージ|の攻撃ダメージ)/;
+// そのアクセの [合成, 第一伝承, 第二伝承]。どれも [効果, 値, 計算に使う種類] の一覧
+function accSources(slot){
+  const a = accOf(S['acc_'+slot]); if (!a) return null;
+  return [ACC_COMP[a[2]]||[], ...(ACC_DEN[a[2]]||[[],[]]).map(L=>L.map(denParse).filter(Boolean).map(o=>o.slice(1)))];
+}
+// n行目に出す効果：[効果, 最大値, 計算に使う種類, 0, '', '', 内訳, 付く場所]
+// ===== キャラのこころ：Lv1〜10の値 =====
+// [攻撃力, 守備力, 基礎効果（#に値）, 基礎効果の値, 計算に使う種類]。守備力は「基礎守備」に入れる（スカラ対象）
+// 出典：あせろぐ「異界アスタルジア こころ1」のLv別の表。計算に関係するこころは DQ10大辞典 第二版・IKE・極限攻略と照合
+//   食い違った値：ラダ・ガートLv10の攻撃力は15（IKEのみ14）／ギルガランLv4は6（大辞典のみ5）／カブLv1は1（大辞典のみ2）
+const HEART_LV = {
+  'アスバルのこころ': [0, 0, '闇の攻撃ダメージ+#%', [1,1,1,1.5,2,2,3,3,3.5,4], ''],
+  'イルーシャのこころ': [0, 0, '行動時#%で聖なる祈り', [3,3,3,4,5,5,7,7,8,10], ''],
+  'ヴァレリアのこころ': [[1,3,5,7,9,11,13,15,16,18], 0, '氷の攻撃ダメージ+#%', [1,1,1,1.5,2,2,3,3,3.5,4], ''],
+  'エステラのこころ': [0, 0, '行動時#%で魔力かくせい', [3,3,3,4,5,5,7,7,8,10], ''],
+  'ギルガランのこころ': [[2,3,4,6,7,8,9,10,11,13], [4,8,12,16,20,24,28,32,36,40], '攻撃時#%でルカニ', [3,3,3,4,5,5,7,7,8,10], ''],
+  'シンイのこころ': [0, 0, '行動時#%で早詠みの杖', [3,3,3,4,5,5,7,7,8,10], ''],
+  'ハクオウのこころ': [[1,2,3,4,5,6,7,8,9,10], 0, '風の攻撃ダメージ+#%', [1,1,1,1.5,2,2,3,3,3.5,4], ''],
+  'ヒューザのこころ': [[2,3,4,6,7,8,9,10,11,13], 0, '行動時#%でバイシオン', [3,3,3,4,5,5,7,7,8,10], ''],
+  'ユーライザのこころ': [0, 0, '致死ダメージ時#%で生存', [1,1,1,2,3,3,4,4,4.5,5], ''],
+  'ユシュカのこころ': [[1,2,2,3,4,5,6,7,8,9], 0, '炎の攻撃ダメージ+#%', [1,1,1,1.5,2,2,3,3,3.5,4], ''],
+  'ラダガートのこころ': [[2,3,5,6,8,9,11,12,14,15], 0, '全ての攻撃時#%でためる', [1,1,1,1.5,2,2,2.5,2.5,3,3], ''],
+  'リナーシェのこころ': [0, 0, '行動時#%で弓聖の守り星', [1,1,1,2,3,3,4,4,4.5,5], ''],
+  'カブのこころ': [[1,3,5,6,8,9,11,12,14,15], 0, 'テンション時ダメージ+#', [100,100,100,120,140,140,160,160,180,200], ''],
+  'ナンナのこころ': [[2,3,4,6,7,8,9,10,11,13], 0, '土の攻撃ダメージ+#%', [1,1,1,1.5,2,2,3,3,3.5,4], ''],
+  'ドルタムのこころ': [0, [4,8,12,16,20,24,28,32,36,40], '受けるダメージ#軽減', [1,1,1,2,3,3,4,4,5,5], 'flat'],
+  'アシュレイのこころ': [[1,2,3,4,5,6,7,8,9,10], 0, '雷の攻撃ダメージ+#%', [1,1,1,1.5,2,2,3,3,3.5,4], ''],
+  'レオーネのこころ': [[1,1,2,3,3,4,4,5,6,7], [3,6,9,12,15,18,21,24,27,30], '光の攻撃ダメージ+#%', [1,1,1,1.5,2,2,3,3,3.5,4], ''],
+};
+const HEART_LVS = Array.from({length:10}, (_,i)=>[String(10-i), `Lv${10-i}`]);
+const heartIdx = () => Math.min(10, Math.max(1, num('heartLv', 10))) - 1;
+// 装備中のこころの、攻撃力と基礎効果（与ダメージ計算でもこれを使う）：[効果, 値, 計算に使う種類]
+function heartFx(slot){
+  const a = isHeart(slot) ? accOf(S['acc_'+slot]) : null; if (!a) return [];
+  if (a[2]==='ガナサダイのこころ') return accForView([['攻撃力+#', 6, 'atk']]);
+  const h = HEART_LV[a[2]]; if (!h) return [];
+  const i = heartIdx();
+  return accForView([...(h[0] ? [['攻撃力+#', h[0][i], 'atk']] : []), [h[2], h[3][i], h[4]]]);
+}
+// アクセ本体の守備力・被ダメ軽減（キャラのこころはLvで変わる）
+function accDefOf(a){ const h = a && HEART_LV[a[2]]; return !a ? 0 : h ? (h[1] ? h[1][heartIdx()] : 0) : a[3]; }
+function accFlatOf(a){ const h = a && HEART_LV[a[2]]; return !a ? 0 : h ? (h[4]==='flat' ? h[3][heartIdx()] : 0) : a[5]; }
+// ガナサダイのこころの思念効果（1つだけ・最大値）。行動時・致死時・みかわしは、ほかと同じく入れない
+const GANASA = [...['炎','氷','風','雷','土','闇','光'].map(e=>[`${e}の攻撃ダメージ+#%`,3]),
+  ['攻撃時#%でヘナトス',8], ['攻撃時#%でルカニ',8], ['攻撃時#%でためる',2.5]].map(([t,v])=>[t,v,'',0,'','','','思念効果']);
+const isHeart = slot => slot==='heart' || slot==='heart2';
+function accRowBase(slot, n){
+  const src = accSources(slot); if (!src) return [];
+  if (slot==='heart2' && accOf(S.acc_heart2)[2]==='ガナサダイのこころ') return n===ONE_EL ? GANASA : [];
+  if (slot==='fuda' && isCard(accOf(S.acc_fuda)))
+    return n===ONE_ATK ? [['攻撃力+#',CARD_FX.atk,'atk',0,'','','Lv10','追加効果']] : n===ONE_DEF ? [['守備力+#',CARD_FX.def,'def',0,'','','Lv10','追加効果']] : [];
+  const make = (tpl, calc, hit) => {
+    const [c,d1,d2] = src.map(L=>Math.max(0,...L.filter(hit).map(o=>o[1])));
+    if (!(c+d1+d2)) return [];
+    const how = [c && `合成${c}×3`, d1 && `第一伝承${d1}`, d2 && `第二伝承${d2}`].filter(Boolean).join('＋');
+    const where = [c && '合成', d1 && '第一伝承', d2 && '第二伝承'].filter(Boolean).join('・');
+    return [[tpl, c*3+d1+d2, calc, 0, '', '', how, where]];
+  };
+  if (n===ONE_ATK) return make('攻撃力+#', 'atk', o=>RE_ATK.test(o[0]));
+  if (n===ONE_DEF) return make('守備力+#', 'def', o=>RE_DEF.test(o[0]));
+  const els = new Map(src.flat().filter(o=>RE_EL.test(o[0]) && alKeep(o)).map(o=>[o[0], o[2]||'']));
+  return [...els].flatMap(([tpl,calc])=>make(tpl, calc, o=>o[0]===tpl));
+}
+function accRowList(slot, n){
+  const L = accForView(accRowAll(slot, n));
+  return defView() && L.length>1 && n!==ONE_EL ? [...L].reverse() : L;   // 被ダメのページでは、切替は守備力が先（初期値）
+}
+function accRowAll(slot, n){
+  if (n===ONE_EL) return accRowBase(slot, n);
+  const A = accRowBase(slot, ONE_ATK), D = accRowBase(slot, ONE_DEF);
+  if (A.length && D.length && !accRoom(slot, ONE_ATK, A[0][1])) return n===ONE_ATK ? [...A, ...D] : [];
+  return n===ONE_ATK ? A : D;
+}
+// 片方（n）を v 以上にしたとき、もう片方に同時に付けられる最大
+function accRoom(slot, n, v){
+  if (slot==='fuda' && isCard(accOf(S.acc_fuda))) return n===ONE_ATK ? CARD_FX.def : CARD_FX.atk;   // 別々の枠なので取り合わない
+  const [c,d1,d2] = accSources(slot);
+  let sums = [[0,0]];
+  [c,c,c,d1,d2].forEach(L=>{
+    const picks = [[0,0], ...L.map(o=>[RE_ATK.test(o[0])?o[1]:0, RE_DEF.test(o[0])?o[1]:0])];
+    const next = new Map();   // 攻撃力の合計ごとに、守備力の一番大きい合計
+    sums.forEach(([a,b])=>picks.forEach(([x,y])=>next.set(a+x, Math.max(next.get(a+x)||0, b+y))));
+    sums = [...next];
+  });
+  const need = Math.min(v, Math.max(...sums.map(x=>x[n])));
+  return Math.max(...sums.filter(x=>x[n]>=need).map(x=>x[1-n]));
+}
+// 被ダメのページのからだ下：[効果, 合計の最大値, …, 内訳, 付く場所] の一覧を行ごとに
+function oneRows(slot){
+  const L = alListAll(slot).filter(o=>o[2]==='def').map(([t,v])=>[t, v*AL_N, 'def', 0, '', '', `錬金${v}×${AL_N}`, '錬金']);
+  return L.length ? [L] : [];
+}
+const fxKind = tpl => RE_ATK.test(tpl) ? 'atk' : RE_DEF.test(tpl) ? 'def' : '';
+// 3枠に分けて入っている守備力は、1行に合計する
+function packOneDef(slot){
+  const rows = Array.from({length:AL_N}, (_,n)=>[`al_${slot}_${n}_t`, `al_${slot}_${n}_v`]);
+  const R = oneRows(slot);
+  if (rows.every(([t,v],n)=>R[n] ? R[n].some(o=>o[0]===S[t]) : !S[t] && !num(v))) return;
+  const sum = rows.reduce((x,[t,v])=>fxKind(S[t])==='def' ? x+num(v) : x, 0);
+  rows.forEach(([t,v],n)=>{
+    const o = R[n] && R[n][0];
+    S[t] = o ? o[0] : ''; S[v] = o ? sum : 0; syncKey(v); });
+}
+function alList(slot){ if (oneDef(slot)) return oneRows(slot).flat();
+  const belt = beltList(slot) || ringList(slot); if (belt) return belt;
+  if (atkDefOnly(slot)) return [0,1,2].flatMap(n=>accRowList(slot, n));
+  const L = alListAll(slot).filter(alKeep); return DEN_ROWS.includes(slot) ? L : forView(L, 2); }
+function alListAll(slot){
+  if (ACC_ROWS.includes(slot)){ const a = accOf(S['acc_'+slot]); return a ? (ACC_COMP[a[2]]||[]) : []; }
+  if (slot==='weapon'){ const w = wepOf(S.wepSel); return w ? REN.weapon.filter(o=>!o[4] || o[4]===w[1]) : []; }
+  if (slot==='shield') return (S.shieldSel!=='none' && !is2h()) ? REN.shield : [];
+  const i = ['head','bodyU','bodyL','arm','foot'].indexOf(slot);
+  return S['eqp_'+i]==='none' ? [] : REN[slot];
+}
+const alOpt = (slot, key) => alList(slot).find(o=>o[0]===key);
+const viewSig = () => defView() ? 'def:' : 'all:';
+const alSig = slot => viewSig() + (ACC_ROWS.includes(slot) ? S['acc_'+slot] : slot==='weapon' ? S.wepSel : slot==='shield' ? S.shieldSel+(is2h()?'2h':'') : S['eqp_'+['head','bodyU','bodyL','arm','foot'].indexOf(slot)]);
+const fmtAl = (tpl, v) => tpl.replace('#', v);
+// 効果名だけ（数値を抜く）：守備力+# → 守備力、攻撃時#%でルカニ → 攻撃時ルカニ、炎ダメージ#%減 → 炎ダメージ減
+const alName = tpl => tpl.replace(/#%?で/, '').replace(/[+＋]#%?/, '').replace(/#%?/, '');
+function alOptsHTML(slot, n){
+  const L = alList(slot);
+  if (atkDefOnly(slot)) return (n===ONE_EL ? opt('','—') : '') + accRowList(slot, n).map(o=>opt(o[0], alName(o[0]))).join('');
+  if (!L.length) return opt('', alListAll(slot).length ? (defView() && !DEN_ROWS.includes(slot) ? '—（被ダメに関係する効果なし）' : '—（攻撃・被ダメに関係する効果なし）') : ACC_ROWS.includes(slot) ? (S['acc_'+slot]==='none' ? '—（アクセ未選択）' : '—（合成なし）') : '—（装備なし）');
+  const nrm = L.filter(o=>!o[3]), pal = L.filter(o=>o[3]);
+  const lab = o => `${alName(o[0])}${o[4]?'（'+o[4]+'のみ）':''}`;
+  if (oneDef(slot)) return (oneRows(slot)[n||0]||[]).map(o=>opt(o[0], alName(o[0]))).join('');
+  if (beltList(slot) || ringList(slot)) return opt('','—') + [...new Set(L.map(o=>o[5]))].map(g=>`<optgroup label="${g}">${L.filter(o=>o[5]===g).map(o=>opt(o[0],lab(o))).join('')}</optgroup>`).join('');
+  return opt('','—') + (pal.length ? `<optgroup label="${ACC_ROWS.includes(slot)?'合成':'錬金'}">${nrm.map(o=>opt(o[0],lab(o))).join('')}</optgroup><optgroup label="パルプンテ限定">${pal.map(o=>opt(o[0],lab(o))).join('')}</optgroup>` : nrm.map(o=>opt(o[0],lab(o))).join(''));
+}
+// 装備が変わったら、補正の選択肢を作り直す（今の装備で付かない効果は外す）
+function refreshAl(){
+  if (defView()) ONE_DEF_SLOTS.forEach(packOneDef);
+  DEN_ROWS.forEach(slot=>{ const sig = viewSig()+S['acc_'+slot];
+    [0,1].forEach(k=>{ const key = `den_${slot}_${k}`, L = denList(slot, k);
+      if (S[key] && !denOpt(slot, k, S[key])) S[key] = '';
+      document.querySelectorAll(`[data-key="${key}"]`).forEach(sel=>{
+        if (sel.dataset.sig !== sig){ sel.innerHTML = denOptsHTML(slot, k); sel.dataset.sig = sig; }
+        sel.value = S[key]; sel.disabled = !L || !L.length; });
+      const d = denOpt(slot, k, S[key]);
+      document.querySelectorAll(`[data-denrow="${slot}_${k}"]`).forEach(r=>r.classList.toggle('offfx', defView() && !!d && !isDefFx(d[3])));
+      // 選べる伝承効果がなければ行ごと隠す
+      document.querySelectorAll(`[data-denrow="${slot}_${k}"]`).forEach(r=>r.hidden = !L || !L.length); });
+  });
+  EQ_ROWS.forEach(([slot])=>{
+    const sig = alSig(slot);
+    document.querySelectorAll(`[data-albulk="${slot}"]`).forEach(sel=>{
+      if (sel.dataset.sig !== sig){ sel.innerHTML = alOptsHTML(slot).replace(/<option value="">—<\/option>/, '<option value="">— まとめて選ぶ</option>'); sel.dataset.sig = sig; }
+      const ts = [0,1,2].map(n=>S[`al_${slot}_${n}_t`]);
+      sel.value = ts.every(t=>t && t===ts[0]) ? ts[0] : ''; sel.disabled = !alList(slot).length;
+      document.querySelectorAll(`[data-albulkmax="${slot}"]`).forEach(b=>{ const o = alOpt(slot, sel.value); b.disabled = !o; b.title = o ? `3枠とも ${fmtAl(o[0], o[1])}` : '3枠とも同じ効果の最大値にする'; });
+    });
+    const belt = beltList(slot);
+    if (slot==='waist'){
+      document.querySelectorAll('[data-albulk="waist"]').forEach(x=>x.parentElement.hidden = !!belt);
+      document.querySelectorAll('[data-beltbar]').forEach(x=>x.hidden = !belt || belt.length<2);
+    }
+    for (let n=0;n<alMax(slot);n++){
+      const one = atkDefOnly(slot) ? accRowList(slot, n) : oneDef(slot) ? (oneRows(slot)[n]||[]) : null;
+      document.querySelectorAll(`[data-alline="${slot}_${n}"]`).forEach(x=>x.hidden = one ? !one.length : n>=alN(slot));
+      const tk = `al_${slot}_${n}_t`, vk = `al_${slot}_${n}_v`;
+      if (one){
+        // この行に出せない効果の数値は、次の効果に持ち越さない（攻撃力20 が守備力20 に化けないように）
+        if (S[tk] && !one.some(x=>x[0]===S[tk])){ S[tk] = ''; S[vk] = 0; syncKey(vk); }
+        // 候補が1つならそれに決まり。攻撃力⇔守備力の切替は、最初は攻撃力
+        if (one.length===1 || (n!==ONE_EL && one.length && !one.some(x=>x[0]===S[tk]))) S[tk] = one[0][0];
+        document.querySelectorAll(`[data-key="${tk}"]`).forEach(x=>x.hidden = one.length<2);
+        document.querySelectorAll(`[data-alfix="${slot}_${n}"]`).forEach(x=>{ x.hidden = one.length!==1; x.textContent = one.length===1 ? alName(one[0][0]) : ''; x.dataset.fx = one.length===1 ? (fxKind(one[0][0])||'el') : ''; });
+      }
+      if (!one && ONE_DEF_SLOTS.includes(slot)){   // 与ダメ側では、いつもの選択式に戻す
+        document.querySelectorAll(`[data-key="${tk}"]`).forEach(x=>x.hidden = false);
+        document.querySelectorAll(`[data-alfix="${slot}_${n}"]`).forEach(x=>x.hidden = true); }
+      if (S[tk] && !alOpt(slot, S[tk])){ S[tk] = ''; S[vk] = 0; syncKey(vk); }
+      document.querySelectorAll(`[data-key="${tk}"]`).forEach(sel=>{
+        if (sel.dataset.sig !== sig){ sel.innerHTML = alOptsHTML(slot, n); sel.dataset.sig = sig; }
+        sel.value = S[tk]; sel.disabled = !alList(slot).length;
+        // ベルトは同じ効果を2枠で選べない
+        if (slot==='waist'){ const used = belt ? Array.from({length:BELT_N},(_,j)=>j===n?'':S[`al_waist_${j}_t`]).filter(Boolean) : [];
+          [...sel.options].forEach(x=>x.disabled = used.includes(x.value)); }
+        // 断罪のゆびわは同じ種類（能力・系統・属性）から2つ選べない
+        if (slot==='finger'){ const R = ringList(slot) || [], cat = t => (R.find(o=>o[0]===t)||[])[5];
+          const used = [0,1,2].filter(j=>j!==n).map(j=>cat(S[`al_finger_${j}_t`])).filter(Boolean);
+          [...sel.options].forEach(x=>x.disabled = used.includes(cat(x.value))); } });
+      const o = alOpt(slot, S[tk]);
+      if (ACC_ROWS.includes(slot)) document.querySelectorAll(`[data-alline="${slot}_${n}"]`).forEach(x=>x.classList.toggle('offfx', defView() && !!S[tk] && (RE_ATK.test(S[tk]) || (DEN_ROWS.includes(slot) && !!o && !isDefFx(o[2])))));
+      document.querySelectorAll(`[data-almax="${slot}_${n}"]`).forEach(b=>{ b.disabled = !o; b.title = o ? `最大 ${fmtAl(o[0], o[1])}${o[6] ? `（${o[6]}）` : ''}` : ''; });
+    }
+    if (atkDefOnly(slot)){
+      const [A,D,E] = [0,1,2].map(n=>accRowList(slot, n)), main = [...A, ...D];
+      document.querySelectorAll(`[data-onenote="${slot}"]`).forEach(x=>{
+        x.hidden = main.length>0 || (isHeart(slot) && E.length>0);
+        // 被ダメ側では、合成・伝承に付かなくても「—」だけでよい（本体の値は装備名の横に出る）
+        x.textContent = S['acc_'+slot]==='none' || isHeart(slot) || defView() ? '—' : '攻撃力・守備力はつかない'; });
+      document.querySelectorAll(`[data-elnote="${slot}"]`).forEach(x=>{ x.hidden = !E.length; x.textContent = !E.length ? '' : E[0][7]==='思念効果' ? '思念効果（1つ）' : `属性（${E[0][7]}）`; });
+    }
+    // 選べる効果がなければ枠は出さずに「—」だけ（指・腰は別）
+    if (!atkDefOnly(slot)){
+      const noOpt = !alList(slot).length, none = noOpt && !DEN_ROWS.includes(slot);   // 指・腰はいつも枠を出す
+      document.querySelectorAll(`[data-albox="${slot}"]`).forEach(box=>{
+        box.querySelectorAll('[data-albulk]').forEach(x=>x.parentElement.hidden = noOpt || oneDef(slot) || !!belt || !!ringList(slot));
+        box.querySelectorAll('[data-alline]').forEach(x=>x.hidden = none || +x.dataset.alline.split('_')[1] >= alN(slot));
+        box.querySelector('[data-aldash]').hidden = !none || !!box.querySelector('[data-denrow]:not([hidden])');
+      });
+    }
+    if (slot==='waist') document.querySelectorAll('[data-beltmax]').forEach(b=>b.disabled = !belt || !Array.from({length:BELT_N},(_,n)=>S[`al_waist_${n}_t`]).some(Boolean));
+  });
+}
+const rowName = slot => EQ_ROWS.find(r=>r[0]===slot)[1];
+// 行ごとの補正（錬金・合成）を集める
+function alEntries(){
+  const out = [];
+  EQ_ROWS.forEach(([slot,nm])=>{ for (let n=0;n<alN(slot);n++){ const o = alOpt(slot, S[`al_${slot}_${n}_t`]), v = num(`al_${slot}_${n}_v`); if (o && v) out.push([slot, nm, o[2]||'', v, fmtAl(o[0], v)]); } });
+  DEN_ROWS.forEach(slot=>{ const nm = rowName(slot); [0,1].forEach(k=>{ const o = denOpt(slot, k, S[`den_${slot}_${k}`]); if (o) out.push([slot, nm, o[3], o[2], '伝承:'+o[0]]); }); });
+  return out;
+}
+// 装備（盾・アクセ）の基礎効果による耐性と、補正の耐性
+function eqResItems(t){
+  const out = [];
+  const sh = shieldOf(S.shieldSel); if (sh && sh[5][t] && !is2h()) out.push([`${sh[2]}（盾）`, sh[5][t]/100]);
+  ACC_ROWS.forEach(slot=>{ const a = accOf(S['acc_'+slot]); if (a && a[4][t]) out.push([a[2], a[4][t]/100]); });
+  alEntries().forEach(([slot,nm,ty,v])=>{ if (ty===t) out.push([`${nm}の錬金/合成`, v/100]); });
+  return out;
+}
+function eqFlatItems(){
+  const out = [];
+  const sh = shieldOf(S.shieldSel); if (sh && shFlat(sh) && !is2h()) out.push([sh[2], shFlat(sh), 'shield']);
+  ACC_ROWS.forEach(slot=>{ const a = accOf(S['acc_'+slot]), v = accFlatOf(a);
+    if (v) out.push([HEART_LV[a[2]] ? `${a[2]}Lv${heartIdx()+1}` : a[2], v, slot]); });
+  alEntries().forEach(([slot,nm,ty,v])=>{ if (ty==='flat') out.push([`${nm}の錬金/合成`, v, slot]); });
+  return out;
+}
+const alDefSum = () => alEntries().filter(e=>e[2]==='def').reduce((a,e)=>a+e[3],0);
+const accDefSum = () => ACC_ROWS.reduce((a,slot)=>a+num('eqd_'+slot),0) + num('eqd_weapon');
+const shFlat = x => x ? +((x[6].match(/受けるダメージを(\d+)軽減/)||[])[1]||0) : 0;
+const setOf = id => ARMOR_SETS.find(a=>a[0]===id);
+const setVals = a => a[4].map((v,i) => v + a[5][i]);
+// セットにない部位：同じ区分（同じ職業が装備できる）セットの、その部位の防具から選ぶ
+const PART_NAMES = ['頭','からだ上','からだ下','うで','足'];
+const PICKS = [0,1,2,3,4].map(i=>'pick'+i);
+const pickOpts = i => { const a = setOf(S.armorSet); if (!a) return [['none','なし']];
+  return [['none','なし（0）'], ...ARMOR_SETS.filter(b=>b[1]===a[1] && b[4][i]>0)
+    .map(b=>[b[0], `Lv${b[3]} ${b[6][i]}（${b[4][i]+b[5][i]}）`])]; };
+const pickVal = i => { const b = setOf(S['pick'+i]); return b ? b[4][i]+b[5][i] : 0; };
+const partExpected = i => { const a = setOf(S.armorSet); return a[4][i] ? setVals(a)[i] : pickVal(i); };
+function refreshPicks(){
+  PICKS.forEach((k,i)=>document.querySelectorAll(`[data-key="${k}"]`).forEach(sel=>{
+    sel.innerHTML = pickOpts(i).map(o=>`<option value="${o[0]}">${o[1]}</option>`).join(''); sel.value = S[k]; }));
+}
+
+// ===== まもりのたね・女神の木 =====
+// まもりのたね：現時点で入手できる数（IKEドラクエ10攻略：宝箱3・魔仙卿1・極致への道標3・クエスト4＝11個）
+const SEED_MAX = 11;
+// 女神の木（まもりの木）：Lv1〜30の累計上昇値（IKEドラクエ10攻略・Ver7.3でLv30まで）
+const MEGAMI = [0,1,3,4,5,7,8,9,10,12,13,14,15,16,17,18,19,20,21,23,24,25,26,27,28,29,30,31,32,33];
+
+// ===== パッシブで上がるみのまもり（全職業で有効・公式の職業スキル一覧より） =====
+const PASSIVES = [
+  ['ps_pala',  'パラディン（はくあい）',   40],
+  ['ps_gade',  'ガーディアン（てっぺき）', 30],
+  ['ps_sensi', '戦士（ゆうかん）',         20],
+  ['ps_maken', '魔剣士（はどう）',         10],
+  ['ps_mahos', '魔法戦士（フォース）',      5],
+  ['ps_mamo',  'まもの使い（まものマスター）', 5],
+];
+const passiveSum = () => PASSIVES.reduce((a,[k,,v])=>a+(S[k]?v:0),0);
+
 // ===== 設定項目（上部とタブ内で共有） =====
-const LV = (label, step, unit, sign='') => ({label, kind:'lv', step, unit, sign, def:'0'});
+const LV_MAX = 6;   // 宝珠のLvの上限
+// lv：初期値のLv。宝珠は Max が初期値（禁断のちからアップと鉄壁の闇耐性だけ Lv0）
+const LV = (label, step, unit, sign='', lv=LV_MAX) => ({label, kind:'lv', step, unit, sign, def:String(lv*step)});
+// ===== 盾スキル（パッシブ「装備時しゅび力+」。盾を装備しているときだけ効く） =====
+// 出典：ドラクエ10大辞典 第二版「盾スキル」
+// スキルライン（150Pまで）：戦士以外は 12P +10・82P +30・110P +10・150P +10 ＝ +60（戦士は +120 だが、この計算の職業に戦士はいない）
+// 160〜200スキル：「装備時しゅび力」は1つだけ選べる（同じ効果は重複して選べない）。値は 160P +10・170P +15・180P以上 +20
+const SHIELD_LINE = 60;
+const SK_OPTS = [['0','—（選ばない）'],['10','装備時しゅび力+10（160P）'],['15','装備時しゅび力+15（170P）'],['20','装備時しゅび力+20（180P以上）']];
+function shieldSkCalc(){
+  if (!hasShield()) return {total:0, txt:'盾を装備していないので 0（盾スキルは盾を装備しているときだけ効きます）'};
+  const add = num('skHigh');
+  return {total: SHIELD_LINE + add, txt:`スキルライン（150Pまで）+${SHIELD_LINE}${add ? `　＋　160〜200スキル +${add}` : ''}`};
+}
+// ===== 昏冥の精霊（Ver7.6後期で上限Lv13・全職業共通） =====
+// 冥夢の精：Lvごとに特技のダメージ+1、冥機の精：Lvごとに呪文のダメージ+5（Lv1は+0）
+const SEI_MAX = 13, SEI_LV = Array.from({length:SEI_MAX}, (_,i)=>i+1);
 const CTRL = {
-  hp:{label:'最大HP', kind:'num', def:800},
-  hpNow:{label:'現在HP（空欄なら最大HP）', kind:'num', def:'', ph:'最大HPと同じ'},
-  stance:{label:'防御行動', kind:'sel', def:'none', opts:[['none','なし'],['bougyo','ぼうぎょ（25%）'],['yaiba','やいばのぼうぎょ（25%）']]},
-  yaibaGokui:LV('宝珠「やいばのぼうぎょの極意」（やいば時のみ）', 1, '%'),
-  phalanx:{label:'ファランクス／アイギスの守り（25%）', kind:'chk', def:false},
-  jikai:{label:'磁界シールド（20%）', kind:'chk', def:false},
-  otherPct:{label:'その他の被ダメ割合減（%）', kind:'num', def:0},
+  _stance:{label:'防御行動', kind:'sel', def:'none', opts:[['none','なし'],['bougyo','ぼうぎょ（25%）'],['yaiba','やいばのぼうぎょ（25%＋極意MAX 6%）']]},
   atk:{label:'ドグドラの攻撃力', kind:'num', def:1700},
   defMode:{label:'守備力の入れ方', kind:'sel', def:'calc', opts:[['calc','内訳から計算する'],['direct','最終的な守備力を直接入れる']]},
   def:{label:'最終的な守備力（この値をそのまま使います）', kind:'num', def:600},
-  job:{label:'職業・レベル', kind:'sel', def:'manual', opts:[...JOBS.map(([id,n,lv,mm,tmp])=>[id, `${n} Lv${lv}（みのまもり ${mm}${tmp?'・仮':''}）`]), ['manual','手入力']]},
+  job:{label:'職業・レベル', kind:'sel', def:'manual', opts:[...JOBS.map(([id,n,lv,mm])=>[id, `${n} Lv${lv}（みのまもり ${mm}）`]), ['manual','手入力']]},
   mmBase:{label:'職業・レベルの素のみのまもり', kind:'num', def:300},
-  mmSkill:{label:'職業スキル（パッシブ）のみのまもり＋', kind:'num', def:0},
+  mmSkill:{label:'パッシブ（職業スキル）', kind:'num', def:110},
+  ...Object.fromEntries(PASSIVES.map(([k,n,v])=>[k, {label:`${n} +${v}`, kind:'chk', def:true}])),
   kotetsu:LV('宝珠「鋼鉄の肉体」（みのまもり＋）', 5, ''),
-  mmSeed:{label:'まもりのたね', kind:'num', def:0},
-  mmMegami:{label:'女神の木', kind:'num', def:0},
+  kindan:LV('宝珠「禁断のちからアップ」（みのまもり−）', -5, '', '', 0),   // ちから+1/Lv の分は与ダメージの計算を作るときに使う
+  mmSeed:{label:'まもりのたね（1個＝みのまもり+1）', kind:'sel', def:String(SEED_MAX),
+    opts:Array.from({length:SEED_MAX+1},(_,n)=>[String(n), n ? `${n}個（+${n}）${n===SEED_MAX?' 最大':''}` : '0個']) },
+  mmMegami:{label:'まもりの木（女神の木）のLv', kind:'sel', def:String(MEGAMI[MEGAMI.length-1]),
+    opts:MEGAMI.map((v,i)=>[String(v), i ? `Lv${i+1}（+${v}）${i===MEGAMI.length-1?' 最大':''}` : 'Lv1（+0）']) },
   mmOther:{label:'その他のみのまもり＋（タロット・装備効果など）', kind:'num', def:0},
+  armorSet:{label:'防具セット（できのよさ★★★）', kind:'sel', def:'manual', groups:[
+    ...ARMOR_GROUPS.map(([g,gn])=>[gn, ARMOR_SETS.filter(a=>a[1]===g).map(a=>[a[0], `Lv${a[3]} ${a[2]}（${setVals(a).reduce((x,y)=>x+y,0)}）`])]),
+    ['', [['manual','手入力']]]]},
+  ...Object.fromEntries([0,1,2,3,4].map(i=>['pick'+i, {label:`${['頭','からだ上','からだ下','うで','足'][i]}の防具（★★★・このセットにない部位）`, kind:'sel', def:'none', opts:[['none','なし']]}])),
   eqHead:{label:'頭', kind:'num', def:40},
   eqBodyU:{label:'からだ上', kind:'num', def:60},
   eqBodyL:{label:'からだ下', kind:'num', def:45},
   eqArm:{label:'うで', kind:'num', def:30},
   eqFoot:{label:'足', kind:'num', def:30},
-  eqShield:{label:'盾', kind:'num', def:60},
-  eqAcc:{label:'アクセサリーの基礎守備力', kind:'num', def:0},
-  shieldSkill:{label:'盾スキル（パッシブ）の守備力＋', kind:'num', def:15},
-  renkin:{label:'錬金（ツボ錬金含む）・合成・輝晶の守備力合計', kind:'num', def:20},
-  food:{label:'料理の守備力＋', kind:'num', def:0},
+  shieldSel:{label:'盾', kind:'sel', def:'none', groups:[
+    ['盾', SHIELDS.filter(x=>x[1]==='small').map(x=>[x[0], `Lv${x[3]} ${x[2]}（${x[4]}）`])],
+    ['大盾', SHIELDS.filter(x=>x[1]==='big').map(x=>[x[0], `Lv${x[3]} ${x[2]}（${x[4]}）`])],
+    ['', [['none','盾なし（0）'], ['manual','手入力']]]]},
+  eqShield:{label:'盾', kind:'num', def:0},
+  shieldFlat:{label:'盾の被ダメージ減（受けるダメージを○軽減）', kind:'num', def:0},
+  eqAcc:{label:'アクセ・武器', kind:'num', def:0},
+  wepSel:{label:'武器', kind:'sel', def:'none', opts:[]},
+  ...Object.fromEntries([0,1,2,3,4].map(i=>['eqp_'+i, {label:'防具', kind:'sel', def:'manual', opts:[]}])),
+  ...Object.fromEntries(['weapon',...ACC_ROWS].map(slot=>['eqd_'+slot, {label:'基礎守備', kind:'num', def:0}])),
+  ...Object.fromEntries(ACC_ROWS.map(slot=>['acc_'+slot, {label:'アクセ', kind:'sel', def:'none', opts:[]}])),
+  heartLv:{label:'キャラのこころのLv', kind:'sel', def:'10', opts:HEART_LVS},
+  ...Object.fromEntries(['weapon','shield','head','bodyU','bodyL','arm','foot',...ACC_ROWS].flatMap(slot=>[0,1,2].flatMap(n=>[
+    [`al_${slot}_${n}_t`, {label:'錬金効果・合成効果', kind:'sel', def:'', opts:[]}], [`al_${slot}_${n}_v`, {label:'値', kind:'num', def:0}]]))),
+  ...Object.fromEntries([3,4].flatMap(n=>[
+    [`al_waist_${n}_t`, {label:'ベルトの効果', kind:'sel', def:'', opts:[]}], [`al_waist_${n}_v`, {label:'値', kind:'num', def:0}]])),
+  ...Object.fromEntries(['finger','waist'].flatMap(slot=>[0,1].map(k=>[`den_${slot}_${k}`, {label:'伝承効果', kind:'sel', def:'', opts:[]}]))),
+  skHigh:{label:'160〜200スキル', kind:'sel', def:'0', opts:SK_OPTS},
+  shieldSkill:{label:'盾スキルの守備力（自動）', kind:'num', def:0},
+  renkin:{label:'錬金・合成（装備表の錬金効果・合成効果から自動）', kind:'num', def:0},
+  foodSel:{label:'料理', kind:'sel', def:'none', opts:[['none','なし'], ...FOODS.map(([id,n,,,a])=>[id, `${n}（${a}）`])]},
+  foodStar:{label:'できのよさ', kind:'sel', def:'3', opts:FOOD_STARS},
   defPlus:{label:'その他の守備力プラス効果', kind:'num', def:0},
   scala:{label:'スカラ／スクルト', kind:'sel', def:'0', opts:[['0','なし'],['0.2','1段階（守備力+20%）'],['0.4','2段階（守備力+40%）']]},
+  henatos:{label:'攻撃力低下（ヘナトスなど）', kind:'sel', def:'0', opts:[['0','なし'],['0.25','1段階（攻撃力−25%）'],['0.35','2段階（攻撃力−35%）']]},
+  jumonDown:{label:'呪文威力低下（攻撃呪文弱体化）', kind:'sel', def:'0', opts:[['0','なし'],['0.5','1段階（呪文の威力−50%）'],['0.75','2段階（呪文の威力−75%）']]},
   makekkai:{label:'魔結界／マジックバリア', kind:'sel', def:'0', opts:[['0','なし'],['20','1段階（20%）'],['40','2段階（40%）']]},
-  teppekiSpell:LV('宝珠「鉄壁の攻撃呪文耐性」', 1, '%'),
-  spellRes:{label:'装備（錬金・盾など）の呪文耐性（%）', kind:'num', def:0},
-  mamori:{label:'まもりのきり（ブレス無効）', kind:'chk', def:false},
+  teppekiSpell:LV('鉄壁の攻撃呪文耐性', 1, '%'),
   fubaha:{label:'フバーハ／心頭滅却', kind:'sel', def:'0', opts:[['0','なし'],['20','フバーハ1段階（20%）'],['40','フバーハ2段階 ＝ 心頭滅却（40%）']]},
-  teppekiBreath:LV('宝珠「鉄壁のブレス耐性」', 1, '%'),
-  breathRes:{label:'装備（錬金・盾など）のブレス耐性（%）', kind:'num', def:0},
-  teppekiFire:LV('宝珠「鉄壁の炎耐性」', 1, '%'),
-  resFire:{label:'装備・アクセの炎耐性（%）', kind:'num', def:0},
-  teppekiWind:LV('宝珠「鉄壁の風耐性」', 1, '%'),
-  resWind:{label:'装備・アクセの風耐性（%）', kind:'num', def:0},
-  teppekiDark:LV('宝珠「鉄壁の闇耐性」', 1, '%'),
-  resDark:{label:'装備・アクセの闇耐性（%）', kind:'num', def:0},
+  teppekiBreath:LV('鉄壁のブレス耐性', 1, '%'),
+  teppekiFire:LV('鉄壁の炎耐性', 1, '%'),
+  teppekiWind:LV('鉄壁の風耐性', 1, '%'),
+  teppekiDark:LV('鉄壁の闇耐性', 1, '%', '', 0),
   neck:{label:'首アクセ', kind:'sel', def:'0', opts:[['0','なし'],['30','竜のうろこ（−30）'],['35','赤竜の首飾り（−35）']]},
+  seiMu:{label:'冥夢の精（特技のダメージ）', kind:'sel', def:'13', opts:SEI_LV.map(l=>[String(l), `Lv${l}（+${l-1}）${l===SEI_MAX?' 最大':''}`])},
+  seiKi:{label:'冥機の精（呪文のダメージ）', kind:'sel', def:'13', opts:SEI_LV.map(l=>[String(l), `Lv${l}（+${(l-1)*5}）${l===SEI_MAX?' 最大':''}`])},
   utare:LV('宝珠「打たれ名人」', 2, '', '−'),
-  skill180:{label:'職業スキル180「被ダメージ−10」', kind:'chk', def:false},
-  otherFlat:{label:'その他の固定軽減', kind:'num', def:0},
+  skill180:{label:'職業スキル180', kind:'chk', def:true, box:'−10'},
+  otherFlat:{label:'その他', kind:'num', def:0},
 };
 MOVES.forEach(m=>{
   if (m.type==='phys') CTRL['mult_'+m.id] = {label:'わざの倍率', kind:'num', def:m.mult, step:0.1};
   else CTRL['base_'+m.id] = {label:'元のダメージ（1回・軽減なし・最大値）', kind:'num', def:m.base};
   CTRL['hits_'+m.id] = {label:'当たる回数', kind:'num', def:m.hits};
+  CTRL['stance_'+m.id] = {...CTRL._stance};
 });
+delete CTRL._stance;
 
 const DEF_KEYS = ['defMode','def',
-  '#h:みのまもり（スカラが掛かる）','job','mmBase','mmSkill','kotetsu','mmSeed','mmMegami','mmOther',
-  '#h:防具の基礎守備力（できのよさ込み・錬金は除く／スカラが掛かる）','eqHead','eqBodyU','eqBodyL','eqArm','eqFoot','eqShield','eqAcc',
-  '#h:あとから足す分（スカラが掛からない）','shieldSkill','renkin','food','defPlus','#out'];
-const MM_KEYS = ['mmBase','mmSkill','kotetsu','mmSeed','mmMegami','mmOther'];
+  '#h:みのまもり（スカラが掛かる）','job','mmBase','#h2:パッシブ（チェックした職業の分だけ足す）',...PASSIVES.map(x=>x[0]),'#psum','#end2','kotetsu','kindan','mmSeed','mmMegami','mmOther',
+  '#h:あとから足す分（スカラが掛からない）','#h2:盾スキル 160〜200スキル（盾を装備しているときだけ・150Pまでの+60は自動で足す）','skHigh','#shsum','#end2','defPlus','#out'];
+const MM_KEYS = ['mmBase','mmSkill','kotetsu','kindan','mmSeed','mmMegami','mmOther'];
 const EQ_KEYS = ['eqHead','eqBodyU','eqBodyL','eqArm','eqFoot','eqShield','eqAcc'];
-const ADD_KEYS = ['shieldSkill','renkin','food','defPlus'];
+const ADD_KEYS = ['shieldSkill','renkin','defPlus'];
+// 盾スキルの「装備時しゅび力+」は盾を装備しているときだけ効く
+const hasShield = () => S.shieldSel!=='none' && !is2h();
+const addVal = k => k==='shieldSkill' ? shieldSkCalc().total : num(k);
 
 // 上部の区分
+// 与ダメージにかかわる固定値（精霊・武器の基礎効果・錬金/合成）を集める
+function atkFlat(){
+  const out = {skill:[], spell:[]};
+  const mu = (+S.seiMu||1)-1, ki = ((+S.seiKi||1)-1)*5;
+  if (mu) out.skill.push(['冥夢の精', mu]);
+  if (ki) out.spell.push(['冥機の精', ki]);
+  const w = wepEffects(); if (w) w.fx.forEach(f=>{ if (f.k==='skillFlat') out.skill.push([w.name, f.v]); });
+  alEntries().forEach(([slot,nm,,v,txt])=>{ if (/^特技のダメージ/.test(txt)) out.skill.push([`${nm}の錬金/合成`, v]); if (/^呪文のダメージ/.test(txt)) out.spell.push([`${nm}の錬金/合成`, v]); });
+  return out;
+}
 const SECTIONS = [
-  {title:'プレイヤー', keys:['hp','hpNow']},
-  {title:'防御行動・味方の補助', for:'全わざ', keys:['stance','yaibaGokui','phalanx','jikai','otherPct']},
-  {title:'固定値の軽減', for:'全わざ・1回ごと', keys:['neck','utare','skill180','otherFlat']},
-  {title:'物理', type:'phys', for:'通常攻撃・しっぽアタック', keys:['atk','scala']},
+  {title:'装備', col:'L', for:'防具・アクセサリー・武器と錬金/合成', keys:['#equip'], wide:true, nocols:true},
   {title:'守備力', type:'phys', for:'通常攻撃・しっぽアタック', keys:DEF_KEYS, wide:true},
-  {title:'呪文', type:'spell', for:'メラガイアー・バギ', keys:['makekkai','teppekiSpell','spellRes']},
-  {title:'ブレス', type:'breath', for:'絶望なる吐息', keys:['mamori','fubaha','teppekiBreath','breathRes']},
-  {title:'炎耐性', for:'神速メラガイアー', keys:['teppekiFire','resFire']},
-  {title:'風耐性', for:'太古に封じられしバギ', keys:['teppekiWind','resWind']},
-  {title:'闇耐性', for:'絶望なる吐息', keys:['teppekiDark','resDark']},
+  {title:'攻撃', page:'atk', for:'昏冥の精霊など', keys:['seiMu','seiKi','#atksum']},
+  {title:'料理', page:'atk', for:'同時に効くのは1つ', row:'foodrow', keys:['foodSel','foodStar'], foot:'#foodfx'},
+  {title:'被ダメージ軽減', pair:true, for:'全わざ・1回ごと', row:'flatrow', keys:['utare','skill180','otherFlat'], foot:'#flatsum'},
+  {title:'料理', pair:true, for:'同時に効くのは1つ', row:'foodrow', keys:['foodSel','foodStar'], foot:'#foodfx'},
+  {title:'宝珠', for:'呪文・ブレス・炎・風・闇', keys:['#res:'+RES_ALL.join(',')], wide:true, nocols:true},
 ];
 
 // わざごとに、タブ内に出す設定
+// 項目が1つだけのグループ（スカラ・ドグドラへの弱体・防御行動など）は、続くものを横一列に並べる
+function grpHTML(gs){
+  const one = ([,keys]) => keys.length===1 && !keys[0].startsWith('#');
+  const g = ([h,keys]) => `<div class="grp"><h4>${h}</h4>${keys.map(ctrlHTML).join('')}</div>`;
+  let out = '', row = [];
+  const flush = () => { if (row.length) out += row.length>1 ? `<div class="grprow">${row.map(g).join('')}</div>` : g(row[0]); row = []; };
+  gs.forEach(x=>{ if (one(x)) row.push(x); else { flush(); out += g(x); } });
+  flush(); return out;
+}
 function moveGroups(m){
   const g = [];
   const own = m.type==='phys' ? ['atk','mult_'+m.id,'hits_'+m.id] : ['base_'+m.id,'hits_'+m.id];
   g.push(['このわざの数値', own]);
-  if (m.type==='phys') g.push(['守備力', ['scala', ...DEF_KEYS]]);
-  if (m.type==='spell') g.push(['呪文の軽減', ['makekkai','teppekiSpell','spellRes']]);
-  if (m.type==='breath') g.push(['ブレスの軽減', ['mamori','fubaha','teppekiBreath','breathRes']]);
-  if (m.elem) g.push([ELEM[m.elem][0]+'耐性', ELEM[m.elem][1].map(x=>x[1])]);
-  g.push(['防御行動・味方の補助', ['stance','yaibaGokui','phalanx','jikai','otherPct']]);
-  g.push(['固定値の軽減', ['neck','utare','skill180','otherFlat']]);
-  g.push(['HP', ['hp','hpNow']]);
+  if (m.type==='phys') g.push(['スカラ', ['scala']], ['ドグドラへの弱体', ['henatos']]);
+  if (m.type==='spell') g.push(['呪文の軽減', ['makekkai']], ['ドグドラへの弱体', ['jumonDown']]);
+  if (m.type==='breath') g.push(['ブレスの軽減', ['fubaha']]);
+  const rt = [m.type==='spell'||m.type==='breath' ? m.type : null, m.elem].filter(Boolean);
+  g.push(['防御行動', ['stance_'+m.id]]);
+  if (rt.length) g.push(['宝珠', ['#res:'+rt.join(',')]]);
   return g;
 }
 
 // ===== 状態 =====
 const S = {};
+let curProfile = 'def';   // 今 S に入っている装備：def（被ダメージの「その他」）か MEMBERS の id
+let inDef = true;         // 被ダメージのページの見せ方（守備力に関係するものだけ）か
+let linked = null;        // 被ダメのページで4人の誰かの装備を見ているとき {from:元の装備一式, base:それを被ダメ用に絞ったもの}
 Object.entries(CTRL).forEach(([k,c])=>S[k]=c.def);
 const $ = id => document.getElementById(id);
 const num = (k, dflt=0) => { const v = parseFloat(S[k]); return isNaN(v) ? dflt : v; };
@@ -280,23 +1437,158 @@ const optText = k => (CTRL[k].opts.find(o=>o[0]===String(S[k]))||['',''])[1];
 function ctrlHTML(k){
   if (k.startsWith('#h:')) return `<h5 class="subh" data-wrap="${k}">${k.slice(3)}</h5>`;
   if (k==='#out') return `<div class="defout" data-defout></div>`;
+  if (k==='#atksum') return `<div class="psum" data-wrap="#atksum" data-atksum></div>`;
+  if (k==='#foodfx') return `<div class="foodfx" data-foodfx></div>`;
+  if (k==='#flatsum') return `<div class="flatsum" data-flatsum></div>`;
+  if (k==='#shsum') return `<div class="psum" data-wrap="#shsum" data-shsum></div>`;
+  if (k==='#psum') return `<div class="psum" data-wrap="#psum" data-psum></div>`;
+  if (k==="#equip") return `<div class="equip">${equipHTML()}</div>`;
+  if (k==='#br') return `<div class="rowbr" data-wrap="#br"></div>`;
+  if (k==='#shfx') return `<div class="shfx" data-wrap="#shfx" data-shfx></div>`;
+  if (k.startsWith('#res:')){
+    const ts = k.slice(5).split(',');
+    return `<div class="restree"><div class="kgrp resgrp" data-rescat="jewel" data-types="${ts}">
+      <div class="cols">${ts.map(t=>ctrlHTML(resKey('jewel',t))).join('')}</div></div></div>`;
+  }
   const c = CTRL[k];
+  if (c.box) return `<label class="field" data-wrap="${k}">${c.label}<span class="chkbox"><input type="checkbox" data-key="${k}">${c.box}</span></label>`;
   if (c.kind==='chk') return `<label class="row" data-wrap="${k}"><input type="checkbox" data-key="${k}"> ${c.label}</label>`;
   let input;
-  if (c.kind==='num') input = `<input type="number" data-key="${k}" min="0" ${c.step?`step="${c.step}"`:''} ${c.ph?`placeholder="${c.ph}"`:''}>`;
+  if (c.kind==='text') input = `<input type="text" data-key="${k}">`;
+  else if (c.kind==='num') input = `<input type="number" data-key="${k}" min="0" ${c.step?`step="${c.step}"`:''} ${c.ph?`placeholder="${c.ph}"`:''}>`;
   else {
     const opts = c.kind==='lv'
       ? Array.from({length:7},(_,lv)=>[String(lv*c.step), lv===0?'なし（Lv0）':`Lv${lv}（${c.sign}${lv*c.step}${c.unit}）`])
       : c.opts;
-    input = `<select data-key="${k}">${opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')}</select>`;
+    const op = o=>`<option value="${o[0]}">${o[1]}</option>`;
+    input = c.groups
+      ? `<select data-key="${k}">${c.groups.map(([gn,os])=> gn ? `<optgroup label="${gn}">${os.map(op).join('')}</optgroup>` : os.map(op).join('')).join('')}</select>`
+      : `<select data-key="${k}">${opts.map(op).join('')}</select>`;
   }
   return `<div class="field" data-wrap="${k}">${c.label}${input}</div>`;
+}
+// 装備表
+const bareSel = (k, opts) => `<select data-key="${k}">${opts}</select>`;
+const opt = (v,t) => `<option value="${v}">${t}</option>`;
+function armorOpts(i, p){
+  return ARMOR_GROUPS.filter(([g])=>!p || p.armor.includes(g)).map(([g,gn])=>{ const os = ARMOR_SETS.filter(a=>a[1]===g && a[4][i]>0).map(a=>opt(a[0], `Lv${a[3]} ${a[6][i]}（${a[4][i]+a[5][i]}）`)).join('');
+    return os ? `<optgroup label="${gn}">${os}</optgroup>` : ''; }).join('') + opt('none','なし（0）') + opt('manual','手入力');
+}
+function accLabel(a){
+    const df = accDefOf(a), fl = accFlatOf(a);
+    const mark = [fl?`被ダメ−${fl}`:'', ...Object.entries(a[4]).map(([t,v])=>`${RES_TYPES[t].replace('ダメージ減','').replace('耐性','')}${v}%減`)].filter(Boolean).join('・');
+    const at = accAtkOf(a);
+    return `${a[2]}（${at ? `攻${at}${df?`・守${df}`:''}` : `守${df}`}）${mark?'★'+mark:''}`;
+}
+// 守備力がつくアクセ：本体の基礎守備・合成・伝承・ベルトの効果・こころのLv別の値のどれかに守備力がある
+function accHasDef(a){
+  const h = HEART_LV[a[2]];
+  if (h ? h[1] : a[3]>0) return true;
+  if ((ACC_COMP[a[2]]||[]).some(o=>RE_DEF.test(o[0]))) return true;
+  if ((BELTS[a[2]]||[]).some(o=>RE_DEF.test(o[0]))) return true;
+  if (isCard(a) || a[2]==='断罪のゆびわ') return true;   // 追加効果で守備力が付く
+  return (ACC_DEN[a[2]]||[]).flat().some(t=>RE_DEF.test(t));
+}
+// アクセ本体の攻撃力
+function accAtkOf(a){
+  const h = a && HEART_LV[a[2]];
+  return !a ? 0 : h ? (h[0] ? h[0][heartIdx()] : 0) : a[2]==='ガナサダイのこころ' ? 6 : ACC_ATK[a[0]] || 0;
+}
+// 攻撃力がつくアクセ：本体・合成・伝承・ベルトの効果・こころのLv別の値のどれかに攻撃力がある
+function accHasAtk(a){
+  const h = HEART_LV[a[2]];
+  if ((h && h[0]) || ACC_ATK[a[0]] || a[2]==='ガナサダイのこころ') return true;
+  if (isCard(a) || a[2]==='断罪のゆびわ') return true;   // 追加効果で攻撃力が付く
+  if ([...(ACC_COMP[a[2]]||[]), ...(BELTS[a[2]]||[])].some(o=>RE_ATK.test(o[0]))) return true;
+  return (ACC_DEN[a[2]]||[]).flat().some(t=>RE_ATK.test(t));
+}
+const accInDef = a => accHasDef(a) || accHasAtk(a);
+// p なし＝被ダメージのページ（攻撃力か守備力がつくもの） ／ p あり＝与ダメージの人（全部）
+const accListFor = (slot, p) => ACCS.filter(a=>a[1]===slot && (p || accInDef(a)));
+function accOpts(slot, p){
+  // 最初に作るときは Lv10 の値（S はまだない）。Lvを変えたら refreshHeart で書き直す
+  return opt('none','なし') + accListFor(slot, p).map(a=>opt(a[0], slot==='heart' ? a[2] : accLabel(a))).join('');
+}
+// 被ダメのページ：守備力が関係しない行はグレー（選択とMaxはできる）
+//   守備力がつくアクセが1つもない部位／選んだアクセに守備力がつかない
+function markAccRows(){
+  ACC_ROWS.forEach(slot=>{
+    const a = accOf(S['acc_'+slot]), none = !ACCS.some(x=>x[1]===slot && accHasDef(x));
+    const off = defView() && (none || !!(a && !accHasDef(a)));
+    document.querySelectorAll(`tr[data-eqrow="${slot}"]`).forEach(tr=>tr.classList.toggle('nodef', off));
+    document.querySelectorAll(`[data-key="eqd_${slot}"]`).forEach(e=>e.disabled = off);
+    document.querySelectorAll(`[data-nodef="${slot}"]`).forEach(e=>{
+      e.hidden = !off; e.textContent = none && !a ? '守備力がつくアクセはありません' : '被ダメージには関係しません'; });
+  });
+}
+function refreshHeart(){
+  const a = accOf(S.acc_heart), hasLv = !!(a && HEART_LV[a[2]]);
+  document.querySelectorAll('[data-key="acc_heart"] option').forEach(o=>{ const x = accOf(o.value); if (x) o.textContent = accLabel(x); });
+  document.querySelectorAll('[data-key="heartLv"]').forEach(e=>e.hidden = !hasLv);
+  ['heart','heart2'].forEach(slot=>{
+    const L = heartFx(slot);
+    document.querySelectorAll(`[data-heartfx="${slot}"]`).forEach(e=>{ e.hidden = !L.length; e.innerHTML = L.map(([t,v,c])=>`<div${defView() && c==='atk' ? ' class="offfx"' : ''}>${fmtAl(t,v)}</div>`).join(''); });
+    if (L.length) document.querySelectorAll(`[data-onenote="${slot}"]`).forEach(e=>e.hidden = true);
+  });
+}
+function shieldOpts(p){
+  const name = {small:'盾', big:'大盾'}, ok = gn => !gn || !p || p.shield.some(t=>name[t]===gn);
+  return CTRL.shieldSel.groups.filter(([gn])=>ok(gn)).map(([gn,os])=>{
+    const h = os.filter(o=>!p || p.shield.length || o[0]==='none').map(o=>opt(o[0],o[1])).join('');
+    return gn ? `<optgroup label="${gn}">${h}</optgroup>` : h; }).join('');
+}
+function armorSetOpts(p){
+  return ARMOR_GROUPS.filter(([g])=>!p || p.armor.includes(g))
+    .map(([g,gn])=>`<optgroup label="${gn}">${ARMOR_SETS.filter(a=>a[1]===g).map(a=>opt(a[0], `Lv${a[3]} ${a[2]}（${setVals(a).reduce((x,y)=>x+y,0)}）`)).join('')}</optgroup>`).join('')
+    + opt('manual','手入力');
+}
+function alCell(slot){
+  const rows = Array.from({length:alMax(slot)},(_,n)=>n).map(n=>`<div class="alrow" data-alline="${slot}_${n}"${n>=AL_N?' hidden':''}>${n<2 && ONE_DEF_SLOTS.includes(slot) ? `<span class="alfix" data-alfix="${slot}_${n}" hidden></span>` : ''}${bareSel(`al_${slot}_${n}_t`, opt('','—'))}<button type="button" class="almax" data-almax="${slot}_${n}" disabled>Max</button><input type="number" data-key="al_${slot}_${n}_v" min="0" step="any"></div>`).join('');
+  // 一括：選んだ効果を3枠すべてに入れる。Max で3枠とも最大値
+  const bulk = `<div class="alrow albulk"><select data-albulk="${slot}" aria-label="3枠まとめて選ぶ">${opt('','—')}</select><button type="button" class="almax" data-albulkmax="${slot}" disabled title="3枠とも同じ効果の最大値にする">Max×3</button><span class="albulklab">一括</span></div>`;
+  const den = ACC_ROWS.includes(slot) ? [0,1].map(k=>`<div class="alrow alden" data-denrow="${slot}_${k}"><span class="denlab">${['第一伝承','第二伝承'][k]}</span>${bareSel(`den_${slot}_${k}`, opt('','—'))}</div>`).join('') : '';
+  const belt = slot==='waist' ? `<div class="alrow albulk" data-beltbar hidden><span class="beltnote">ベルトの効果（5枠まで・同じ効果は1つ）</span><button type="button" class="almax" data-beltmax disabled title="選んだ効果すべてに最大値を入れる">すべてMax</button></div>` : '';
+  if (atkDefOnly(slot)){
+    const line = n => `<div class="alrow" data-alline="${slot}_${n}" hidden><span class="alfix" data-alfix="${slot}_${n}"></span>${bareSel(`al_${slot}_${n}_t`, opt('','—'))}<button type="button" class="almax" data-almax="${slot}_${n}" disabled>Max</button><input type="number" data-key="al_${slot}_${n}_v" min="0" step="any"></div>`;
+    return `<div class="al"><div class="onenote" data-onenote="${slot}" hidden></div>${isHeart(slot)?`<div class="heartfx" data-heartfx="${slot}" hidden></div>`:''}${line(ONE_ATK)}${line(ONE_DEF)}<div class="onenote elnote" data-elnote="${slot}" hidden></div>${line(ONE_EL)}</div>`;
+  }
+  return `<div class="al" data-albox="${slot}"><div class="onenote" data-aldash hidden>—</div>${bulk}${belt}${rows}${den}</div>`;
+}
+function equipHTML(){
+  const head = `<div class="eqtop"><div class="field" data-wrap="armorSet">防具セットでまとめて選ぶ（できのよさ★★★）${bareSel('armorSet', armorSetOpts())}</div></div>`;
+  const rows = EQ_ROWS.map(([slot,nm,kind,i])=>{
+    let sel, dk;
+    if (kind==='weapon'){ sel = bareSel('wepSel', wepOpts()); dk = 'eqd_weapon'; }
+    else if (kind==='shield'){ sel = bareSel('shieldSel', shieldOpts()); dk = 'eqShield'; }
+    else if (kind==='armor'){ sel = bareSel('eqp_'+i, armorOpts(i)); dk = ARMOR_PARTS[i]; }
+    else { sel = bareSel('acc_'+slot, accOpts(slot)); dk = 'eqd_'+slot;
+      if (slot==='heart') sel = `<div class="heartsel">${sel}${bareSel('heartLv', HEART_LVS.map(o=>opt(o[0],o[1])).join(''))}</div>`; }
+    return `<tr data-eqrow="${slot}" class="k-${kind}"><th>${nm.replace('のこころ', 'の<span class="nb">こころ</span>')}</th><td class="eqsel">${sel}<div class="eqfx" data-eqfx="${slot}"></div>${kind==='acc'?`<div class="nodefnote" data-nodef="${slot}" hidden>守備力がつくアクセはありません</div>`:''}</td><td class="eqdef"><input type="number" data-key="${dk}" min="0"></td><td class="eqal">${alCell(slot)}</td></tr>`;
+  }).join('');
+  return head + `<div class="eqwrap"><table class="eqtbl"><thead><tr><th>部位</th><th>装備</th><th title="装備そのものの守備力。スカラ・スクルトの倍率がかかります（錬金・合成の守備力にはかかりません）">基礎守備<br><small style="font-weight:normal">スカラ対象</small></th><th>錬金効果・合成効果</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// 見出し（#h:）ごとに枠で囲み、#h2: はその中で一段下げた小グループにする
+function groupHTML(keys){
+  let out = '', g = null, g2 = null;
+  const flush2 = () => { if (g2){ g.items += `<div class="kgrp2"><h6 class="subh2">${g2.t}</h6><div class="cols">${g2.items}</div></div>`; g2 = null; } };
+  const flush = () => { flush2(); if (g){ out += `<div class="kgrp" data-wrap="${g.k}"><h5 class="subh">${g.t}</h5><div class="cols">${g.items}</div></div>`; g = null; } };
+  keys.forEach(k=>{
+    if (k.startsWith('#h:')){ flush(); g = {k, t:k.slice(3), items:''}; return; }
+    if (k.startsWith('#h2:')){ flush2(); g2 = {t:k.slice(4), items:''}; return; }
+    if (k==='#end2'){ flush2(); return; }
+    if (k==='#out'){ flush(); out += ctrlHTML(k); return; }
+    const h = ctrlHTML(k);
+    if (g2) g2.items += h; else if (g) g.items += h; else out += h;
+  });
+  flush();
+  return `<div class="cols">${out}</div>`;
 }
 function syncKey(k, except){
   document.querySelectorAll(`[data-key="${k}"]`).forEach(el=>{
     if (el===except) return;
     if (el.type==='checkbox') el.checked = !!S[k]; else el.value = S[k];
-    if (except){ const w = el.closest('[data-wrap]'); w.classList.remove('flash'); void w.offsetWidth; w.classList.add('flash'); }
+    if (except){ const w = el.closest('[data-wrap]') || el; w.classList.remove('flash'); void w.offsetWidth; w.classList.add('flash'); }
   });
 }
 
@@ -317,17 +1609,60 @@ function defCalc(){
   const [mS,mV] = K('みのまもり', mm), [eS,eV] = K('防具の基礎守備力', eq);
   let sym = '('+mS+'＋'+eS+')', val = '('+mV+'+'+eV+')';
   if (scala){ const [a,b] = K(scS, d(scala)); sym += '×(1+'+a+')'; val += '×(1+'+b+')'; }
-  const names = {shieldSkill:'盾スキル', renkin:'錬金・合成', food:'料理', defPlus:'その他守備力＋'};
-  ADD_KEYS.forEach(k=>{ const v = num(k); if (!v) return; const [a,b] = K(names[k], v); sym += '＋'+a; val += '+'+b; });
-  const final = Math.floor((mm+eq)*(1+scala) + 1e-6) + sum(ADD_KEYS);
+  const names = {shieldSkill:'盾スキル', renkin:'錬金・合成', defPlus:'その他守備力＋'};
+  ADD_KEYS.forEach(k=>{ const v = addVal(k); if (!v) return; const [a,b] = K(names[k], v); sym += '＋'+a; val += '+'+b; });
+  const final = Math.floor((mm+eq)*(1+scala) + 1e-6) + ADD_KEYS.reduce((a,k)=>a+addVal(k),0);
   const lbl = k => k==='kotetsu' ? lvName('kotetsu','鋼鉄の肉体')
+    : k==='kindan' ? lvName('kindan','禁断のちからアップ')
     : (k==='mmBase' && jobOf(S.job)) ? jobOf(S.job)[1]+'Lv'+jobOf(S.job)[2]
     : CTRL[k].label.replace(/（.*/,'');
-  const parts = ks => ks.filter(k=>num(k)).map(k=>`${lbl(k)} ${num(k)}`).join('＋') || '0';
+  // 下がる分は「＋…-30」ではなく「−… 30」と書く
+  const parts = ks => ks.filter(k=>num(k)).map((k,i)=>`${num(k)<0 ? '−' : i ? '＋' : ''}${lbl(k)} ${Math.abs(num(k))}`).join('') || '0';
   const bd = `みのまもり ${mm} ＝ ${parts(MM_KEYS)}<br>防具の基礎守備力 ${eq} ＝ ${parts(EQ_KEYS)}`;
   return {final, sym, val, bd};
 }
 
+// ===== 耐性の集計 =====
+function resItems(t){
+  const out = [];
+  RES_CATS.forEach(([cat,cn])=>{
+    if (cat==='food'){ const x = foodNow(); if (x && x.type===t) out.push([x.name, x.v/100, cat]); return; }
+    const k = resKey(cat,t), v = num(k); if (!v) return;
+    out.push([cat==='jewel' ? lvName(k, JEWEL_NAME[t]) : cn.replace(/（.*/,'')+'の'+RES_TYPES[t], v/100, cat]);
+  });
+  eqResItems(t).forEach(([n,v])=>out.push([n, v, 'equip']));
+  return out;
+}
+
+// 固定軽減の一覧 [名前, 値, 装備の部位（装備以外は ''）]：計算式と「被ダメージ軽減」の小計で共用
+const flatItems = () => [...eqFlatItems(),
+  [lvName('utare','打たれ名人'), num('utare'), ''],
+  ['スキル180', S.skill180 ? 10 : 0, ''],
+  ['その他', num('otherFlat'), ''],
+].filter(x=>x[1]);
+// 盾と首はいつも表示。ほかの部位は軽減があるときだけ
+function flatSumHTML(){
+  const all = flatItems(), eq = all.filter(x=>x[2]), sum = L => L.reduce((a,x)=>a+x[1],0);
+  const minus = v => v ? '−'+v : '0';
+  const row = (slot, name) => { const L = eq.filter(x=>x[2]===slot);
+    return `<div class="${L.length?'':'zero'}"><i>${rowName(slot)}</i><em>${L.length ? L.map(x=>x[0]).join('・') : name}</em><b>${minus(sum(L))}</b></div>`; };
+  const sh = !is2h() && shieldOf(S.shieldSel), neck = accOf(S.acc_neck);
+  return row('shield', sh ? sh[2] : is2h() ? 'なし（両手武器）' : 'なし')
+    + row('neck', neck ? neck[2] : 'なし')
+    + [...new Set(eq.map(x=>x[2]))].filter(x=>x!=='shield' && x!=='neck').map(x=>row(x,'')).join('')
+    + `<div class="total"><i>小計</i><em>装備 ${sum(eq)}＋宝珠・スキル等 ${sum(all)-sum(eq)}</em><b>${minus(sum(all))}</b></div>`;
+}
+// 設定の最後に出す合計（構え・魔結界・フバーハなど、わざごとに決める分は含めない）
+function defTotalHTML(){
+  const sum = L => L.reduce((a,x)=>a+x[1],0), fl = sum(flatItems());
+  const card = (name, val, zero) => `<div class="totcard${zero?' zero':''}"><h4>${name}</h4><div class="totbig">${val}</div></div>`;
+  return `<h3>設定の合計<small>構え・魔結界・フバーハなどは各わざのタブで足します</small></h3>
+    <div class="totgrid">
+      ${card('守備力'+(num('scala') && S.defMode!=='direct' ? '（スカラ込み）' : ''), fmt(defCalc().final))}
+      ${card('被ダメージ軽減', fl ? '−'+fl : '0', !fl)}
+      ${RES_ALL.map(t=>{ const v = sum(resItems(t)); return card(RES_TYPES[t], d(v*100)+'%'+(v>=1 ? '<small>上限</small>' : ''), !v); }).join('')}
+    </div>`;
+}
 // ===== 計算 =====
 function compute(m){
   const hits = Math.max(1, Math.round(num('hits_'+m.id, 1)));
@@ -339,7 +1674,7 @@ function compute(m){
   // 1. 基礎ダメージ
   let base, lo, hi;
   if (m.type==='phys'){
-    const mult = num('mult_'+m.id, 1), atk = num('atk');
+    const mult = num('mult_'+m.id, 1), atk0 = num('atk'), hena = num('henatos'), atk = atk0*(1-hena);
     const def = defCalc().final;
     let avg;
     if (atk > def*4/7) avg = atk/2 - def/4;
@@ -347,27 +1682,28 @@ function compute(m){
     else avg = 0.5;
     const spread = avg/16 + 1;
     base = avg * mult; lo = Math.max(0,(avg-spread)*mult); hi = (avg+spread)*mult;
-    const [aS,aV] = K('攻撃力', atk), [defS,defV] = K('最終守備力', def);
+    let [aS,aV] = K('攻撃力', atk0);
+    if (hena){ const [hS,hV] = K('ヘナトス'+(hena>0.3?'2':'1')+'段階', d(hena)); aS = aS+'×(1−'+hS+')'; aV = aV+'×(1−'+hV+')'; }
+    const [defS,defV] = K('最終守備力', def);
     let mS = '', mV = '';
     if (mult!==1){ const [xS,xV] = K('わざ倍率', d(mult)); mS = '×'+xS; mV = '×'+xV; }
     const [rS,rV] = K('ゆれ最大', '17/16');
     sym = '(('+aS+'÷2−'+defS+'÷4)×'+rS+'＋1)'+mS;
     val = '(('+aV+'÷2−'+defV+'÷4)×'+rV+'+1)'+mV;
   } else {
-    base = lo = hi = num('base_'+m.id);
-    [sym, val] = K('元のダメージ', base);
+    const b0 = num('base_'+m.id), jd = m.type==='spell' ? num('jumonDown') : 0;
+    base = lo = hi = b0*(1-jd);
+    [sym, val] = K('元のダメージ', b0);
+    if (jd){ const [jS,jV] = K('呪文威力低下'+(jd>0.6?'2':'1')+'段階', d(jd)); sym += '×(1−'+jS+')'; val += '×(1−'+jV+')'; }
   }
 
-  if (m.type==='breath' && S.mamori){
-    const [zS,zV] = K('まもりのきり', 0);
-    return {m, hits, per:0, lo:0, hi:0, sym: sym+'×'+zS, val: val+'×'+zV, note:''};
-  }
 
   // 2. 割合軽減
+  const st = S['stance_'+m.id] || 'none';
   let stance = 0, stanceName = '', jewel = 0, jewelName = '';
-  if (S.stance!=='none'){
-    stance = 0.25; stanceName = S.stance==='yaiba' ? 'やいばのぼうぎょ' : 'ぼうぎょ';
-    if (S.stance==='yaiba'){ jewel = num('yaibaGokui')/100; jewelName = lvName('yaibaGokui','やいばの極意'); }
+  if (st!=='none'){
+    stance = 0.25; stanceName = st==='yaiba' ? 'やいばのぼうぎょ' : 'ぼうぎょ';
+    if (st==='yaiba'){ jewel = 0.06; jewelName = 'やいばの極意MAX'; }
   }
   let status = 0, statusName = '';
   if (m.type==='spell'){ status = num('makekkai')/100; statusName = '魔結界'+(status>=0.4?'2':'1')+'段階'; }
@@ -385,11 +1721,7 @@ function compute(m){
   let add = 0;
   const addTerm = (name, v) => { if (!v) return; add += v; const [s1,v1] = K(name, d(v)); pS.push(s1); pV.push(v1); };
   addTerm(jewelName, jewel);
-  if (m.type==='spell'){ addTerm(lvName('teppekiSpell','鉄壁の攻撃呪文耐性'), num('teppekiSpell')/100); addTerm('装備の呪文耐性', num('spellRes')/100); }
-  if (m.type==='breath'){ addTerm(lvName('teppekiBreath','鉄壁のブレス耐性'), num('teppekiBreath')/100); addTerm('装備のブレス耐性', num('breathRes')/100); }
-  if (S.phalanx) addTerm('ファランクス', 0.25);
-  if (S.jikai) addTerm('磁界シールド', 0.20);
-  addTerm('その他割合減', num('otherPct')/100);
+  if (m.type==='spell' || m.type==='breath') resItems(m.type).forEach(([name,v])=>addTerm(name, v));
   const pct = Math.min(1, mul + add);
   if (pS.length){
     const one = pS.length===1 && !(stance && status);
@@ -401,9 +1733,8 @@ function compute(m){
   let er = 0;
   if (m.elem){
     const eS = [], eV = [];
-    ELEM[m.elem][1].forEach(([name,k])=>{
-      const v = num(k)/100; if (!v) return;
-      er += v; const [s1,v1] = K(CTRL[k].kind==='lv' ? lvName(k, name) : name, d(v)); eS.push(s1); eV.push(v1);
+    resItems(m.elem).forEach(([name,v])=>{
+      er += v; const [s1,v1] = K(name, d(v)); eS.push(s1); eV.push(v1);
     });
     er = Math.min(1, er);
     if (eS.length){
@@ -416,10 +1747,7 @@ function compute(m){
   const fS = [], fV = [];
   let flat = 0;
   const flatTerm = (name, v) => { if (!v) return; flat += v; const [s1,v1] = K(name, v); fS.push(s1); fV.push(v1); };
-  flatTerm(optText('neck').replace(/（.*/,''), num('neck'));
-  flatTerm(lvName('utare','打たれ名人'), num('utare'));
-  flatTerm('スキル180', S.skill180 ? 10 : 0);
-  flatTerm('その他固定', num('otherFlat'));
+  flatItems().forEach(([n,v])=>flatTerm(n, v));
   const f = v => { const x = Math.floor(v*(1-pct)*(1-er) + 1e-6); return x<=0 ? 0 : Math.max(0, x - flat); };
   if (flat){
     sym += '−' + (fS.length>1 ? '(' + fS.join('＋') + ')' : fS[0]);
@@ -429,24 +1757,20 @@ function compute(m){
   return {m, hits, per:f(hi), lo:f(lo), hi:f(hi), sym, val, note};
 }
 
-function hpNow(){ return String(S.hpNow).trim()==='' ? num('hp') : num('hpNow'); }
-function judge(r, big){
-  const now = hpNow(); if (!(now>0)) return '';
-  const total = r.per*r.hits, left = now - total;
-  const cls = big ? 'hp' : 'judge';
-  let h = left>0
-    ? `<span class="${cls} ok">${big?`HP ${fmt(now)} → `:''}耐える 残り${fmt(left)}</span>`
-    : `<span class="${cls} ng">${big?`HP ${fmt(now)} → `:''}倒れる ${fmt(-left)}不足</span>`;
-  return big ? `<div>${h}</div>` : h;
-}
-
 // ===== 画面を組み立て =====
-$('settings').innerHTML = SECTIONS.map(sec=>`
-  <div class="sbox${sec.wide?' wide':''}"><h3>${sec.type?`<span class="type ${TYPE[sec.type][1]}">${TYPE[sec.type][0]}</span>`:''}${sec.title}${sec.for?`<span class="for">（${sec.for}）</span>`:''}</h3>
-  ${sec.wide?`<div class="cols">${sec.keys.map(ctrlHTML).join('')}</div>`:sec.keys.map(ctrlHTML).join('')}</div>`).join('');
+const secHTML = sec => `
+  <div class="sbox${sec.wide?' wide':''}${sec.nocols?' full':''}"><h3>${sec.type?`<span class="type ${TYPE[sec.type][1]}">${TYPE[sec.type][0]}</span>`:''}${sec.title}${sec.for?`<span class="for">（${sec.for}）</span>`:''}</h3>
+  ${sec.row ? `<div class="${sec.row}">${sec.keys.map(ctrlHTML).join('')}</div>${sec.foot?ctrlHTML(sec.foot):''}` : sec.wide&&!sec.nocols?groupHTML(sec.keys):sec.keys.map(ctrlHTML).join('')}</div>`;
+// 被ダメージのページ：左に装備、右に守備力・固定値・耐性 ／ 与ダメージのページ：攻撃
+$('settingsL').innerHTML = SECTIONS.filter(x=>x.col==='L').map(secHTML).join('');
+// pair の付いた続きの欄は、1つの横並びの箱に入れる（幅が足りなければ折り返す）
+const secsHTML = L => L.map((sec,i)=>(sec.pair && !(L[i-1]||{}).pair ? '<div class="secpair">' : '') + secHTML(sec)
+  + (sec.pair && !(L[i+1]||{}).pair ? '</div>' : '')).join('');
+$('settingsR').innerHTML = secsHTML(SECTIONS.filter(x=>x.col!=='L' && x.page!=='atk'));
+$('settingsAtk').innerHTML = SECTIONS.filter(x=>x.page==='atk').map(secHTML).join('');
 
 const TABS = [{id:'all', name:'全わざ一覧'}, ...MOVES];
-$('tabs').innerHTML = TABS.map(t=>`<button class="tab" role="tab" data-tab="${t.id}" aria-selected="false">
+$('tabs').innerHTML = TABS.map(t=>`<button class="tab" role="tab" data-tab="${t.id}" aria-selected="false" style="--tc:var(--${t.type||'accent'})">
   ${t.type?`<span class="type ${TYPE[t.type][1]}">${TYPE[t.type][0]}</span>`:''}${t.name}<span class="dmg" id="tabdmg_${t.id}"></span></button>`).join('');
 
 $('panels').innerHTML = `<div class="panel" id="panel_all" hidden>
@@ -459,27 +1783,72 @@ $('panels').innerHTML = `<div class="panel" id="panel_all" hidden>
         <span class="meta">${m.elem?ELEM[m.elem][0]+'属性・':''}${m.area}${m.note?'　'+m.note:''}</span></div>
       <div class="pgrid">
         <div id="res_${m.id}" aria-live="polite"></div>
-        <div class="pctrl"><h3>このわざに関係する設定</h3><p>上の「まとめて設定」と連動しています。</p>
-          ${moveGroups(m).map(([h,keys])=>`<div class="grp"><h4>${h}</h4>${keys.map(ctrlHTML).join('')}</div>`).join('')}
+        <div class="pctrl"><h3>このわざに関係する設定</h3><p>上の「1 設定」と連動しています。</p>
+          ${grpHTML(moveGroups(m))}
         </div>
       </div></div>`;
   }).join('');
 
 Object.keys(CTRL).forEach(k=>syncKey(k));
 
-function openTab(id){
-  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===id));
+// タブを切り替えて中身が短くなると、ページの高さが縮んで画面が勝手に上へ動いてしまう。
+// 切り替える前の高さを下限（min-height）として残し、スクロール位置が動かないようにする
+function keepHeight(el, fn){ const h = el.offsetHeight; fn(); el.style.minHeight = Math.max(h, parseFloat(el.style.minHeight)||0) + 'px'; }
+function openTab(id){ keepHeight($('panels'), ()=>openTab0(id)); }
+function openTab0(id){
+  $('tabs').querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected', b.dataset.tab===id));
   document.querySelectorAll('.panel').forEach(p=>p.hidden = p.id!=='panel_'+id);
+  const t = TABS.find(x=>x.id===id); $('panels').style.setProperty('--tc', `var(--${(t && t.type) || 'accent'})`);
   try{ localStorage.setItem('dogdora-tab', id); }catch(e){}
 }
 $('tabs').addEventListener('click', e=>{ const b = e.target.closest('.tab'); if (b) openTab(b.dataset.tab); });
 
+let afterUpdate = () => {};   // 自動保存の準備ができたら差し替える
 function update(){
-  document.querySelectorAll('[data-wrap="yaibaGokui"]').forEach(w=>w.classList.toggle('off', S.stance!=='yaiba'));
+  S.mmSkill = passiveSum();
+  refreshAl();
+  refreshHeart();
+  markAccRows();
+  S.renkin = alDefSum();
+  S.eqAcc = accDefSum();
+  if (is2h() && S.shieldSel!=='none'){ S.shieldSel = 'none'; S.eqShield = 0; syncKey('shieldSel'); syncKey('eqShield'); }
+  document.querySelectorAll('[data-key="shieldSel"]').forEach(e=>e.disabled = is2h());
+  EQ_ROWS.forEach(([slot,nm,kind])=>{
+    let fx = '';
+    if (kind==='shield'){ const sh = shieldOf(S.shieldSel); fx = sh ? sh[6] : ''; }
+    if (kind==='acc'){ const a = accOf(S['acc_'+slot]), kept = !a && linked && accOf(linked.from['acc_'+slot]);
+      fx = a ? a[6] : kept && !accInDef(kept) ? `与ダメ側：${kept[2]}（攻撃力・守備力なし）` : ''; }
+    if (kind==='weapon'){ document.querySelectorAll(`[data-eqfx="${slot}"]`).forEach(o=>o.innerHTML = wepFxHTML()); return; }
+    if (kind==='shield' && is2h()) fx = `${wepOf(S.wepSel)[1]}（両手武器）のため盾は装備できません`;
+    document.querySelectorAll(`[data-eqfx="${slot}"]`).forEach(o=>o.textContent = fx);
+  });
+  {
+    const x = foodNow();
+    document.querySelectorAll('[data-key="foodStar"]').forEach(e=>e.disabled = !x);
+    document.querySelectorAll('[data-foodfx]').forEach(o=>{
+      const atkPage = !!o.closest('main[data-page="atk"]');
+      o.innerHTML = !x ? '' : (x.type==='atk' ? `攻撃力 +${x.v}` : `${RES_TYPES[x.type]} ${x.v}%`)
+        + (x.type==='atk' && !atkPage ? '<span>被ダメージには関係しません</span>' : ''); });
+  }
+  document.querySelectorAll('[data-flatsum]').forEach(o=>o.innerHTML = flatSumHTML());
+  $('defTotal').innerHTML = defTotalHTML();
+  document.querySelectorAll('[data-atksum]').forEach(o=>{ const a = atkFlat(), f = L => L.length ? `+${L.reduce((x,y)=>x+y[1],0)}（${L.map(([n,v])=>n+' '+v).join('・')}）` : '+0';
+    o.innerHTML = `特技のダメージ ${f(a.skill)}<br>呪文のダメージ ${f(a.spell)}`; });
+  document.querySelectorAll('[data-psum]').forEach(o=>o.textContent = `パッシブの合計：みのまもり +${S.mmSkill}`);
   const direct = S.defMode==='direct';
   DEF_KEYS.forEach(k=>{ if (k==='defMode' || k==='#out') return;
     document.querySelectorAll(`[data-wrap="${k}"]`).forEach(w=>w.classList.toggle('hide', k==='def' ? !direct : direct)); });
   document.querySelectorAll('[data-wrap="scala"]').forEach(w=>w.classList.toggle('hide', direct));
+  { const sc = shieldSkCalc(); S.shieldSkill = sc.total;
+    ['skHigh'].forEach(k=>{
+      document.querySelectorAll(`[data-key="${k}"]`).forEach(sel=>{ sel.disabled = !hasShield(); });
+      document.querySelectorAll(`[data-wrap="${k}"]`).forEach(w=>w.classList.toggle('off', !hasShield())); });
+    document.querySelectorAll('[data-shsum]').forEach(o=>{ o.innerHTML = `盾スキルの合計：守備力 +${sc.total}<br><span class="shsub">${sc.txt}</span>`; o.classList.toggle('off', !hasShield()); }); }
+  const curSh = shieldOf(S.shieldSel);
+  document.querySelectorAll('[data-wrap="shieldFlat"]').forEach(w=>w.classList.toggle('hide', !num('shieldFlat') && !shFlat(curSh)));
+  document.querySelectorAll('[data-shfx]').forEach(o=>{ o.textContent = curSh ? '効果：'+(curSh[6]||'なし')+(Object.keys(curSh[5]).length?'（耐性は「宝珠」の欄の合計に入ります）':'') : ''; o.classList.toggle('hide', !curSh || direct); });
+  const curSet = setOf(S.armorSet);
+  PICKS.forEach((k,i)=>document.querySelectorAll(`[data-wrap="${k}"]`).forEach(w=>w.classList.toggle('hide', direct || !curSet || curSet[4][i]>0)));
   const dc = defCalc();
   document.querySelectorAll('[data-defout]').forEach(o=>o.innerHTML = `最終守備力 ${fmt(dc.final)}${!direct && num('scala')?'（スカラ込み）':''}<small>物理わざのダメージ計算に使う値</small>`);
   const rs = MOVES.map(compute);
@@ -490,17 +1859,16 @@ function update(){
       <div class="sub">最大の合計ダメージ（${r.hits}回）</div>
       <div class="big">${fmt(total)}<small> ダメージ</small></div>
       <div class="sub">1回あたり ${fmt(r.per)} × ${r.hits}回</div>
-      ${range}${judge(r, true)}
+      ${range}
       ${r.m.type==='phys' ? (()=>{ const dc = defCalc(); return `<div class="formula def"><div class="fl">守備力の計算</div><div class="fsym">${dc.sym}</div><div class="fval">${dc.val}</div><b>= ${fmt(dc.final)}</b><div class="bd">${dc.bd}</div></div>`; })() : ''}
       <div class="formula"><div class="fl">計算式（1回あたり）</div><div class="fsym">${r.sym}</div><div class="fval">${r.val}</div><b>= ${fmt(r.per)}</b>${r.hits>1?`　× ${r.hits}回 = <b>${fmt(total)}</b>`:''}<div class="fn">${r.note}同じ色の帯どうしが対応しています。小数点以下は切り捨て。</div></div>`;
     $('tabdmg_'+r.m.id).textContent = fmt(total) + (r.hits>1 ? `（${fmt(r.per)}×${r.hits}）` : '');
   });
   $('overview').innerHTML = `<div style="overflow-x:auto"><table class="res">
-    <thead><tr><th>わざ</th><th>1回（最大）</th><th>回数</th><th>合計</th><th>HP判定</th></tr></thead>
+    <thead><tr><th>わざ</th><th>1回（最大）</th><th>回数</th><th>合計</th></tr></thead>
     <tbody>${rs.map(r=>{ const [t,c] = TYPE[r.m.type];
-      return `<tr data-open="${r.m.id}"><td><span class="type ${c}">${t}</span>${r.m.name}</td><td>${fmt(r.per)}</td><td>×${r.hits}</td><td class="tot">${fmt(r.per*r.hits)}</td><td>${judge(r,false)}</td></tr>`; }).join('')}</tbody></table></div>`;
-  const worst = rs.filter(r=>r.per*r.hits >= hpNow()).length;
-  $('tabdmg_all').textContent = hpNow()>0 ? `倒れるわざ ${worst}/${rs.length}` : '';
+      return `<tr data-open="${r.m.id}"><td><span class="type ${c}">${t}</span>${r.m.name}</td><td>${fmt(r.per)}</td><td>×${r.hits}</td><td class="tot">${fmt(r.per*r.hits)}</td></tr>`; }).join('')}</tbody></table></div>`;
+  afterUpdate();
 }
 $('overview').addEventListener('click', e=>{ const tr = e.target.closest('tr[data-open]'); if (tr) openTab(tr.dataset.open); });
 
@@ -510,9 +1878,64 @@ function onEdit(e){
   S[k] = el.type==='checkbox' ? el.checked : el.value;
   syncKey(k, el);
   if (k==='job' && jobOf(S.job)){ S.mmBase = jobOf(S.job)[3]; syncKey('mmBase', el); }
+  if (k==='armorSet' && setOf(S.armorSet)){ const a = setOf(S.armorSet);
+    ARMOR_PARTS.forEach((pk,i)=>{ S['eqp_'+i] = a[4][i] ? a[0] : 'none'; syncKey('eqp_'+i, el); S[pk] = setVals(a)[i]; syncKey(pk, el); }); }
+  if (k.startsWith('eqp_')){ const i = +k.slice(4), a = setOf(S[k]);
+    if (S[k]!=='manual'){ S[ARMOR_PARTS[i]] = a ? a[4][i]+a[5][i] : 0; syncKey(ARMOR_PARTS[i], el); }
+    if (S.armorSet!=='manual' && S[k]!==S.armorSet){ S.armorSet = 'manual'; syncKey('armorSet', el); } }
+  if (ARMOR_PARTS.includes(k)){ const i = ARMOR_PARTS.indexOf(k), a = setOf(S['eqp_'+i]);
+    if (S['eqp_'+i]!=='manual' && num(k)!==(a ? a[4][i]+a[5][i] : 0)){ S['eqp_'+i] = 'manual'; syncKey('eqp_'+i, el); S.armorSet = 'manual'; syncKey('armorSet', el); } }
+  { const m = k.match(/^al_(\w+)_(\d)_t$/); if (m){ const vk = `al_${m[1]}_${m[2]}_v`; S[vk] = 0; syncKey(vk, el); } }
+  if (k.startsWith('acc_') && DEN_ROWS.includes(k.slice(4))) [0,1].forEach(j=>S[`den_${k.slice(4)}_${j}`] = '');
+  if (k.startsWith('acc_')) for (let n=0;n<alMax(k.slice(4));n++){ S[`al_${k.slice(4)}_${n}_t`] = ''; S[`al_${k.slice(4)}_${n}_v`] = 0; syncKey(`al_${k.slice(4)}_${n}_v`); }
+  if (k==='heartLv'){ S.eqd_heart = accDefOf(accOf(S.acc_heart)); syncKey('eqd_heart', el); }
+  if (k==='wepSel'){ const w = wepOf(S.wepSel); S.eqd_weapon = w ? (w[4].def||0) : 0; syncKey('eqd_weapon', el); }
+  if (k.startsWith('acc_')){ const a = accOf(S[k]); S['eqd_'+k.slice(4)] = accDefOf(a); syncKey('eqd_'+k.slice(4), el); }
+  if (k==='shieldSel' && S.shieldSel!=='manual'){
+    const x = shieldOf(S.shieldSel); S.eqShield = x ? x[4] : 0; syncKey('eqShield', el); }
+  if (k==='eqShield' && S.shieldSel!=='manual' && num('eqShield')!==(shieldOf(S.shieldSel)||[0,0,0,0,0])[4]){ S.shieldSel = 'manual'; syncKey('shieldSel', el); }
   if (k==='mmBase' && jobOf(S.job) && num('mmBase')!==jobOf(S.job)[3]){ S.job = 'manual'; syncKey('job', el); }
   update();
 }
+// 一括：3枠の効果をそろえる（max が true なら値も最大値に）
+function alBulk(slot, key, max){
+  const o = alOpt(slot, key);
+  for (let n=0;n<AL_N;n++){
+    const sel = document.querySelector(`[data-key="al_${slot}_${n}_t"]`), inp = document.querySelector(`[data-key="al_${slot}_${n}_v"]`);
+    sel.value = key; sel.dispatchEvent(new Event('change', {bubbles:true}));
+    if (max && o){ inp.value = o[1]; inp.dispatchEvent(new Event('input', {bubbles:true})); }
+  }
+}
+document.addEventListener('change', e=>{ const sel = e.target.closest('[data-albulk]'); if (sel && sel.value) alBulk(sel.dataset.albulk, sel.value, false); });
+document.addEventListener('click', e=>{ const b = e.target.closest('[data-albulkmax]'); if (!b) return;
+  const slot = b.dataset.albulkmax, sel = document.querySelector(`[data-albulk="${slot}"]`); if (!sel.value) return;
+  alBulk(slot, sel.value, true);
+  // アクセは伝承効果も、同じ効果の一番大きい値にする（その効果が伝承にないときはそのまま）
+  if (ACC_ROWS.includes(slot)) [0,1].forEach(k=>{
+    const best = (denList(slot, k)||[]).filter(o=>o[1]===sel.value).sort((x,y)=>y[2]-x[2])[0];
+    const ds = document.querySelector(`[data-key="den_${slot}_${k}"]`);
+    if (best && ds){ ds.value = best[0]; ds.dispatchEvent(new Event('change', {bubbles:true})); } }); });
+// アクセの攻撃力・守備力：Max も手入力も、その行だけ変える。相手側は、枠が足りず付けられない分だけ下げる（上げることはしない）
+function accBalance(slot, n){
+  if (!atkDefOnly(slot) || n>ONE_DEF || !accRowList(slot, 1-n).length || !accRowList(slot, n).length) return;
+  const room = accRoom(slot, n, num(`al_${slot}_${n}_v`)), other = document.querySelector(`[data-key="al_${slot}_${1-n}_v"]`);
+  const v = Math.min(num(`al_${slot}_${1-n}_v`), room);
+  if (+other.value!==v){ other.value = v; other.dispatchEvent(new Event('input', {bubbles:true})); }
+}
+document.addEventListener('change', e=>{ const m = (e.target.dataset.key||'').match(/^al_(\w+)_([01])_v$/); if (m) accBalance(m[1], +m[2]); });
+// ベルト：選んだ効果すべてに最大値を入れる
+document.addEventListener('click', e=>{ if (!e.target.closest('[data-beltmax]') || !beltList('waist')) return;
+  for (let n=0;n<BELT_N;n++){ const o = alOpt('waist', S[`al_waist_${n}_t`]); if (!o) continue;
+    const inp = document.querySelector(`[data-key="al_waist_${n}_v"]`);
+    inp.value = o[1]; inp.dispatchEvent(new Event('input', {bubbles:true})); } });
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-almax]'); if (!b) return;
+  const [slot, n] = [b.dataset.almax.replace(/_\d$/, ''), b.dataset.almax.slice(-1)];
+  const o = alOpt(slot, S[`al_${slot}_${n}_t`]); if (!o) return;
+  const inp = b.parentElement.querySelector(`[data-key="al_${slot}_${n}_v"]`);
+  inp.value = o[1]; inp.dispatchEvent(new Event('input', {bubbles:true}));
+  accBalance(slot, +n);
+});
 document.addEventListener('input', onEdit);
 document.addEventListener('change', onEdit);
 
@@ -520,6 +1943,348 @@ let first = 'all';
 try{ const t = localStorage.getItem('dogdora-tab'); if (t && TABS.some(x=>x.id===t)) first = t; }catch(e){}
 update();
 openTab(first);
+
+// ===== 装備一式（被ダメージ用の1つ ＋ 与ダメージの4人分） =====
+// 画面の装備表と計算の関数は1つだけ。使う人を替えるときに、装備のキーの値を S と PROFILE_VALS の間で入れ替える
+//   ・計算はいつも S を読む。S に入っているのは curProfile の装備
+//   ・装備の欄（CTRL のキー）を増やしたら、isEqKey に当てはまるか確かめること
+// wep／shield／armor：その職で選べるもの。出典：DQ10大辞典 第二版の各職のページ、IKE の装備の詳細ページ
+const MEMBERS = [
+  {id:'mamo1',  name:'まもの使い1', col:'--phys',   job:'mamono',  wep:['ツメ'], shield:[], armor:['mamono']},
+  {id:'mamo2',  name:'まもの使い2', col:'--breath', job:'mamono',  wep:['ツメ'], shield:[], armor:['mamono']},
+  {id:'mahosen',name:'魔法戦士',    col:'--spell',  job:'mahosen', wep:['片手剣','弓'], shield:['small','big'], armor:['mahosen','yoroi']},
+  {id:'ranger', name:'レンジャー',  col:'--other',  job:'ranger',  wep:['ツメ','弓'], shield:['small'], armor:['ranger']},
+];
+const isEqKey = k => /^(eqp_|eqd_|acc_|al_|den_|pick\d)/.test(k)
+  || [...ARMOR_PARTS,'armorSet','eqShield','shieldSel','shieldFlat','wepSel','heartLv','seiMu','seiKi','eqAcc','renkin'].includes(k);
+const EQ_STATE = Object.keys(CTRL).filter(isEqKey);
+const PROFILE_VALS = Object.fromEntries(['def', ...MEMBERS.map(m=>m.id)].map(id=>[id, Object.fromEntries(EQ_STATE.map(k=>[k, CTRL[k].def]))]));
+let curMember = MEMBERS[0].id;
+
+// ===== 被ダメージのページの職業タブ =====
+//   ・職業を選ぶと、与ダメージの同じ職業の人の装備をそのまま使う（まもの使いは 1・2 のどちらか）
+//   ・その他は絞り込みなしで、装備は PROFILE_VALS.def（与ダメージには引き継がない）
+//   ・JOB_KEYS（職業・レベル、宝珠、耐性、スキル、料理）は、タブごとに持つ。今のタブの分は S に入っている
+const JOB_TABS = [
+  {id:'mamono',  name:'まもの使い', col:'--phys'},
+  {id:'mahosen', name:'魔法戦士',   col:'--spell'},
+  {id:'ranger',  name:'レンジャー', col:'--other'},
+  {id:'other',   name:'その他',     col:'--mdef'},
+];
+const memberOf = id => MEMBERS.find(m=>m.id===id);
+const tabOfWho = id => (memberOf(id)||{job:'other'}).job;
+// 宝珠（kind:'lv'）・カテゴリーごとの耐性・スキル。パッシブ、たね、木は全職業で効くのでタブ共通
+const JEWEL_KEYS = Object.keys(CTRL).filter(k=>CTRL[k].kind==='lv');
+const JOB_KEYS = ['job', 'mmBase', ...JEWEL_KEYS, ...Object.keys(CTRL).filter(k=>k.startsWith('r_')), 'skHigh', 'skill180', 'otherFlat', 'foodSel', 'foodStar'];
+const jobInit = t => { const j = jobOf(t), v = Object.fromEntries(JOB_KEYS.map(k=>[k, CTRL[k].def]));
+  return j ? {...v, job:j[0], mmBase:j[3]} : v; };
+const jobNow = () => Object.fromEntries(JOB_KEYS.map(k=>[k, S[k]]));
+// 保存にあるそのタブの値。職業ごとに分ける前の保存は、共通だった値を全部のタブに写す
+//   そのとき宝珠の0は、前の初期値のままとみなして新しい初期値にする
+function jobLoad(t, saved, shared){
+  const v = jobInit(t);
+  JOB_KEYS.forEach(k=>{
+    if (k in saved) v[k] = cleanVal(k, saved[k]);
+    else if (k!=='job' && k!=='mmBase' && k in shared && !(JEWEL_KEYS.includes(k) && !Number(shared[k]))) v[k] = cleanVal(k, shared[k]);
+    else if ((k==='job' || k==='mmBase') && t==='other' && k in shared && !('job' in saved)) v[k] = cleanVal(k, shared[k]);
+  });
+  // 職業を選んでいる保存は、いつも今の JOBS の値にする（手入力の値は job が manual なのでそのまま）
+  const j = jobOf(v.job); if (j) v.mmBase = j[3];
+  return v;
+}
+const JOB_VALS = Object.fromEntries(JOB_TABS.map(t=>[t.id, jobInit(t.id)]));
+let defWho = 'def', lastMamo = MEMBERS[0].id;
+function putJobOpts(){
+  const t = tabOfWho(defWho), L = CTRL.job.opts.filter(([v])=>t==='other' || v===t || v==='manual');
+  document.querySelectorAll('[data-key="job"]').forEach(e=>{ e.innerHTML = L.map(o=>opt(o[0],o[1])).join(''); });
+  JOB_KEYS.forEach(k=>syncKey(k));
+}
+function setDefWho(id){
+  const ae = document.activeElement;
+  if (ae && ae.dataset && ae.dataset.key) ae.blur();   // 入力中の値は、切り替える前の職業に入れる
+  JOB_VALS[tabOfWho(defWho)] = jobNow();
+  defWho = id;
+  if (tabOfWho(id)==='mamono') lastMamo = id;
+  Object.assign(S, JOB_VALS[tabOfWho(id)]);
+  putJobOpts();
+}
+
+// ===== 被ダメのページで変えた分を、元の装備一式に書き戻す =====
+// 被ダメのページの S は、攻撃の効果や守備力のないアクセを外した姿。S をそのまま保存すると与ダメ側の入力が消える。
+//   → いつも「開いたときの元の装備（from）」＋「開いたときから変えた分（base と now の差）」で作り直す。
+//     触っていない部位は元のまま。途中まで打った数字で消えることもない
+const alKeys = slot => Array.from({length:alMax(slot)}, (_,n)=>[`al_${slot}_${n}_t`, `al_${slot}_${n}_v`]);
+function mergeDef(from, base, now){
+  const out = {...from}, n0 = v => parseFloat(v)||0;
+  EQ_STATE.forEach(k=>{ if (/^(al_|den_|acc_)/.test(k) || k==='renkin' || k==='eqAcc') return;
+    if (String(now[k])!==String(base[k])) out[k] = now[k]; });
+  EQ_ROWS.forEach(([slot])=>{
+    const ak = 'acc_'+slot, isAcc = ACC_ROWS.includes(slot), swapped = isAcc && now[ak]!==base[ak], keys = alKeys(slot);
+    if (swapped){   // アクセを替えたら、前のアクセの効果は残さない
+      out[ak] = now[ak]; out['eqd_'+slot] = now['eqd_'+slot];
+      keys.forEach(([t,v])=>{ out[t] = ''; out[v] = 0; });
+    }
+    const changed = keys.map(([t,v])=>now[t]!==base[t] || n0(now[v])!==n0(base[v]));
+    if (DEN_ROWS.includes(slot)){   // 指・腰は隠している効果がないので、変えたら画面のまま
+      const all = [...keys.flat(), `den_${slot}_0`, `den_${slot}_1`];
+      if (swapped || all.some(k=>String(now[k])!==String(base[k]))) all.forEach(k=>{ out[k] = now[k]; });
+      return;
+    }
+    if (!swapped && !changed.some(Boolean)) return;
+    if (ONE_DEF_SLOTS.includes(slot)){
+      const total = (st, kd) => keys.reduce((x,[t,v])=>fxKind(st[t])===kd ? x+n0(st[v]) : x, 0);
+      const v = total(now,'def');
+      if (v!==total(base,'def')) spreadFx(slot, out, 'def', v);
+    }
+    else if (atkDefOnly(slot)) mergeAccRows(slot, out, now, changed, swapped);
+    else {
+      // 3枠：見えている効果はそのまま。隠れている効果は空いた枠に残し、枠が足りなければ置き換わる
+      const hidden = keys.map(([t,v],n)=>from[t] && !base[t] ? [n, from[t], from[v]] : null).filter(Boolean);
+      const res = keys.map(([t,v])=>now[t] ? [now[t], now[v]] : null);
+      hidden.forEach(([n,t,v])=>{ const to = res[n] ? res.findIndex(x=>!x) : n; if (to>=0) res[to] = [t, v]; });
+      keys.forEach(([t,v],n)=>{ out[t] = res[n] ? res[n][0] : ''; out[v] = res[n] ? res[n][1] : 0; });
+    }
+  });
+  return out;
+}
+// からだ下：1行にまとめた守備力を、元の枠に分ける（同じ効果の枠 → 空き → ほかの効果の枠 の順に使う）
+function spreadFx(slot, out, kd, total){
+  const is = t => fxKind(t||'')===kd;
+  const o = alListAll(slot).filter(x=>is(x[0])).sort((x,y)=>y[1]-x[1])[0];
+  const keys = alKeys(slot);
+  const was = keys.map(([t])=>out[t]);
+  keys.forEach(([t,v],n)=>{ if (is(was[n])){ out[t] = ''; out[v] = 0; } });
+  if (!o || !(total>0)) return;
+  const rank = n => is(was[n]) ? 0 : !was[n] ? 1 : fxKind(was[n]) ? 3 : 2;
+  const order = keys.map((_,n)=>n).sort((x,y)=>rank(x)-rank(y) || x-y);
+  let rest = total;
+  order.forEach((n,i)=>{ if (rest<=0) return;
+    const v = i===order.length-1 ? rest : Math.min(rest, o[1]);   // 上限より大きい手入力も合計は変えない
+    out[keys[n][0]] = o[0]; out[keys[n][1]] = v; rest -= v; });
+}
+function mergeAccRows(slot, out, now, changed, swapped){
+  [ONE_ATK, ONE_DEF, ONE_EL].forEach(n=>{
+    const t = `al_${slot}_${n}_t`, v = `al_${slot}_${n}_v`, val = parseFloat(now[v])||0;
+    if (!(swapped || changed[n]) || (swapped && !val && n!==ONE_EL)) return;
+    out[t] = now[t]; out[v] = now[v];
+    if (n===ONE_DEF && val && accRowBase(slot, ONE_ATK).length){   // 攻撃力は、枠が足りない分だけ下げる
+      const av = `al_${slot}_${ONE_ATK}_v`;
+      out[av] = Math.min(parseFloat(out[av])||0, accRoom(slot, ONE_DEF, val));
+    }
+  });
+}
+// 今の画面の装備を、保存する形で
+function capture(){
+  const now = Object.fromEntries(EQ_STATE.map(k=>[k, S[k]]));
+  return linked ? mergeDef(linked.from, linked.base, now) : now;
+}
+const equipBox = document.querySelector('.equip').closest('.sbox');
+
+function setEquipOpts(m){
+  const put = (k, html) => document.querySelectorAll(`[data-key="${k}"]`).forEach(e=>{ e.innerHTML = html; });
+  put('wepSel', wepOpts(m));
+  put('shieldSel', shieldOpts(m));
+  put('armorSet', armorSetOpts(m));
+  for (let i=0;i<5;i++) put('eqp_'+i, armorOpts(i, m));
+  const forAcc = inDef ? null : m;   // アクセの絞り込みは職業ではなくページで決まる
+  ACC_ROWS.forEach(slot=>put('acc_'+slot, accOpts(slot, forAcc)));
+}
+const eqNote = m => `${m.name}が選べる装備　武器：${m.wep.join('・')}　盾：${m.shield.length ? m.shield.map(t=>t==='big'?'大盾':'小盾').join('・') : 'なし'}`
+  + (m.armor.includes('yoroi') ? '　鎧：「よろいが装備できる」スキルが必要' : '');
+// PROFILE_VALS[curProfile] を画面に出す（保存はしない）
+function loadProfile(){
+  const from = {...PROFILE_VALS[curProfile]}, m = memberOf(curProfile);
+  linked = null;
+  Object.assign(S, from);
+  const to = $(inDef ? 'settingsL' : 'memEquip');
+  if (equipBox.parentElement!==to) to.appendChild(equipBox);
+  setEquipOpts(m);
+  EQ_STATE.forEach(k=>syncKey(k));
+  dropUnknown(EQ_STATE);
+  if (inDef && m) linked = {from, base:null};
+  // 攻撃力⇔守備力の切替が未入力（0）なら、被ダメのページでは守備力から始める
+  if (inDef) ACC_ROWS.filter(atkDefOnly).forEach(slot=>{ const t = `al_${slot}_0_t`; if (RE_ATK.test(S[t]) && !num(`al_${slot}_0_v`)) S[t] = ''; });
+  const keep = afterUpdate; afterUpdate = () => {};
+  update(); update();   // 2回目で選択肢の自動決定まで落ち着く。その姿を base にする
+  if (linked) linked.base = Object.fromEntries(EQ_STATE.map(k=>[k, S[k]]));
+  afterUpdate = keep;
+  if (m && !inDef){
+    $('memPanel').style.setProperty('--tc', `var(${m.col})`);
+    $('memNote').textContent = eqNote(m);
+  }
+  drawJobTabs();
+  drawMemTabs();
+}
+function setProfile(id, def){
+  if (id===curProfile && def===inDef) return;
+  // 入力中の欄を先に確定させてから入れ替える（前の人の値が次の人に入らないように）
+  const ae = document.activeElement;
+  if (ae && ae.dataset && ae.dataset.key) ae.blur();
+  PROFILE_VALS[curProfile] = capture();
+  curProfile = id; inDef = def;
+  loadProfile();
+  afterUpdate();
+}
+$('jobTabs').innerHTML = JOB_TABS.map(t=>`<button type="button" class="tab" role="tab" data-job="${t.id}" aria-selected="false" style="--tc:var(${t.col})">${t.name}</button>`).join('');
+$('jobWho').innerHTML = '<span>使う装備</span>'
+  + MEMBERS.filter(m=>m.job==='mamono').map(m=>`<button type="button" data-who="${m.id}" aria-pressed="false">${m.name}</button>`).join('');
+function drawJobTabs(){
+  const t = tabOfWho(defWho), m = memberOf(defWho);
+  $('jobTabs').querySelectorAll('[data-job]').forEach(b=>b.setAttribute('aria-selected', String(b.dataset.job===t)));
+  $('jobPanel').style.setProperty('--tc', `var(${JOB_TABS.find(x=>x.id===t).col})`);
+  $('jobWho').hidden = t!=='mamono';
+  $('jobWho').querySelectorAll('[data-who]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.who===defWho)));
+  $('jobNote').textContent = m ? `${eqNote(m)}　／　装備は与ダメージの「${m.name}」と共通　／　宝珠・耐性・スキル・料理はこの職業専用${t==='mamono' ? '（1・2で共通）' : ''}` : '絞り込みなし　／　与ダメージには引き継ぎません　／　宝珠・耐性・スキル・料理はこのタブ専用';
+}
+function pickJob(id){
+  keepHeight($('jobPanel'), ()=>{
+    setDefWho(id);
+    if (memberOf(id)) curMember = id;   // 与ダメージのページも同じ人を開く
+    setProfile(id, true);
+  });
+}
+$('jobTabs').addEventListener('click', e=>{ const b = e.target.closest('[data-job]'); if (!b || b.dataset.job===tabOfWho(defWho)) return;
+  const t = b.dataset.job;
+  pickJob(t==='other' ? 'def' : t==='mamono' ? lastMamo : MEMBERS.find(m=>m.job===t).id); });
+$('jobWho').addEventListener('click', e=>{ const b = e.target.closest('[data-who]'); if (b && b.dataset.who!==defWho) pickJob(b.dataset.who); });
+$('memTabs').innerHTML = MEMBERS.map(m=>`<button type="button" class="tab" role="tab" data-mem="${m.id}" aria-selected="false" style="--tc:var(${m.col})">${m.name}<span class="dmg" data-memwep="${m.id}"></span></button>`).join('');
+function drawMemTabs(){
+  MEMBERS.forEach(m=>{
+    const w = wepOf((m.id===curProfile ? S : PROFILE_VALS[m.id]).wepSel);
+    document.querySelector(`[data-memwep="${m.id}"]`).textContent = w ? w[2] : '武器未選択';
+    document.querySelector(`[data-mem="${m.id}"]`).setAttribute('aria-selected', String(m.id===curMember));
+  });
+}
+$('memTabs').addEventListener('click', e=>{ const b = e.target.closest('[data-mem]'); if (!b) return;
+  curMember = b.dataset.mem; keepHeight($('memPanel'), ()=>{ setDefWho(curMember); setProfile(curMember, false); afterUpdate(); }); });
+document.addEventListener('change', e=>{ if (e.target.dataset.key==='wepSel') drawMemTabs(); });
+drawMemTabs();
+drawJobTabs();
+
+// ===== 自動保存（このブラウザの localStorage） =====
+// 形：{v, member, defWho, lastMamo, jobs:{職業タブごとの JOB_KEYS}, shared:{装備以外のキー}, profiles:{def, mamo1, mamo2, mahosen, ranger}}
+//   ・shared にある JOB_KEYS は、今の職業タブのものの写し。defWho のない古い保存は「その他」として読むので、そのまま使える
+//   ・装備の id（w01・a117・h0・s12 など）を保存するので、id の意味を変えるときは SAVE_KEY の番号を上げて移し替えること
+//   ・項目を増やすのはそのままでよい（保存にない項目は初期値になる）
+const SAVE_KEY = 'dogdora-save-v1';
+const SHARED_KEYS = Object.keys(CTRL).filter(k=>!EQ_STATE.includes(k));
+function saveStatus(text, bad){ $('saveState').textContent = text; $('saveState').classList.toggle('bad', !!bad); }
+function saveAll(){
+  const profiles = {...PROFILE_VALS, [curProfile]: capture()};
+  const jobs = {...JOB_VALS, [tabOfWho(defWho)]: jobNow()};
+  const shared = Object.fromEntries(SHARED_KEYS.map(k=>[k, S[k]]));
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify({v:1, slots3:1, sk180on:1, seedmax:1, member:curMember, defWho, lastMamo, jobs, shared, profiles})); saveStatus('自動保存済み'); }
+  catch(e){ saveStatus('保存できません', true); }
+}
+// 壊れた値・型の違う値は初期値に
+function cleanVal(k, v){
+  const c = CTRL[k];
+  if (c.kind==='chk') return typeof v==='boolean' ? v : c.def;
+  if (typeof v!=='string' && typeof v!=='number') return c.def;
+  if (c.kind==='num') return v==='' || isFinite(v) ? v : c.def;
+  return String(v).length<=100 ? v : c.def;
+}
+// 選択肢にない値（なくなった装備など）は初期値に。錬金・合成・伝承の選択肢は refreshAl が見る
+function dropUnknown(keys){
+  keys.forEach(k=>{
+    if (/^(al_|den_)/.test(k)) return;
+    const el = document.querySelector(`select[data-key="${k}"]`);
+    if (!el || !el.options.length) return;
+    const gone = el.selectedIndex<0;
+    if (gone){ S[k] = CTRL[k].def; syncKey(k); }
+    // アクセが選べなくなったら、その行に付いていた値も残さない（候補が1つもない部位も同じ）
+    if (k.startsWith('acc_') && (gone || el.options.length===1)){
+      const slot = k.slice(4), dep = new RegExp(`^(eqd_${slot}$|al_${slot}_|den_${slot}_)`);
+      EQ_STATE.filter(x=>dep.test(x)).forEach(x=>{ S[x] = CTRL[x].def; syncKey(x); });
+    }
+  });
+}
+// slots3 のない保存：「その他」の指・腰は合計が1枠目か2枠目に入っているので、3枠と伝承に分ける（合計は変えない）
+function unpackOld(p){
+  DEN_ROWS.forEach(slot=>{
+    const a = accOf(p['acc_'+slot]); if (!a || BELTS[a[2]] || a[2]==='断罪のゆびわ') return;
+    const keys = [0,1,2].map(n=>[`al_${slot}_${n}_t`, `al_${slot}_${n}_v`]), used = keys.filter(([t])=>p[t]);
+    if (used.length!==1) return;   // まとめた値は、ベルト・断罪以外では1枠だけ
+    const [[tk, vk]] = used, tpl = p[tk], o = (ACC_COMP[a[2]]||[]).find(x=>x[0]===tpl);
+    let rest = parseFloat(p[vk])||0;
+    if (!o){   // 伝承だけに付く物（武刃将軍・軍神の攻撃力+2）
+      p[tk] = ''; p[vk] = 0;
+      if (rest>0) (ACC_DEN[a[2]]||[]).forEach((L,k)=>{ const d = L.map(denParse).find(x=>x && x[1]===tpl); if (d) p[`den_${slot}_${k}`] = d[0]; });
+    } else if (rest>o[1]) keys.forEach(([t,v],n)=>{
+      const x = n===AL_N-1 ? rest : Math.min(rest, o[1]);
+      p[t] = x>0 ? tpl : ''; p[v] = x>0 ? x : 0; rest -= x; });
+  });
+}
+function applySave(raw, first){
+  let d = null;
+  try{ d = JSON.parse(raw); }catch(e){}
+  const obj = x => x && typeof x==='object' ? x : {};
+  const data = obj(d), shared = obj(data.shared), profiles = obj(data.profiles);
+  const val = (from, k) => Object.prototype.hasOwnProperty.call(from, k) ? cleanVal(k, from[k]) : CTRL[k].def;
+  SHARED_KEYS.forEach(k=>{ S[k] = val(shared, k); });
+  // seedmax のない保存は、たね・木の初期値が0だったころのもの。0のままなら一度だけ最大にする
+  if (!data.seedmax) ['mmSeed','mmMegami'].forEach(k=>{ if (String(S[k])==='0') S[k] = CTRL[k].def; });
+  for (const id in PROFILE_VALS){ const from = obj(profiles[id]); EQ_STATE.forEach(k=>{ PROFILE_VALS[id][k] = val(from, k); }); }
+  if (data.profiles && !data.slots3) unpackOld(PROFILE_VALS.def);
+  if (first && MEMBERS.some(m=>m.id===data.member)) curMember = data.member;
+  defWho = memberOf(data.defWho) ? data.defWho : 'def';
+  lastMamo = tabOfWho(data.lastMamo)==='mamono' ? data.lastMamo : MEMBERS[0].id;
+  const jobs = obj(data.jobs);
+  // defWho のない保存は職業タブができる前のもの。そのときの職業・みのまもりは「その他」に入れる
+  JOB_TABS.forEach(({id})=>{ JOB_VALS[id] = jobLoad(id, id==='other' && !('defWho' in data) ? {} : obj(jobs[id]), shared); });
+  // sk180on のない保存は、スキル180の初期値が「なし」だったころのもの。一度だけ新しい初期値にする
+  if (!data.sk180on) JOB_TABS.forEach(({id})=>{ JOB_VALS[id].skill180 = CTRL.skill180.def; });
+  Object.assign(S, JOB_VALS[tabOfWho(defWho)]);
+  if (inDef) curProfile = defWho;
+  putJobOpts();
+  SHARED_KEYS.forEach(k=>syncKey(k));
+  dropUnknown(SHARED_KEYS);
+  loadProfile();   // 読み込んだだけでは保存しない（タブ同士で保存し合わないように）
+}
+function readSave(){
+  try{ return {ok:true, raw:localStorage.getItem(SAVE_KEY)}; }catch(e){ return {ok:false}; }
+}
+{
+  const r = readSave();
+  if (r.ok){ if (r.raw!==null) applySave(r.raw, true); saveStatus('自動保存'); afterUpdate = saveAll; }
+  else saveStatus('保存できません', true);
+}
+// 別のタブで変えたら、こちらにも反映（古いタブが新しい入力を上書きしないように）
+addEventListener('storage', e=>{ if (e.key===SAVE_KEY || e.key===null) applySave(e.newValue, false); });
+addEventListener('pageshow', e=>{ if (!e.persisted) return; const r = readSave(); if (r.ok && r.raw!==null) applySave(r.raw, false); });
+
+const PAGES = {def:'被ダメージ', atk:'与ダメージ'};
+const menuBtn = $('menuBtn'), menu = $('menu'), pageScroll = {};
+let curPage = '';
+function setMenu(open){
+  menu.hidden = $('scrim').hidden = !open;
+  $('resetAsk').hidden = true; $('resetBtn').hidden = false;
+  menuBtn.setAttribute('aria-expanded', String(open));
+}
+function showPage(){
+  const id = location.hash==='#atk' ? 'atk' : 'def';
+  setMenu(false);
+  if (id===curPage) return;
+  if (curPage) pageScroll[curPage] = scrollY;   // ページごとに見ていた位置へ戻す
+  curPage = id;
+  setProfile(id==='atk' ? curMember : defWho, id==='def');   // 隠す前に入れ替える（入力中の欄を確定させるため）
+  document.querySelectorAll('main[data-page]').forEach(m=>m.hidden = m.dataset.page!==id);
+  menu.querySelectorAll('[data-nav]').forEach(a=>{ if (a.dataset.nav===id) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  $('topPage').textContent = PAGES[id];
+  document.querySelector('.topbar').style.setProperty('--tc', `var(--m${id})`);
+  document.title = `ドグドラ${PAGES[id]}計算`;
+  scrollTo(0, pageScroll[id] || 0);
+}
+menuBtn.addEventListener('click', ()=>{ const open = menu.hidden; setMenu(open); if (open) menu.querySelector('a').focus(); });
+$('scrim').addEventListener('click', ()=>setMenu(false));
+menu.addEventListener('click', e=>{ if (e.target.closest('a')){ setMenu(false); menuBtn.focus({preventScroll:true}); } });
+document.addEventListener('keydown', e=>{ if (e.key==='Escape' && !menu.hidden){ setMenu(false); menuBtn.focus(); } });
+$('resetBtn').addEventListener('click', ()=>{ $('resetBtn').hidden = true; $('resetAsk').hidden = false; $('resetNo').focus(); });
+$('resetNo').addEventListener('click', ()=>{ $('resetAsk').hidden = true; $('resetBtn').hidden = false; $('resetBtn').focus(); });
+$('resetYes').addEventListener('click', ()=>{ applySave(null, false); afterUpdate(); setMenu(false); menuBtn.focus({preventScroll:true}); });
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+addEventListener('hashchange', showPage);
+showPage();
 </script>
 </body>
 </html>
