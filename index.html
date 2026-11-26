@@ -1291,7 +1291,13 @@ function refreshAl(){
     if (slot==='waist') document.querySelectorAll('[data-beltmax]').forEach(b=>b.disabled = !belt || !Array.from({length:BELT_N},(_,n)=>S[`al_waist_${n}_t`]).some(Boolean));
   });
 }
-const rowName = slot => EQ_ROWS.find(r=>r[0]===slot)[1];
+const rowName = slot => slot==='set' ? '防具セット' : EQ_ROWS.find(r=>r[0]===slot)[1];
+// 防具のセット効果のうち被ダメージに関係するもの（極限攻略の防具セット一覧）。flat：受けるダメージ軽減、ほかは耐性（%）
+// ほのおのよろいの氷・ドラゴンベストの土はドグドラのわざに関係しないので入れない
+const SET_DEF = {'常勝のよろい':{flat:10, breath:8}, 'ミラーアーマー':{flat:10}, 'イグナイトメイル':{flat:5},
+  '瑞雲の道服':{spell:10}, '隠密の装束':{breath:10, spell:7}, '魔衛隊士のよろい':{spell:5}, '聖翼のドレス':{spell:7},
+  '魔侯爵のよろい':{breath:8}, 'グレイスフルコート':{spell:5}, 'ドラゴンベスト':{fire:20}, 'かぜのマント':{wind:20}};
+const setDef = () => { const st = setOf(S.armorSet); return st && SET_DEF[st[2]] ? [st[2], SET_DEF[st[2]]] : null; };
 // 行ごとの補正（錬金・合成）を集める
 function alEntries(){
   const out = [];
@@ -1302,6 +1308,7 @@ function alEntries(){
 // 装備（盾・アクセ）の基礎効果による耐性と、補正の耐性
 function eqResItems(t){
   const out = [];
+  { const x = setDef(); if (x && x[1][t]) out.push([`${x[0]}（セット効果）`, x[1][t]/100]); }
   const sh = shieldOf(S.shieldSel); if (sh && sh[5][t] && !is2h()) out.push([`${sh[2]}（盾）`, sh[5][t]/100]);
   ACC_ROWS.forEach(slot=>{ const a = accOf(S['acc_'+slot]); if (a && a[4][t]) out.push([a[2], a[4][t]/100]); });
   alEntries().forEach(([slot,nm,ty,v])=>{ if (ty===t) out.push([`${nm}の錬金/合成`, v/100]); });
@@ -1309,6 +1316,7 @@ function eqResItems(t){
 }
 function eqFlatItems(){
   const out = [];
+  { const x = setDef(); if (x && x[1].flat) out.push([`${x[0]}（セット効果）`, x[1].flat, 'set']); }
   const sh = shieldOf(S.shieldSel); if (sh && shFlat(sh) && !is2h()) out.push([sh[2], shFlat(sh), 'shield']);
   ACC_ROWS.forEach(slot=>{ const a = accOf(S['acc_'+slot]), v = accFlatOf(a);
     if (v) out.push([HEART_LV[a[2]] ? `${a[2]}Lv${heartIdx()+1}` : a[2], v, slot]); });
@@ -1670,7 +1678,7 @@ const REFS = [
   ['ikeTree','攻撃力の計算','IKEドラクエ10攻略','女神の木','https://dq10.i-k-e.net/pani/tree','女神の木のLvごとの上昇値（全部の木で共通・Lv30で+33）'],
   ['dicTree','攻撃力の計算','DQ10大辞典 第二版','【女神の木】','D%E3%80%90%E5%A5%B3%E7%A5%9E%E3%81%AE%E6%9C%A8%E3%80%91','女神の木のLvごとの上昇値（全部の木で共通）'],
   ['dqBushin','攻撃力の計算','ドラクエ10極限攻略データベース','武神の豪腕','https://xn--10-yg4a1a3kyh.jp/a_hojyu/dq10_hojyu_k_bushinnogowan.html','武神の豪腕 Lv1〜6で ちから+1〜+6'],
-  ['kyoSet','攻撃力の計算','ドラクエ10極限攻略データベース','防具セット一覧（装備Lv別）','https://xn--10-yg4a1a3kyh.jp/a_bgset/dq10_bgset_lsl_135.html','防具のセット効果のこうげき力'],
+  ['kyoSet','攻撃力の計算','ドラクエ10極限攻略データベース','防具セット一覧（装備Lv別）','https://xn--10-yg4a1a3kyh.jp/a_bgset/dq10_bgset_lsl_135.html','防具のセット効果（こうげき力・受けるダメージ軽減・ダメージ減）'],
   ['dicSword','攻撃力の計算','DQ10大辞典 第二版','【片手剣スキル】','D%E3%80%90%E7%89%87%E6%89%8B%E5%89%A3%E3%82%B9%E3%82%AD%E3%83%AB%E3%80%91','魔法戦士の片手剣 装備時こうげき力'],
   ['dicBow','攻撃力の計算','DQ10大辞典 第二版','【弓スキル】','D%E3%80%90%E5%BC%93%E3%82%B9%E3%82%AD%E3%83%AB%E3%80%91','レンジャー・魔法戦士の弓 装備時こうげき力'],
   ['kyoSk160','攻撃力の計算','ドラクエ10極限攻略データベース','160〜180スキル（武器スキル）','https://xn--10-yg4a1a3kyh.jp/dq10_tokugi160_00.html','装備時こうげき力 160P+5・170P+8・180P以上+10'],
@@ -1713,7 +1721,7 @@ const SECTIONS = [
   {title:'攻撃', page:'atk', for:'昏冥の精霊など', keys:['seiMu','seiKi','#atksum']},
   {title:'ルカニの確率', page:'lk', cite:'atkFx,succUp', for:'攻撃時ルカニ・ドグドラ相手', keys:['lkHits','lkSucc','lkRes','lkClaw','#lkwhip','#lkside','#lukani'], wide:true},
   {title:'料理', page:'atk', cite:'kyoFood,ranbuFood', for:'同時に効くのは1つ', row:'foodrow', keys:['foodSel','foodStar'], foot:'#foodfx'},
-  {title:'被ダメージ軽減', pair:true, cite:'dicFlat,kyoUtare,kyoSkill', for:'全わざ・1回ごと', row:'flatrow', keys:['utare','skill180','otherFlat'], foot:'#flatsum'},
+  {title:'被ダメージ軽減', pair:true, cite:'dicFlat,kyoUtare,kyoSkill,kyoSet', for:'全わざ・1回ごと', row:'flatrow', keys:['utare','skill180','otherFlat'], foot:'#flatsum'},
   {title:'料理', pair:true, cite:'kyoFood,ranbuFood', for:'同時に効くのは1つ', row:'foodrow', keys:['foodSel','foodStar'], foot:'#foodfx'},
   {title:'宝珠', cite:'kyoTeppeki', for:'呪文・ブレス・炎・風・闇', keys:['#res:'+RES_ALL.join(',')], wide:true, nocols:true},
 ];
