@@ -405,6 +405,18 @@ main .field input[type=number]{width:7.5em;max-width:100%;align-self:flex-start}
 .reflist li.flash{background:color-mix(in srgb,var(--accent) 18%,transparent);border-radius:4px}
 .akout .formula{margin-top:8px;font-size:13px;font-weight:400;background:var(--panel)}
 .akwep{font-weight:400}
+
+/* 自作のバフ・デバフバッジ（ゲームのアイコン画像は使わない） */
+.buffbox{margin:0 0 12px}
+.buffbox h3{margin:0 0 4px;font-size:15px}
+.buffbox .sub{color:var(--sub);font-size:12px;margin:0 0 8px}
+.bufflist{display:flex;flex-wrap:wrap;gap:6px}
+.bdg{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 3px;border:1px solid var(--line);border-radius:999px;background:var(--panel);line-height:1.15}
+.bdg svg{width:26px;height:26px;flex:none;display:block}
+.bdg b{font-size:13px;font-weight:700}
+.bdg small{display:block;font-size:10.5px;color:var(--sub);font-weight:400}
+.bdg.chance{padding:3px 10px}
+.bdg.chance .cw{font-weight:900;font-size:13px;letter-spacing:.08em;color:#fff;background:linear-gradient(#f4b63a,#d9791a);border-radius:6px;padding:3px 7px;text-shadow:0 1px 0 rgba(0,0,0,.25)}
 </style>
 </head>
 <body>
@@ -492,6 +504,11 @@ main .field input[type=number]{width:7.5em;max-width:100%;align-self:flex-start}
 
 <section class="page2" aria-labelledby="h_atkcalc">
   <h2 class="pagettl" id="h_atkcalc"><span class="pno">3</span>与ダメージ計算</h2>
+  <div class="buffbox">
+    <h3>ダメージに関わるバフ・デバフ</h3>
+    <p class="sub">名前はゲーム内のバトルアイコンリストの表記。アイコンはこのツール用の自作です</p>
+    <div class="bufflist" id="buffList"></div>
+  </div>
   <div class="soon">
     <h3>準備中</h3>
     <p>まもの使い1・まもの使い2・魔法戦士・レンジャーの4人で、職ごとに特技のダメージを出し、最後に4人の合計でドグドラを倒しきれるかを見られるようにする予定です。</p>
@@ -2673,6 +2690,42 @@ $('resetYes').addEventListener('click', ()=>{ applySave(null, false); afterUpdat
 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 addEventListener('hashchange', showPage);
 showPage();
+</script>
+<script>
+// 自作バッジ。g=図柄, m=右下の印（up/down/plus/zero）, c=地の色
+(function(){
+  const G = {
+    sword:'<path d="M6 18l9.5-9.5V6.5h-2L4 16" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M4.5 14.5l5 5M3.5 20.5l2-2" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>',
+    shield:'<path d="M11 3.5l6 2.4v4.6c0 4-2.6 7.2-6 8.9-3.4-1.7-6-4.9-6-8.9V5.9z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/>',
+    hitin:'<path d="M3.5 11h7M7.5 7.5l3.5 3.5-3.5 3.5" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15" cy="11" r="3.4" fill="none" stroke="#fff" stroke-width="1.8"/>',
+    hitout:'<path d="M12 4.5l1.6 3.6 3.9.4-2.9 2.6.8 3.9-3.4-2-3.4 2 .8-3.9L6.5 8.5l3.9-.4z" fill="#fff"/>',
+    gem:'<path d="M11 3.5l5 6-5 9.5-5-9.5z" fill="#fff" fill-opacity=".9"/><path d="M6 9.5h10" stroke="rgba(0,0,0,.25)" stroke-width="1"/>',
+    gems:'<path d="M7 4l2.6 3.2L7 12 4.4 7.2z" fill="#ff8a6b"/><path d="M14.5 4l2.6 3.2-2.6 4.8-2.6-4.8z" fill="#7cc4ff"/><path d="M7 11.5l2.6 3.2L7 19.5l-2.6-4.8z" fill="#9be07a"/><path d="M14.5 11.5l2.6 3.2-2.6 4.8-2.6-4.8z" fill="#ffe066"/>',
+  };
+  const M = {
+    up:'<circle cx="19.5" cy="19.5" r="4.5" fill="#2f8fe0" stroke="#fff" stroke-width="1.2"/><path d="M19.5 22v-5M17.4 19l2.1-2.1 2.1 2.1" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+    down:'<circle cx="19.5" cy="19.5" r="4.5" fill="#e0453a" stroke="#fff" stroke-width="1.2"/><path d="M19.5 17v5M17.4 20l2.1 2.1 2.1-2.1" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+    plus:'<circle cx="19.5" cy="19.5" r="4.5" fill="#e09a1f" stroke="#fff" stroke-width="1.2"/><path d="M19.5 17v5M17 19.5h5" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>',
+    zero:'<circle cx="19.5" cy="19.5" r="4.5" fill="#e0453a" stroke="#fff" stroke-width="1.2"/><text x="19.5" y="22" text-anchor="middle" font-size="7" font-weight="900" fill="#fff" font-family="sans-serif">0</text>',
+  };
+  const BUFFS = [
+    {name:'こうげき力上昇', from:'バイキルト', g:'sword', m:'up', c:'#c2602b'},
+    {name:'こうげき力加算', from:'がしんしょうたん', g:'sword', m:'plus', c:'#a8761c'},
+    {name:'与ダメージ上昇', from:'ウォークライ', g:'hitout', m:'up', c:'#c2416e'},
+    {name:'しゅび力低下', from:'ルカニ', g:'shield', m:'down', c:'#5b6b7a'},
+    {name:'しゅび力ゼロ', from:'守備力0', g:'shield', m:'zero', c:'#3f4752'},
+    {name:'被ダメージ上昇', from:'レボルスライサー', g:'hitin', m:'up', c:'#7a3fb8'},
+    {name:'土耐性低下', from:'土耐性ダウン', g:'gem', m:'down', c:'#8a5a2b'},
+    {name:'全属性耐性低下', from:'フォースブレイク', g:'gems', m:'down', c:'#4a3f66'},
+  ];
+  window.buffBadge = function(b){
+    const svg = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x=".5" y=".5" width="21" height="21" rx="5" fill="${b.c}"/>${G[b.g]}${M[b.m]}</svg>`;
+    return `<span class="bdg">${svg}<span><b>${b.name}</b><small>${b.from}</small></span></span>`;
+  };
+  const el = document.getElementById('buffList');
+  if (el) el.innerHTML = BUFFS.map(buffBadge).join('') +
+    '<span class="bdg chance"><span class="cw">チャンス</span><span><b>災禍の陣</b><small>アイコンなし</small></span></span>';
+})();
 </script>
 </body>
 </html>
