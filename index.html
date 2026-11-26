@@ -1411,7 +1411,7 @@ const CTRL = {
   akBase:{label:'素のちから（手入力）', kind:'num', def:330},
   ...Object.fromEntries(ATK_PASSIVES.map(([k,n,v])=>[k, {label:`${n} +${v}`, kind:'chk', def:true}])),
   akBushin:LVSEL('宝珠「武神の豪腕」（ちから＋）', 1),
-  akKindan:LVSEL('宝珠「禁断のちからアップ」（ちから＋）', 1),
+  akKindan:LVSEL('宝珠「禁断のちからアップ」（ちから＋）', 1, 0),   // みのまもりが下がるので、初期値は付けない（Lv0）
   akSeed:{label:'ちからのたね（1個＝ちから+1）', kind:'sel', def:String(ATK_SEED_MAX),
     opts:Array.from({length:ATK_SEED_MAX+1},(_,n)=>[String(n), n ? `${n}個（+${n}）${n===ATK_SEED_MAX?' 最大':''}` : '0個']) },
   akTree:{label:'ちからの木（女神の木）のLv', kind:'sel', def:String(MEGAMI[MEGAMI.length-1]),
@@ -2549,7 +2549,7 @@ function saveAll(){
   const profiles = {...PROFILE_VALS, [curProfile]: capture()};
   const jobs = {...JOB_VALS, [tabOfWho(defWho)]: jobNow()};
   const shared = Object.fromEntries(SHARED_KEYS.map(k=>[k, S[k]]));
-  try{ localStorage.setItem(SAVE_KEY, JSON.stringify({v:1, slots3:1, sk180on:1, seedmax:1, member:curMember, defWho, lastMamo, jobs, shared, profiles})); saveStatus('自動保存済み'); }
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify({v:1, slots3:1, sk180on:1, seedmax:1, akkin0:1, member:curMember, defWho, lastMamo, jobs, shared, profiles})); saveStatus('自動保存済み'); }
   catch(e){ saveStatus('保存できません', true); }
 }
 // 壊れた値・型の違う値は初期値に
@@ -2603,6 +2603,8 @@ function applySave(raw, first){
   if (!data.seedmax) ['mmSeed','mmMegami'].forEach(k=>{ if (String(S[k])==='0') S[k] = CTRL[k].def; });
   for (const id in PROFILE_VALS){ const from = obj(profiles[id]); EQ_STATE.forEach(k=>{ PROFILE_VALS[id][k] = val(from, k); }); }
   if (data.profiles && !data.slots3) unpackOld(PROFILE_VALS.def);
+  // akkin0 のない保存は、禁断のちからアップ（ちから）の初期値がLv6だったころのもの。一度だけLv0にする
+  if (!data.akkin0) for (const id in PROFILE_VALS) PROFILE_VALS[id].akKindan = CTRL.akKindan.def;
   if (first && MEMBERS.some(m=>m.id===data.member)) curMember = data.member;
   defWho = memberOf(data.defWho) ? data.defWho : 'def';
   lastMamo = tabOfWho(data.lastMamo)==='mamono' ? data.lastMamo : MEMBERS[0].id;
