@@ -1376,7 +1376,9 @@ const atkPassiveSum = () => ATK_PASSIVES.reduce((a,[k,,v])=>a+(S[k]?v:0),0);
 const ATK_SEED_MAX = 12;
 // 武器スキルの「装備時こうげき力」150Pまでの合計（DQ10大辞典【ツメスキル】【片手剣スキル】【弓スキル】）
 const WEP_SK_ATK = {ranger:{'ツメ':70, '弓':40}, mahosen:{'片手剣':40, '弓':40}, mamono:{'ツメ':20}};
-// できのよさ★★★で増える武器の攻撃力（Lucky Room B表）
+// 防具のセット効果のこうげき力（極限攻略の防具セット一覧。いつも付くものだけ。瀕死時・行動時などの効果は入れない）
+const SET_ATK = {'ラッシュジャケット':14,'トライドアーマー':13,'迅雷のスーツ':12,'一角鬼の闘着':11,'イグナイトメイル':10,'天の冒険者のころも':9,'聖域の闘衣':8,'ファフニルメイル':7,'開祖の道着':6,'ガナドールスーツ':5,'レギオンメイル':5};
+// できのよさ★★★で増える武器の攻撃力（Lucky Room B表）。★★★だけを考える
 const WEP_STAR_ATK = {'ツメ':5, '弓':9, '片手剣':8};
 // 宝珠のLv選択（Lv0〜6、1Lvごとに +step）。kind:'lv' にすると被ダメージの職業タブの宝珠と混ざるので sel にする
 const LVSEL = (label, step, lv=LV_MAX) => ({label, kind:'sel', def:String(lv*step), opts:Array.from({length:LV_MAX+1},(_,n)=>[String(n*step), n ? `Lv${n}（+${n*step}）${n===LV_MAX?' 最大':''}` : 'なし（Lv0）'])});
@@ -1417,9 +1419,7 @@ const CTRL = {
   akTree:{label:'ちからの木（女神の木）のLv', kind:'sel', def:String(MEGAMI[MEGAMI.length-1]),
     opts:MEGAMI.map((v,i)=>[String(v), i ? `Lv${i+1}（+${v}）${i===MEGAMI.length-1?' 最大':''}` : 'Lv1（+0）']) },
   akOther:{label:'その他のちから＋（タロットなど）', kind:'num', def:0},
-  akStar:{label:'武器のできのよさ', kind:'chk', def:true, box:'★★★（ツメ+5・片手剣+8・弓+9）'},
   akSkHigh:{label:'武器スキル 160〜200スキル', kind:'sel', def:'10', opts:[['0','—（選ばない）'],['5','装備時こうげき力+5（160P）'],['8','装備時こうげき力+8（170P）'],['10','装備時こうげき力+10（180P以上）']]},
-  akPlus:{label:'その他の攻撃力＋（セット効果など）', kind:'num', def:0},
   _stance:{label:'防御行動', kind:'sel', def:'none', opts:[['none','なし'],['bougyo','ぼうぎょ（25%）'],['yaiba','やいばのぼうぎょ（25%＋極意MAX 6%）']]},
   atk:{label:'ドグドラの攻撃力', kind:'num', def:1700},
   defMode:{label:'守備力の入れ方', kind:'sel', def:'calc', opts:[['calc','内訳から計算する'],['direct','最終的な守備力を直接入れる']]},
@@ -1507,7 +1507,7 @@ const DEF_KEYS = ['defMode','def',
 const MM_KEYS = ['mmBase','mmSkill','kotetsu','kindan','mmSeed','mmMegami','mmOther'];
 const AK_KEYS = ['akMode','akDirect',
   '#h:ちから','akJob','akBase','#h2:パッシブ（チェックした職業の分だけ足す）',...ATK_PASSIVES.map(x=>x[0]),'#akpsum','#end2','akBushin','akKindan','akSeed','akTree','akOther',
-  '#h:武器・装備（ちからに足す）','#akwep','akStar','akSkHigh','akPlus','#akout'];
+  '#h:武器・装備（ちからに足す）','#akwep','akSkHigh','#akout'];
 // 今のメンバーの職業（MEMBERS は後で定義されるので、最初の描画のときは null）
 const memJob = () => { try { return (MEMBERS.find(m=>m.id===curProfile)||{}).job || null; } catch(e){ return null; } };
 const akJobId = () => S.akJob==='auto' ? memJob() : S.akJob;
@@ -1523,14 +1523,14 @@ function atkCalc(){
   L.push(['ちからのたね', num('akSeed'), 'str']);
   L.push(['ちからの木', num('akTree'), 'str']);
   L.push(['その他のちから', num('akOther'), 'str']);
-  if (w){ L.push([`${w[2]}`, w[4].atk||0, 'wep']); if (S.akStar && WEP_STAR_ATK[cat]) L.push(['できのよさ★★★', WEP_STAR_ATK[cat], 'wep']); }
+  if (w){ L.push([`${w[2]}`, w[4].atk||0, 'wep']); if (WEP_STAR_ATK[cat]) L.push(['できのよさ★★★', WEP_STAR_ATK[cat], 'wep']); }
   const line = (WEP_SK_ATK[job]||{})[cat] || 0;
   if (w){ L.push([`${cat}スキル（150Pまで）`, line, 'sk']); L.push(['160〜200スキル', num('akSkHigh'), 'sk']); }
+  { const st = setOf(S.armorSet); if (st && SET_ATK[st[2]]) L.push([`${st[2]}（セット効果）`, SET_ATK[st[2]], 'eq']); }
   ACC_ROWS.forEach(slot=>{ const a = accOf(S['acc_'+slot]), v = accAtkOf(a); if (v) L.push([HEART_LV[a[2]] ? `${a[2]}Lv${heartIdx()+1}` : a[2], v, 'eq']); });
   const al = {}; alEntries().forEach(([slot,nm,ty,v])=>{ if (ty==='atk') al[nm] = (al[nm]||0) + v; });
   Object.entries(al).forEach(([nm,v])=>L.push([`${nm}の錬金/合成`, v, 'eq']));
   const f = foodNow(); if (f && f.type==='atk') L.push([f.name, f.v, 'plus']);
-  L.push(['その他の攻撃力', num('akPlus'), 'plus']);
   const items = L.filter(x=>x[1]);
   const sum = k => items.filter(x=>x[2]===k).reduce((a,x)=>a+x[1],0);
   const parts = {str:sum('str'), wep:sum('wep'), sk:sum('sk'), eq:sum('eq'), plus:sum('plus')};
@@ -1542,7 +1542,7 @@ function atkOutHTML(){
   const c = atkCalc();
   if (S.akMode==='direct') return `最終攻撃力 ${fmt(c.total)}<small>直接入力の値をそのまま使います</small>`;
   const chip = (t, i) => `<span class="chip c${i}">${t}</span>`;
-  const NAMES = [['str','ちから'],['wep','武器'],['sk','武器スキル'],['eq','アクセ・錬金・合成'],['plus','料理・その他']];
+  const NAMES = [['str','ちから'],['wep','武器（★★★）'],['sk','武器スキル'],['eq','セット効果・アクセ・錬金・合成'],['plus','料理']];
   const use = NAMES.map((x,i)=>[...x,i]).filter(([k])=>c.parts[k]);
   const bd = use.map(([k,n,i])=>`${chip(n,i)} ${c.parts[k]} ＝ ${c.items.filter(x=>x[2]===k).map(x=>`${x[0]} ${x[1]}`).join('＋')}`).join('<br>');
   return `最終攻撃力 ${fmt(c.total)}<small>与ダメージの計算に使う値（バイキルトなどはわざごとに掛けます）</small>`
@@ -1670,6 +1670,7 @@ const REFS = [
   ['ikeTree','攻撃力の計算','IKEドラクエ10攻略','女神の木','https://dq10.i-k-e.net/pani/tree','女神の木のLvごとの上昇値（全部の木で共通・Lv30で+33）'],
   ['dicTree','攻撃力の計算','DQ10大辞典 第二版','【女神の木】','D%E3%80%90%E5%A5%B3%E7%A5%9E%E3%81%AE%E6%9C%A8%E3%80%91','女神の木のLvごとの上昇値（全部の木で共通）'],
   ['dqBushin','攻撃力の計算','ドラクエ10極限攻略データベース','武神の豪腕','https://xn--10-yg4a1a3kyh.jp/a_hojyu/dq10_hojyu_k_bushinnogowan.html','武神の豪腕 Lv1〜6で ちから+1〜+6'],
+  ['kyoSet','攻撃力の計算','ドラクエ10極限攻略データベース','防具セット一覧（装備Lv別）','https://xn--10-yg4a1a3kyh.jp/a_bgset/dq10_bgset_lsl_135.html','防具のセット効果のこうげき力'],
   ['dicSword','攻撃力の計算','DQ10大辞典 第二版','【片手剣スキル】','D%E3%80%90%E7%89%87%E6%89%8B%E5%89%A3%E3%82%B9%E3%82%AD%E3%83%AB%E3%80%91','魔法戦士の片手剣 装備時こうげき力'],
   ['dicBow','攻撃力の計算','DQ10大辞典 第二版','【弓スキル】','D%E3%80%90%E5%BC%93%E3%82%B9%E3%82%AD%E3%83%AB%E3%80%91','レンジャー・魔法戦士の弓 装備時こうげき力'],
   ['kyoSk160','攻撃力の計算','ドラクエ10極限攻略データベース','160〜180スキル（武器スキル）','https://xn--10-yg4a1a3kyh.jp/dq10_tokugi160_00.html','装備時こうげき力 160P+5・170P+8・180P以上+10'],
@@ -1708,7 +1709,7 @@ document.addEventListener('click', e=>{ const a = e.target.closest('a[data-ref]'
 const SECTIONS = [
   {title:'装備', col:'L', cite:'ikeAcc,ikeBelt,ikeRing,ikeCard,ikeKokoro,aseHeart,aseRen', for:'防具・アクセサリー・武器と錬金/合成', keys:['#equip'], wide:true, nocols:true},
   {title:'守備力', type:'phys', cite:'lucky,dmgAll,dicShield,kyoKindan', for:'通常攻撃・しっぽアタック', keys:DEF_KEYS, wide:true},
-  {title:'攻撃力', page:'atk', cite:'dicAtk,luckyAtk,luckyBase,ikePassive,ikeTree,dicTree,kyoKindan,dqBushin,dicClaw,dicSword,dicBow,kyoSk160', for:'通常攻撃・特技の攻撃力', keys:AK_KEYS, wide:true},
+  {title:'攻撃力', page:'atk', cite:'dicAtk,luckyAtk,luckyBase,ikePassive,ikeTree,dicTree,kyoSet,kyoKindan,dqBushin,dicClaw,dicSword,dicBow,kyoSk160', for:'通常攻撃・特技の攻撃力', keys:AK_KEYS, wide:true},
   {title:'攻撃', page:'atk', for:'昏冥の精霊など', keys:['seiMu','seiKi','#atksum']},
   {title:'ルカニの確率', page:'lk', cite:'atkFx,succUp', for:'攻撃時ルカニ・ドグドラ相手', keys:['lkHits','lkSucc','lkRes','lkClaw','#lkwhip','#lkside','#lukani'], wide:true},
   {title:'料理', page:'atk', cite:'kyoFood,ranbuFood', for:'同時に効くのは1つ', row:'foodrow', keys:['foodSel','foodStar'], foot:'#foodfx'},
@@ -2172,7 +2173,7 @@ function update(){
     document.querySelectorAll('[data-akpsum]').forEach(o=>o.textContent = `パッシブの合計：ちから +${atkPassiveSum()}`);
     const c = atkCalc();
     document.querySelectorAll('[data-akwep]').forEach(o=>o.innerHTML = c.w
-      ? `武器 ${c.w[2]}（攻撃力 ${c.w[4].atk||0}）・${c.cat}スキル 150Pまで +${c.line}${c.line ? '' : '（この職業はこの武器のスキルがありません）'}<br>アクセ・錬金・合成の攻撃力は「装備」の欄から自動で足します`
+      ? `武器 ${c.w[2]}（攻撃力 ${c.w[4].atk||0}）・${c.cat}スキル 150Pまで +${c.line}${c.line ? '' : '（この職業はこの武器のスキルがありません）'}（できのよさは★★★で計算）<br>防具のセット効果・アクセ・錬金・合成の攻撃力は「装備」の欄から自動で足します`
       : '武器が選ばれていません（「装備」の欄で選ぶ）');
     document.querySelectorAll('[data-akout]').forEach(o=>o.innerHTML = atkOutHTML()); }
   document.querySelectorAll('[data-lkside]').forEach(o=>o.innerHTML = lkSideHTML());
