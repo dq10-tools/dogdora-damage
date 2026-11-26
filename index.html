@@ -155,7 +155,10 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;flex:none
 .kgrp.resgrp{border-left-color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,transparent)}
 .resgrp .cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:0 10px;align-items:end}
 .resgrp input[type=number],.resgrp select{background:var(--panel)}
-label.row[data-wrap^="ps_"]{grid-column:auto;font-size:12px;padding-bottom:4px}
+label.row.pas{grid-column:auto;font-size:12px;padding-bottom:6px;align-items:flex-start}
+label.row.pas input{margin-top:2px}
+.pasv{display:flex;flex-direction:column;line-height:1.35}
+.pasv b{font-weight:700}
 .flatrow{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr) minmax(0,.8fr);gap:0 4px;align-items:end}
 .foodrow{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:0 8px;align-items:end}
 .flatrow .field,.foodrow .field{min-width:0}
@@ -1807,6 +1810,10 @@ function ctrlHTML(k){
   }
   const c = CTRL[k];
   if (c.box) return `<label class="field" data-wrap="${k}">${c.label}<span class="chkbox"><input type="checkbox" data-key="${k}">${c.box}</span></label>`;
+  if (c.kind==='chk' && /^(ps_|akp_)/.test(k)){
+    const p = [...PASSIVES, ...ATK_PASSIVES].find(x=>x[0]===k);
+    if (p) return `<label class="row pas" data-wrap="${k}"><input type="checkbox" data-key="${k}"><span class="pasv"><span>${p[1]}</span><b>+${p[2]}</b></span></label>`;
+  }
   if (c.kind==='chk') return `<label class="row" data-wrap="${k}"><input type="checkbox" data-key="${k}"> ${c.label}</label>`;
   let input;
   if (c.kind==='text') input = `<input type="text" data-key="${k}">`;
