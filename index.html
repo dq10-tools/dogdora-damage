@@ -1486,7 +1486,7 @@ const CTRL = {
   teppekiWind:LV('鉄壁の風耐性', 1, '%'),
   teppekiDark:LV('鉄壁の闇耐性', 1, '%', '', 0),
   neck:{label:'首アクセ', kind:'sel', def:'0', opts:[['0','なし'],['30','竜のうろこ（−30）'],['35','赤竜の首飾り（−35）']]},
-  seiMu:{label:'冥夢の精（特技のダメージ）', kind:'sel', def:'13', opts:SEI_LV.map(l=>[String(l), `Lv${l}（+${l-1}）${l===SEI_MAX?' 最大':''}`])},
+  seiMu:{label:'Lv（特技のダメージ＋）', kind:'sel', def:'13', opts:SEI_LV.map(l=>[String(l), `Lv${l}（+${l-1}）${l===SEI_MAX?' 最大':''}`])},
   seiKi:{label:'冥機の精（呪文のダメージ）', kind:'sel', def:'13', opts:SEI_LV.map(l=>[String(l), `Lv${l}（+${(l-1)*5}）${l===SEI_MAX?' 最大':''}`])},
   utare:LV('宝珠「打たれ名人」', 2, '', '−'),
   // 職業スキル（160〜200スキル）の被ダメージ軽減：置く枠で値が変わる（160P −3／170P −5／180〜200P −10）。キー名は保存との互換のため skill180 のまま
@@ -1718,7 +1718,7 @@ const SECTIONS = [
   {title:'装備', col:'L', cite:'ikeAcc,ikeBelt,ikeRing,ikeCard,ikeKokoro,aseHeart,aseRen', for:'防具・アクセサリー・武器と錬金/合成', keys:['#equip'], wide:true, nocols:true},
   {title:'守備力', type:'phys', cite:'lucky,dmgAll,dicShield,kyoKindan', for:'通常攻撃・しっぽアタック', keys:DEF_KEYS, wide:true},
   {title:'攻撃力', page:'atk', cite:'dicAtk,luckyAtk,luckyBase,ikePassive,ikeTree,dicTree,kyoSet,kyoKindan,dqBushin,dicClaw,dicSword,dicBow,kyoSk160', for:'通常攻撃・特技の攻撃力', keys:AK_KEYS, wide:true},
-  {title:'攻撃', page:'atk', for:'昏冥の精霊など', keys:['seiMu','seiKi','#atksum']},
+  {title:'冥夢の精', page:'atk', for:'昏冥の精霊・特技のダメージ＋', keys:['seiMu']},
   {title:'ルカニの確率', page:'lk', cite:'atkFx,succUp', for:'攻撃時ルカニ・ドグドラ相手', keys:['lkHits','lkSucc','lkRes','lkClaw','#lkwhip','#lkside','#lukani'], wide:true},
   {title:'料理', page:'atk', cite:'kyoFood,ranbuFood', for:'同時に効くのは1つ', row:'foodrow', keys:['foodSel','foodStar'], foot:'#foodfx'},
   {title:'被ダメージ軽減', pair:true, cite:'dicFlat,kyoUtare,kyoSkill,kyoSet', for:'全わざ・1回ごと', row:'flatrow', keys:['utare','skill180','otherFlat'], foot:'#flatsum'},
