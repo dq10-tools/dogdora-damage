@@ -2716,13 +2716,13 @@ showPage();
   const BUFFS = [
     {name:'こうげき力上昇', lv:1, from:'', g:'sword', m:'up', c:'#c2602b'},
     {name:'こうげき力上昇', lv:2, from:'バイキルト', g:'sword', m:'up2', c:'#c2602b'},
-    {name:'こうげき力加算', lv:1, from:'牙神昇誕', g:'sword', m:'plus', c:'#a8761c'},
+    {name:'こうげき力加算', lv:1, from:'', g:'sword', m:'plus', c:'#a8761c'},
     {name:'こうげき力加算', lv:2, from:'牙神昇誕', g:'sword', m:'plus2', c:'#a8761c'},
     {name:'与ダメージ上昇', from:'ウォークライ', g:'hitout', m:'up', c:'#c2416e'},
     {name:'しゅび力低下', lv:1, from:'ルカニ', g:'shield', m:'down', c:'#5b6b7a'},
     {name:'しゅび力低下', lv:2, from:'ルカニ', g:'shield', m:'down2', c:'#5b6b7a'},
-    {name:'しゅび力ゼロ', from:'守備力0', g:'shieldcrack', m:'zero', c:'#3f4752'},
-    {name:'被ダメージ上昇', from:'レボルスライサー', g:'hitin', m:'up', c:'#7a3fb8'},
+    {name:'しゅび力ゼロ', from:'アヌビスアタック', g:'shieldcrack', m:'zero', c:'#3f4752'},
+    {name:'被ダメージ上昇', from:'サマーソルトクロー', g:'hitin', m:'up', c:'#7a3fb8'},
     {name:'土耐性低下', from:'土耐性ダウン', g:'gem', m:'down', c:'#8a5a2b'},
     {name:'全属性耐性低下', from:'フォースブレイク', g:'gems', m:'down', c:'#4a3f66'},
   ];
@@ -2732,7 +2732,7 @@ showPage();
   };
   const el = document.getElementById('buffList');
   if (el) el.innerHTML = BUFFS.map(buffBadge).join('') +
-    '<span class="bdg chance"><span class="cw">チャンス</span><span><b>災禍の陣</b><small>アイコンなし</small></span></span>';
+    '<span class="bdg chance"><span class="cw">チャンス</span><b>災禍の陣</b></span>';
 })();
 </script>
 </body>
