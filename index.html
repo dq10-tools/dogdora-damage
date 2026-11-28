@@ -249,7 +249,7 @@ section.folded .totbox{margin-top:0}
 .stepnav button[aria-current=true] i{color:#fff}
 .stepnav button[aria-current=true]{background:var(--tc);border-color:var(--tc);color:#fff}
 .stepnav+.savestate{margin-left:6px}
-html{scroll-padding-top:64px}
+html{scroll-padding-top:64px;overflow-anchor:none}   /* 描きなおしたときのずれは自分で戻すので、ブラウザの自動調整は切る */
 .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;height:52px;padding:0 10px;background:var(--panel);border-bottom:3px solid var(--tc,var(--mdef))}
 .menubtn{flex:none;width:44px;height:44px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:0;border:0;border-radius:8px;background:none;cursor:pointer}
 .menubtn:hover,.menubtn[aria-expanded=true]{background:color-mix(in srgb,var(--ink) 9%,transparent)}
@@ -3511,6 +3511,15 @@ addEventListener('resize', ()=>requestAnimationFrame(stickyRefresh));
 new MutationObserver(()=>requestAnimationFrame(stickyRefresh)).observe(document.body, {childList:true, subtree:true, characterData:true});
 // まとめを押すと、その特技の数字のところへ戻る
 document.addEventListener('click', e=>{ const b = e.target.closest('#stickySum'); if (!b) return; const p = $(b.dataset.panel); if (p) p.scrollIntoView({block:'start'}); });
+// バフ・デバフなどを押すと中身を描きなおすので、押したボタンが画面の同じ位置に残るようにスクロールを戻す
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-grp],[data-ten],[data-ts],[data-akreset]'); if (!b) return;
+  const key = [...b.attributes].filter(a=>a.name.startsWith('data-')).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('');
+  const alt = b.dataset.ts && b.dataset.ts.startsWith('reset:') ? `[data-ts="${CSS.escape(b.dataset.ts.slice(6))}"]` : b.dataset.akreset ? `#akbf_${b.dataset.akreset}` : '';
+  const y0 = b.getBoundingClientRect().top;
+  requestAnimationFrame(()=>{ const n = [...document.querySelectorAll(key)].find(x=>x.offsetParent) || (alt && [...document.querySelectorAll(alt)].find(x=>x.offsetParent));
+    if (n) scrollBy(0, n.getBoundingClientRect().top - y0); });
+}, true);
 function showPage(){
   const id = location.hash==='#atk' ? 'atk' : 'def';
   setMenu(false);
