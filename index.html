@@ -106,6 +106,11 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;flex:none
 .eqtbl td.eqsel,.eqtbl td.eqdef{vertical-align:middle}
 .eqtbl td.eqdef{width:58px}
 .eqtbl td.eqdef input{font-size:12px;padding:2px 4px;width:56px}
+.eqatk,.onatk{display:none}
+main[data-page="atk"] .eqtbl .ondef,main[data-page="atk"] .eqtbl td.eqdef input{display:none}
+main[data-page="atk"] .eqtbl .onatk{display:inline}
+main[data-page="atk"] .eqtbl .eqatk{display:block;text-align:right;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;padding-right:4px}
+main[data-page="atk"] .eqtbl .eqatk.zero{color:var(--sub);font-weight:400}
 .eqtbl td.eqal{width:220px;min-width:210px}
 .eqfx{font-size:10.5px;color:var(--sub);line-height:1.3}
 .fxtag{display:inline-block;margin:2px 4px 0 0;padding:0 5px;border-radius:4px;font-size:10.5px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--ink)}
@@ -124,6 +129,7 @@ input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;flex:none
 .alden .denlab{font-size:10.5px;color:var(--sub);white-space:nowrap;width:52px}
 .alrow[hidden]{display:none}
 .beltnote{flex:1;font-size:10.5px;color:var(--sub);align-self:center}
+.alreset{white-space:nowrap;padding:1px 6px}
 [data-beltmax]{align-self:center;white-space:nowrap;padding:1px 6px}
 .onenote{font-size:10.5px;color:var(--sub);margin-top:3px}
 .alrow input:disabled{opacity:.4}
@@ -159,6 +165,13 @@ label.row.pas{grid-column:auto;font-size:12px;padding-bottom:6px;align-items:fle
 label.row.pas input{margin-top:2px}
 .pasv{display:flex;flex-direction:column;line-height:1.35}
 .pasv b{font-weight:700}
+.nw{white-space:nowrap}
+.gkl{display:block}
+.alrow.kisho{margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)}
+.alrow.kisho select{flex:1}
+main[data-page="def"] .alrow.kisho{display:none}
+.sbox.wide .cols:has(>[data-wrap^="akGk_"]){grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+.gkc{color:var(--sub);font-size:.92em}
 .flatrow{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,1fr) minmax(0,.8fr);gap:0 4px;align-items:end}
 .foodrow{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:0 8px;align-items:end}
 .flatrow .field,.foodrow .field{min-width:0}
@@ -184,7 +197,21 @@ label.row.pas input{margin-top:2px}
 .wrap{max-width:1560px}
 .pagettl{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-size:18px;margin:18px 0 10px}
 .pagettl small{font-size:12px;font-weight:normal;color:var(--sub)}
-.pno{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:14px;flex:none;align-self:center}
+.foldbtn{align-self:center;display:inline-grid;place-items:center;width:26px;height:26px;margin-left:-4px;padding:0;border:1px solid var(--line);border-radius:50%;background:var(--panel);color:var(--tc,var(--accent));cursor:pointer;flex:none}
+.foldbtn svg{width:14px;height:14px;transition:transform .2s}
+.foldbtn[aria-expanded=false] svg{transform:rotate(-90deg)}
+.foldbtn:hover{border-color:var(--tc,var(--accent))}
+.pagettl:has(.foldbtn){cursor:pointer}
+.foldsum{display:none}
+section.folded .foldsum{display:block}
+section.folded .setcols,section.folded #memNote,section.folded #settingsLk,section.folded #jobNote,section.folded #panels{display:none}
+section.folded .totbox{margin-top:0}
+.lksum{font-size:14px;display:flex;gap:6px 18px;flex-wrap:wrap;align-items:baseline}
+.lksum b{font-size:20px;font-variant-numeric:tabular-nums}
+.lksum small{color:var(--sub);font-size:12px}
+.pno{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;flex:none;align-self:center;padding:0 12px 0 0;margin-right:2px;border-right:2px solid color-mix(in srgb,var(--tc,var(--accent)) 45%,transparent);color:var(--tc,var(--accent));line-height:1}
+.pno i{font-style:normal;font-size:9px;font-weight:800;letter-spacing:.18em;margin-left:.18em}
+.pno b{font-size:26px;font-weight:900;letter-spacing:.02em;font-variant-numeric:tabular-nums;font-family:"Segoe UI",system-ui,sans-serif}
 .totbox{margin-top:16px;background:var(--panel);border:1px solid color-mix(in srgb,var(--ink) 14%,var(--line));border-top:3px solid var(--tc);border-radius:12px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .totbox>h3{font-size:14px;margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
 .totbox>h3 small{font-weight:400;font-size:11px;color:var(--sub)}
@@ -194,6 +221,7 @@ label.row.pas input{margin-top:2px}
 .totbig{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.3}
 .totbig small{font-size:11px;font-weight:400;color:var(--sub);margin-left:2px}
 .totcard.zero .totbig{color:var(--sub);font-weight:400}
+.totdet{font-size:11px;color:var(--sub);line-height:1.4;margin-top:2px;word-break:keep-all}
 .secpair{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch}
 .secpair>.sbox{flex:1 1 250px;min-width:0}
 .secpair>.sbox:first-child{flex-basis:300px}
@@ -217,7 +245,7 @@ label.row.pas input{margin-top:2px}
 .menu a small{display:block;font-size:11px;font-weight:normal;color:var(--sub)}
 .menu a:hover,.menu a[aria-current=page]{background:color-mix(in srgb,var(--tc) 14%,var(--panel))}
 .menu a[aria-current=page]{border-color:var(--tc)}
-main[data-page] .pno{background:var(--tc)}
+main[data-page] .pno{color:var(--tc)}
 .savestate{margin-left:auto;font-size:11px;color:var(--sub);white-space:nowrap}
 .savestate.bad{color:var(--danger);font-weight:700}
 .menufoot{margin-top:24px;padding-top:12px;border-top:1px solid var(--line)}
@@ -248,7 +276,43 @@ main[data-page] .pno{background:var(--tc)}
 /* スマホ幅では4人のタブを2×2に */
 @media (max-width:600px){#memTabs{display:grid;grid-template-columns:1fr 1fr;padding:0 6px}#memPanel{padding:12px 8px}}
 /* スマホ幅ではわざのタブも、同じ幅の2列にそろえる */
-@media (max-width:600px){#tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;padding:0 6px}#tabs .tab{min-width:0;font-size:12px;padding:6px 8px 9px}#tabs .tab .type{font-size:10px}}
+@media (max-width:600px){#tabs,#akTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;padding:0 6px}#tabs .tab,#akTabs .tab{min-width:0;font-size:12px;padding:6px 8px 9px}#tabs .tab .type{font-size:10px}}
+.stats{display:flex;flex-wrap:wrap;gap:6px 36px;word-break:keep-all;overflow-wrap:break-word}
+.survive{word-break:keep-all;overflow-wrap:break-word;margin:8px 0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:13px}
+.survive .fl{font-weight:700;font-size:12px;margin-bottom:2px}
+.survive small{color:var(--sub);margin-left:4px}
+.survive .fn{font-size:11.5px;color:var(--sub);margin-top:2px}
+.tsh{margin:14px 0 6px;font-size:14px}
+.tsh small{display:block;font-size:11.5px;font-weight:400;color:var(--sub)}
+.tsmv{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin-bottom:12px}
+.tsm{border:1px solid var(--line);border-left:4px solid var(--mc);border-radius:10px;background:var(--panel);padding:7px 10px;display:grid;gap:5px;align-content:start}
+.tsm b{font-size:13px;color:var(--mc)}
+.tsm b small{color:var(--sub);font-weight:400;font-size:11px;margin-left:6px}
+.tsm select{width:100%}
+.tsgs{display:flex;flex-wrap:wrap;gap:4px 16px}
+.tsg{flex:1 1 150px;display:grid;gap:3px;align-content:start}
+.tsgh{font-size:11.5px;font-weight:700;color:var(--sub);border-bottom:1px solid var(--line);padding-bottom:2px}
+.tsl{display:grid;gap:3px;padding:3px 0}
+.tsl label{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;word-break:keep-all}
+.tsl input{accent-color:var(--mc);width:16px;height:16px;margin:0;flex:none}
+.tsl:not(.on) label{color:var(--sub)}
+.tsl select{margin-left:22px;width:calc(100% - 22px);font-size:12px}
+.tsnt,.tsng{margin-left:22px;font-size:11px;color:var(--sub)}
+.tsng{color:#c0392b}
+.tstbl .tsten{display:inline;margin-left:4px;color:var(--sub)}
+.tstbl .tsmem td{font-size:16px;font-weight:800;color:var(--mc);padding-top:14px;border-bottom:2px solid var(--mc)}
+.tstbl .tsmem small{font-size:12px;font-weight:400;color:var(--sub);margin-left:10px}
+.tstbl tbody.tsgrp>tr:not(.tsmem)>td:first-child{padding-left:1.6em;border-left:3px solid color-mix(in srgb,var(--mc) 40%,transparent)}
+.tstbl .mvn{font-size:13px;white-space:nowrap}
+.tstbl .tssub td{font-weight:700;border-top:1px dashed var(--line);color:var(--sub)}
+.tstbl td{vertical-align:middle}
+.tstbl .who{font-weight:700;color:var(--mc);white-space:nowrap}
+.tstbl .who small{display:block;color:var(--ink);font-weight:400}
+.tstbl .akbf{margin:0;gap:3px}
+.tstbl .bdg.ico svg{width:24px;height:24px}
+.tstbl tfoot td{font-weight:700;border-top:2px solid var(--line)}
+.tssum{margin-top:8px;font-size:13px}
+.tssum b{font-size:18px}
 .soon{border:1px dashed var(--line);border-radius:12px;padding:16px 18px;background:var(--panel)}
 .soon h3{margin:0 0 6px;font-size:15px}
 .soon p,.soon li{font-size:13px}
@@ -388,7 +452,8 @@ main .field input[type=number]{width:7.5em;max-width:100%;align-self:flex-start}
 @container (min-width:900px){
   #settingsLk .cols{grid-template-columns:repeat(2,minmax(180px,220px)) minmax(0,1fr);column-gap:28px;align-items:start}
   #settingsLk .cols>.lkwhip{grid-column:1/3}
-  #settingsLk .cols>.lkside{grid-column:3;grid-row:1/span 4;order:0;margin-top:0}
+  #settingsLk .cols>.lkeq{grid-column:1/3}
+  #settingsLk .cols>.lkside{grid-column:3;grid-row:1/span 6;order:0;margin-top:0}
   #settingsLk .cols>.lkout{grid-column:1/-1;order:3;margin-top:12px}
   .lkfx{grid-template-columns:max-content minmax(0,max-content);column-gap:14px;justify-content:start;align-items:start;max-width:100%}
   .lkfx .lkf1{grid-column:1;grid-row:1}
@@ -419,8 +484,60 @@ main .field input[type=number]{width:7.5em;max-width:100%;align-self:flex-start}
 .bdg b{font-size:13px;font-weight:700}
 .bdg small{display:block;font-size:10.5px;color:var(--sub);font-weight:400}
 .bdg .blv{font-style:normal;font-size:10.5px;font-weight:700;margin-left:4px;padding:0 5px;border-radius:999px;background:var(--accent-soft);color:var(--accent);vertical-align:1px}
-.bdg.chance{padding:3px 10px}
-.bdg.chance .cw{font-weight:900;font-size:13px;letter-spacing:.08em;color:#fff;background:linear-gradient(#f4b63a,#d9791a);border-radius:6px;padding:3px 7px;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+.aksec{display:flex;align-items:center;gap:8px;font-size:17px;margin:22px 0 8px}
+.aksec .secno{display:inline-grid;place-items:center;flex:none;min-width:34px;height:26px;padding:0 6px;border-radius:7px;background:color-mix(in srgb,var(--tc) 13%,transparent);border:1px solid color-mix(in srgb,var(--tc) 35%,transparent);color:var(--tc);line-height:1}
+.aksec .secno b{font-size:14px;font-weight:800;letter-spacing:.04em;font-variant-numeric:tabular-nums;font-family:"Segoe UI",system-ui,sans-serif}
+.buffbox h3 small{font-size:12px;font-weight:400;color:var(--sub);margin-left:8px}
+.bdg.tgl{font:inherit;color:inherit;cursor:pointer;text-align:left;transition:opacity .15s}
+.bdg.tgl[aria-pressed=false]{opacity:.45;filter:grayscale(1);background:var(--bg)}
+.bdg.tgl[aria-pressed=true]{border-color:var(--tc);box-shadow:inset 0 0 0 1px var(--tc)}
+.bdg.tgl:focus-visible{outline:2px solid var(--tc);outline-offset:2px}
+.bdg.ico{position:relative;padding:2px;border-radius:8px}
+.bdg.ico svg{width:30px;height:30px}
+.bdg.ico.ov::after{content:'';position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;background:var(--accent);border:2px solid var(--panel)}
+.akbf{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0 6px}
+.akbfh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+.akbfh h3{margin:0}
+.akreset{font:inherit;font-size:12px;padding:2px 9px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--sub);cursor:pointer}
+.bics{display:inline-flex;flex-wrap:wrap;gap:2px;vertical-align:middle}
+.bics svg{width:18px;height:18px;display:block}
+.bics .sep{color:var(--sub);margin:0 2px}
+.aknone{padding:14px;border:1px dashed var(--line);border-radius:10px;color:var(--sub);font-size:13px}
+.akbd{font-family:inherit;font-size:12px;color:var(--sub);line-height:1.7;word-break:keep-all;overflow-wrap:break-word}
+#akOverview .tot{font-weight:800}
+.statnote{font-size:15px;font-weight:700}
+.statnote small{display:block;font-size:11px;font-weight:400;color:var(--sub)}
+.lkeq{margin:10px 0}
+.lkeqh{margin:0 0 4px;font-size:13px}
+.lkeqh small{display:block;font-weight:400;font-size:11px;color:var(--sub)}
+.lkeq{grid-column:1/-1}
+.lkeq .alrow.kisho,.lkeq .alden{display:none}
+.lkeq .eqtbl{width:100%}
+.lkeq td.eqsel{min-width:8em;word-break:keep-all}
+.lkeq .eqfx small{display:block;font-size:11px;color:var(--sub)}
+#akOverview tr.combo td{background:var(--bg);border-top:2px solid var(--line)}
+#akOverview tr.combo + tr.combo td{border-top:1px solid var(--line)}
+#akOverview td small{display:block;font-size:11px;color:var(--sub)}
+.big.mid{font-size:34px}
+.tenrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:10px}
+.tenlab{font-size:13px;font-weight:700}
+.tenlab small{display:block;font-size:10.5px;font-weight:400;color:var(--sub)}
+.tenbtns{display:flex;flex-wrap:wrap;gap:6px}
+.tenbtn{font:inherit;color:inherit;cursor:pointer;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:4px 12px;line-height:1.2;text-align:center;min-width:64px}
+.tenbtn b{display:block;font-size:14px}
+.tenbtn small{display:block;font-size:10.5px;color:var(--sub)}
+.tenbtn[aria-pressed=true]{background:var(--panel);border-color:var(--tc);box-shadow:inset 0 0 0 1px var(--tc);color:var(--tc)}
+.tenbtn[aria-pressed=true] small{color:inherit}
+.tenbtn:focus-visible{outline:2px solid var(--tc);outline-offset:2px}
+/* 画面左端の職業タブ（いつも見える）。上のSTEP 01のタブと同じ働き */
+:root{--railw:72px}
+body{padding-left:var(--railw)}
+.topbar{margin-left:calc(-1 * var(--railw))}   /* 上のバー（メニューボタン）は左端から */
+.jobrail{position:fixed;left:0;top:50%;transform:translateY(-50%);z-index:40;display:flex;flex-direction:column;gap:4px;width:var(--railw);padding:6px 0 6px 4px;box-sizing:border-box}
+.jobrail button{font:inherit;font-size:12px;line-height:1.25;text-align:left;cursor:pointer;color:var(--ink);background:color-mix(in srgb,var(--tc) 16%,var(--panel));border:1px solid color-mix(in srgb,var(--tc) 45%,var(--line));border-left:4px solid var(--tc);border-radius:0 8px 8px 0;padding:8px 6px;word-break:keep-all;box-shadow:1px 1px 3px rgba(0,0,0,.08)}
+.jobrail button[aria-pressed=true]{background:var(--tc);color:#fff;border-color:var(--tc);font-weight:700}
+.jobrail button:focus-visible{outline:2px solid var(--tc);outline-offset:2px}
+@media (max-width:600px){:root{--railw:50px}.jobrail button{font-size:10.5px;padding:7px 3px}}
 </style>
 </head>
 <body>
@@ -448,11 +565,11 @@ main .field input[type=number]{width:7.5em;max-width:100%;align-self:flex-start}
 <main data-page="def" style="--tc:var(--mdef)">
 <header>
   <h1>輝晶獣ドグドラ 被ダメージ計算</h1>
-  <p>「1 設定」で装備・宝珠・耐性・守備力などを入れ、下の「2 被ダメージ計算」でわざごとに見ます。わざのタブの中の設定は、上の設定と連動しています。数値は攻略サイトの目安値です（下に出典）。</p>
+  <p>「STEP 01 設定」で装備・宝珠・耐性・守備力などを入れ、下の「STEP 02 被ダメージ計算」でわざごとに見ます。わざのタブの中の設定は、上の設定と連動しています。数値は攻略サイトの目安値です（下に出典）。</p>
 </header>
 
 <section class="page1 calc" aria-labelledby="h_set">
-  <h2 class="pagettl" id="h_set"><span class="pno">1</span>設定<small>装備・守備力・宝珠・耐性など。職業タブごとに設定でき、開いているタブの設定で下の計算をします</small></h2>
+  <h2 class="pagettl" id="h_set"><span class="pno"><i>STEP</i><b>01</b></span>設定<button type="button" class="foldbtn" data-fold="defset" aria-expanded="true" aria-label="設定をたたむ"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6l4.5 4.5L12.5 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><small>装備・守備力・宝珠・耐性など。職業タブごとに設定でき、開いているタブの設定で下の計算をします</small></h2>
   <div class="tabs" role="tablist" id="jobTabs" aria-label="職業"></div>
   <div class="panelbox" id="jobPanel">
     <div class="who" id="jobWho" hidden></div>
@@ -466,7 +583,7 @@ main .field input[type=number]{width:7.5em;max-width:100%;align-self:flex-start}
 </section>
 
 <section class="page2 calc" aria-labelledby="h_calc">
-  <h2 class="pagettl" id="h_calc"><span class="pno">2</span>被ダメージ計算</h2>
+  <h2 class="pagettl" id="h_calc"><span class="pno"><i>STEP</i><b>02</b></span>被ダメージ計算<button type="button" class="foldbtn" data-fold="defcalc" aria-expanded="true" aria-label="被ダメージ計算をたたむ"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6l4.5 4.5L12.5 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></h2>
   <div class="tabs" role="tablist" id="tabs"></div>
   <div class="panelbox" id="panels"></div>
 </section>
@@ -487,7 +604,7 @@ main .field input[type=number]{width:7.5em;max-width:100%;align-self:flex-start}
 </header>
 
 <section class="calc" aria-labelledby="h_atkset">
-  <h2 class="pagettl" id="h_atkset"><span class="pno">1</span>設定<small>4人それぞれの装備です。被ダメージのページで同じ職業を選んだときの装備と共通です</small></h2>
+  <h2 class="pagettl" id="h_atkset"><span class="pno"><i>STEP</i><b>01</b></span>設定<button type="button" class="foldbtn" data-fold="atkset" aria-expanded="true" aria-label="設定をたたむ"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6l4.5 4.5L12.5 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><small>4人それぞれの装備です。被ダメージのページで同じ職業を選んだときの装備と共通です</small></h2>
   <div class="tabs" role="tablist" id="memTabs"></div>
   <div class="panelbox" id="memPanel">
     <p class="memnote" id="memNote"></p>
@@ -495,33 +612,41 @@ main .field input[type=number]{width:7.5em;max-width:100%;align-self:flex-start}
       <div class="sgrid scol" id="memEquip"></div>
       <div class="sgrid scol" id="settingsAtk"></div>
     </div>
+    <div class="totbox" id="atkTotal"></div>
   </div>
 </section>
 
 <section class="page2 calc" aria-labelledby="h_atklk">
-  <h2 class="pagettl" id="h_atklk"><span class="pno">2</span>ルカニ<small>攻撃時ルカニがドグドラに入る確率。1の設定で選んでいる人の装備で計算します</small></h2>
+  <h2 class="pagettl" id="h_atklk"><span class="pno"><i>STEP</i><b>02</b></span>ルカニ<button type="button" class="foldbtn" data-fold="atklk" aria-expanded="true" aria-label="ルカニをたたむ"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 6l4.5 4.5L12.5 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><small>攻撃時ルカニがドグドラに入る確率。STEP 01の設定で選んでいる人の装備で計算します</small></h2>
   <div class="panelbox lkpanel" id="lkPanel">
     <p class="memnote" id="lkWho"></p>
+    <div class="foldsum lksum" id="lkSum"></div>
     <div class="sgrid" id="settingsLk"></div>
   </div>
 </section>
 
-<section class="page2" aria-labelledby="h_atkcalc">
-  <h2 class="pagettl" id="h_atkcalc"><span class="pno">3</span>与ダメージ計算</h2>
+<section class="page2 calc" aria-labelledby="h_atkcalc">
+  <h2 class="pagettl" id="h_atkcalc"><span class="pno"><i>STEP</i><b>03</b></span>与ダメージ計算<small>STEP 01の設定と下のバフ・デバフで、ドグドラに与えるダメージ（最大値）を計算します</small></h2>
+  <h3 class="aksec"><span class="secno"><b>01</b></span><span>職業ごとの特技のダメージ</span></h3>
+  <p class="memnote" id="akWho"></p>
   <div class="buffbox">
-    <h3>ダメージに関わるバフ・デバフ</h3>
+    <h3>ダメージに関わるバフ・デバフ<sup class="cite" data-cite="dicBaiki,dicGashin,dicWar,dicDefDown,kyoJob8,dicElemDown,dicDF,dicFB,dicSaika,dicElem,dicKatate"></sup><small>押すとオン／オフ</small></h3>
     <p class="sub">名前はゲーム内のバトルアイコンリストの表記。アイコンはこのツール用の自作です</p>
     <div class="bufflist" id="buffList"></div>
+    <div class="tenrow"><span class="tenlab">テンション<sup class="cite" data-cite="dicTension"></sup><small>1撃目だけ・どれか1つ</small></span><div class="tenbtns" id="tenBtns"></div></div>
   </div>
-  <div class="soon">
-    <h3>準備中</h3>
-    <p>まもの使い1・まもの使い2・魔法戦士・レンジャーの4人で、職ごとに特技のダメージを出し、最後に4人の合計でドグドラを倒しきれるかを見られるようにする予定です。</p>
-    <ul>
-      <li>まもの使い：ビーストファング・ライガークラッシュ・ゴッドスマッシュ</li>
-      <li>レンジャー：サマーソルトクロー・ライガークラッシュ・ゴッドスマッシュ</li>
-      <li>魔法戦士：弓ならサンライトアロー・シャイニングボウ／片手剣なら不死鳥天舞・超はやぶさ斬り</li>
-    </ul>
+  <div class="tabs" role="tablist" id="akTabs"></div>
+  <div class="panelbox" id="akPanels"></div>
+  <h3 class="aksec"><span class="secno"><b>02</b></span><span>4人の合計</span></h3>
+  <p class="memnote">4人がチェックした特技をそれぞれ1回ずつ使ったときの合計です。装備・宝珠は各人のSTEP 01の設定を使います。バフ・デバフとテンションはセクション01とは別に選びます</p>
+  <h4 class="tsh">使う特技</h4>
+  <div class="tsmv" id="tsMoves"></div>
+  <div class="buffbox">
+    <h3>全員にかかるバフ・デバフ<small>押すとオン／オフ</small></h3>
+    <div class="bufflist" id="tsBuffs"></div>
   </div>
+  <h4 class="tsh">特技ごとのバフ・デバフと合計<small>アイコンを押すとその人の特技だけ切り替わります。●は全員の設定と違うもの</small></h4>
+  <div id="tsTable"></div>
 </section>
 
 <footer>
@@ -1105,6 +1230,7 @@ const atkDefOnly = slot => ACC_ROWS.includes(slot) && slot!=='finger' && slot!==
 const ONE_ATK = 0, ONE_DEF = 1, ONE_EL = 2;
 const RE_ATK = /^攻撃力\+|こうげき力/, RE_DEF = /^守備力\+|しゅび力/;
 const RE_EL = /^[炎氷風雷土闇光](ダメージ|の攻撃ダメージ)/;
+const RE_TKDMG = /^(特技|呪文)のダメージ\+/;
 // そのアクセの [合成, 第一伝承, 第二伝承]。どれも [効果, 値, 計算に使う種類] の一覧
 function accSources(slot){
   const a = accOf(S['acc_'+slot]); if (!a) return null;
@@ -1165,7 +1291,8 @@ function accRowBase(slot, n){
   };
   if (n===ONE_ATK) return make('攻撃力+#', 'atk', o=>RE_ATK.test(o[0]));
   if (n===ONE_DEF) return make('守備力+#', 'def', o=>RE_DEF.test(o[0]));
-  const els = new Map(src.flat().filter(o=>RE_EL.test(o[0]) && alKeep(o)).map(o=>[o[0], o[2]||'']));
+  // 3行目：属性の効果。与ダメージのページでは「特技のダメージ+」「呪文のダメージ+」（マーシャルピアスなど）もここで選ぶ
+  const els = new Map(src.flat().filter(o=>(RE_EL.test(o[0]) || (!defView() && RE_TKDMG.test(o[0]))) && alKeep(o)).map(o=>[o[0], o[2]||'']));
   return [...els].flatMap(([tpl,calc])=>make(tpl, calc, o=>o[0]===tpl));
 }
 function accRowList(slot, n){
@@ -1298,7 +1425,7 @@ function refreshAl(){
         x.hidden = main.length>0 || (isHeart(slot) && E.length>0);
         // 被ダメ側では、合成・伝承に付かなくても「—」だけでよい（本体の値は装備名の横に出る）
         x.textContent = S['acc_'+slot]==='none' || isHeart(slot) || defView() ? '—' : '攻撃力・守備力はつかない'; });
-      document.querySelectorAll(`[data-elnote="${slot}"]`).forEach(x=>{ x.hidden = !E.length; x.textContent = !E.length ? '' : E[0][7]==='思念効果' ? '思念効果（1つ）' : `属性（${E[0][7]}）`; });
+      document.querySelectorAll(`[data-elnote="${slot}"]`).forEach(x=>{ x.hidden = !E.length; x.textContent = !E.length ? '' : E[0][7]==='思念効果' ? '思念効果（1つ）' : E.every(o=>RE_EL.test(o[0])) ? `属性（${E[0][7]}）` : `ダメージの効果（${E[0][7]}）`; });
     }
     // 選べる効果がなければ枠は出さずに「—」だけ（指・腰は別）
     if (!atkDefOnly(slot)){
@@ -1318,7 +1445,7 @@ const rowName = slot => slot==='set' ? '防具セット' : EQ_ROWS.find(r=>r[0]=
 const SET_DEF = {'常勝のよろい':{flat:10, breath:8}, 'ミラーアーマー':{flat:10}, 'イグナイトメイル':{flat:5},
   '瑞雲の道服':{spell:10}, '隠密の装束':{breath:10, spell:7}, '魔衛隊士のよろい':{spell:5}, '聖翼のドレス':{spell:7},
   '魔侯爵のよろい':{breath:8}, 'グレイスフルコート':{spell:5}, 'ドラゴンベスト':{fire:20}, 'かぜのマント':{wind:20}};
-const setDef = () => { const st = setOf(S.armorSet); return st && SET_DEF[st[2]] ? [st[2], SET_DEF[st[2]]] : null; };
+const setDef = () => { const st = wornSet(); return st && SET_DEF[st[2]] ? [st[2], SET_DEF[st[2]]] : null; };
 // 行ごとの補正（錬金・合成）を集める
 function alEntries(){
   const out = [];
@@ -1348,6 +1475,10 @@ const alDefSum = () => alEntries().filter(e=>e[2]==='def').reduce((a,e)=>a+e[3],
 const accDefSum = () => ACC_ROWS.reduce((a,slot)=>a+num('eqd_'+slot),0) + num('eqd_weapon');
 const shFlat = x => x ? +((x[6].match(/受けるダメージを(\d+)軽減/)||[])[1]||0) : 0;
 const setOf = id => ARMOR_SETS.find(a=>a[0]===id);
+// セット効果が出るセット：「まとめて選ぶ」で選んだセットか、部位を1つずつ選んでそのセットの部位を全部そろえたとき
+const wornSet = () => { const a = setOf(S.armorSet); if (a) return a;
+  const c = setOf([0,1,2,3,4].map(i=>S['eqp_'+i]).find(x=>setOf(x)));
+  return c && c[4].every((v,i)=>!v || S['eqp_'+i]===c[0]) ? c : null; };
 const setVals = a => a[4].map((v,i) => v + a[5][i]);
 // セットにない部位：同じ区分（同じ職業が装備できる）セットの、その部位の防具から選ぶ
 const PART_NAMES = ['頭','からだ上','からだ下','うで','足'];
@@ -1410,6 +1541,26 @@ const SET_ATK = {'ラッシュジャケット':14,'トライドアーマー':13,
 // できのよさ★★★で増える武器の攻撃力（Lucky Room B表）。★★★だけを考える
 const WEP_STAR_ATK = {'ツメ':5, '弓':9, '片手剣':8};
 // 宝珠のLv選択（Lv0〜6、1Lvごとに +step）。kind:'lv' にすると被ダメージの職業タブの宝珠と混ざるので sel にする
+// 特技の極意（宝珠）：[キー, 宝珠名, 色, 1Lvごとの値, 単位, 使う職業]。出典：DQ10大辞典「宝珠/闇」「宝珠/光」・ゲーム乱舞の宝珠一覧（どれもLv6まで）
+// 極意（％）は与ダメージ補正の枠（系統特攻・全ての攻撃ダメージと足し算）。真髄はテンション時の固定ダメージ
+const GOKUI = [
+  ['akGk_beast',  'ビーストファングの極意', '光', 3, '%', ['mamono']],
+  ['akGk_liger',  'ライガークラッシュの極意', '闇', 1, '%', ['mamono','ranger']],
+  ['akGk_ligerS', 'ライガークラッシュの真髄', '闇', 50, '', ['mamono','ranger'], 'テンション時・1撃目だけ＋'],   // 固定ダメージは5連撃の1撃目だけ（テンションが乗るのは初段。ユーザー確認）
+  ['akGk_god',    'ゴッドスマッシュの極意', '闇', 2, '%', ['mamono','ranger']],   // まもの使いも付けられる（ユーザー確認）
+  ['akGk_summer', 'サマーソルトクローの極意', '闇', 5, '%', ['ranger']],
+  ['akGk_sun',    'サンライトアローの極意', '闇', 2, '%', ['mahosen'], '弓'],
+  ['akGk_shine',  'シャイニングボウの極意', '闇', 2, '%', ['mahosen'], '弓'],
+  ['akGk_fushi',  '不死鳥天舞の極意', '闇', 5, '%', ['mahosen'], '片手剣'],
+  ['akGk_haya',   '超はやぶさ斬りの極意', '闇', 6, '%', ['mahosen'], '片手剣'],
+  ['akGk_anubis', 'アヌビスアタックの極意', '光', 2, '%', ['ranger'], '必殺技'],   // 大辞典「宝珠/光」【アヌビスアタック】：+2%/Lv（与ダメージ増加の枠）
+  ['akGk_energy', 'エナジーフォールの極意', '光', 2, '%', ['mahosen'], '必殺技'],   // 大辞典「宝珠/光」【エナジーフォール】：+2%/Lv（与ダメージ増加の枠）
+];
+const GOKUI_KEYS = GOKUI.map(g=>g[0]);
+// 武器の輝晶効果（こうげき力を選んだとき）：Lv1〜8。装備Lv115以上の武器は各値+1。錬金と同じくバイキルトは掛からない
+// 出典：DQ10大辞典【輝晶効果】（Lv1〜8）・ゲーム乱舞（Lv1〜5で一致）
+const KISHO_ATK = [0, 6, 9, 12, 16, 20, 24, 28, 32];
+const kishoAtk = () => { const lv = +S.akKisho||0, w = wepOf(S.wepSel); return lv && w ? KISHO_ATK[lv] + (w[3]>=115 ? 1 : 0) : 0; };
 const LVSEL = (label, step, lv=LV_MAX) => ({label, kind:'sel', def:String(lv*step), opts:Array.from({length:LV_MAX+1},(_,n)=>[String(n*step), n ? `Lv${n}（+${n*step}）${n===LV_MAX?' 最大':''}` : 'なし（Lv0）'])});
 
 // ===== 設定項目（上部とタブ内で共有） =====
@@ -1441,13 +1592,25 @@ const CTRL = {
   akJob:{label:'職業・レベル', kind:'sel', def:'auto', opts:[['auto','この人の職業（自動）'], ...JOBS.map(([id,n,lv])=>[id, `${n} Lv${lv}（ちから ${ATK_BASE[id]}）`]), ['manual','手入力']]},
   akBase:{label:'素のちから（手入力）', kind:'num', def:330},
   ...Object.fromEntries(ATK_PASSIVES.map(([k,n,v])=>[k, {label:`${n} +${v}`, kind:'chk', def:true}])),
+  akKisho:{label:'輝晶効果', kind:'sel', def:'0', opts:KISHO_ATK.map((v,l)=>[String(l), l ? `Lv${l}（攻+${v}）` : 'なし']) },
   akBushin:LVSEL('宝珠「武神の豪腕」（ちから＋）', 1),
+  ...Object.fromEntries(GOKUI.map(([k,n,c,step,u,,note])=>[k, {label:`<span class="gkl"><span class="nw">${n}</span><wbr><span class="nw gkc">（${c}${note ? '・'+note : ''}）</span></span>`, kind:'sel', def:String(k==='akGk_ligerS' ? 0 : LV_MAX*step),   // 真髄は初期値Lv0（ユーザー指定）
+    opts:Array.from({length:LV_MAX+1},(_,l)=>[String(l*step), l ? `Lv${l}（+${l*step}${u}）${l===LV_MAX?' 最大':''}` : 'なし（Lv0）'])}])),
   akKindan:LVSEL('宝珠「禁断のちからアップ」（ちから＋）', 1, 0),   // みのまもりが下がるので、初期値は付けない（Lv0）
   akSeed:{label:'ちからのたね（1個＝ちから+1）', kind:'sel', def:String(ATK_SEED_MAX),
     opts:Array.from({length:ATK_SEED_MAX+1},(_,n)=>[String(n), n ? `${n}個（+${n}）${n===ATK_SEED_MAX?' 最大':''}` : '0個']) },
   akTree:{label:'ちからの木（女神の木）のLv', kind:'sel', def:String(MEGAMI[MEGAMI.length-1]),
     opts:MEGAMI.map((v,i)=>[String(v), i ? `Lv${i+1}（+${v}）${i===MEGAMI.length-1?' 最大':''}` : 'Lv1（+0）']) },
   akOther:{label:'その他のちから＋（タロットなど）', kind:'num', def:0},
+  akTkJob:{label:'職業スキル「特技のダメージ強化」', kind:'sel', def:'20', opts:[['0','—（選ばない）'],['5','+5（160P枠）'],['10','+10（170P枠）'],['20','+20（180〜200P枠）']]},
+  akSk_liger:{label:'ライガークラッシュの強化（ツメスキル）', kind:'sel', def:'0', opts:[['0','—（選ばない）'],['2','+2%（160P）'],['3','+3%（170P）'],['5','+5%（180P）']]},
+  akSk_beast:{label:'ビーストファングの強化（まものマスタースキル）', kind:'sel', def:'0', opts:[['0','—（選ばない）'],['1','+1%（190P）'],['2','+2%（200P）']]},
+  akSk_god:{label:'ゴッドスマッシュの強化（ツメスキル）', kind:'sel', def:'0', opts:[['0','—（選ばない）'],['1','+1%（190P）'],['3','+3%（200P）']]},
+  akSk_summer:{label:'サマーソルトクローの強化（ツメスキル）', kind:'sel', def:'0', opts:[['0','—（選ばない）'],['6','+6%（160P）'],['8','+8%（170P）'],['10','+10%（180P）']]},
+  akSk_shine:{label:'シャイニングボウの強化（弓スキル）', kind:'sel', def:'0', opts:[['0','—（選ばない）'],['2','+2%（160P）'],['3','+3%（170P）'],['5','+5%（180P）']]},
+  akSk_sun:{label:'サンライトアローの強化（弓スキル）', kind:'sel', def:'0', opts:[['0','—（選ばない）'],['2','+2%（190P）'],['5','+5%（200P）']]},
+  akSk_fushi:{label:'不死鳥天舞の強化（片手剣スキル）', kind:'sel', def:'0', opts:[['0','—（選ばない）'],['2','+2%（160P）'],['5','+5%（170P）'],['8','+8%（180P）']]},
+  akSk_haya:{label:'超はやぶさ斬りの強化（片手剣スキル）', kind:'sel', def:'0', opts:[['0','—（選ばない）'],['6','+6%（160P）'],['8','+8%（170P）'],['10','+10%（180P）']]},
   akSkHigh:{label:'武器スキル 160〜200スキル', kind:'sel', def:'10', opts:[['0','—（選ばない）'],['5','装備時こうげき力+5（160P）'],['8','装備時こうげき力+8（170P）'],['10','装備時こうげき力+10（180P以上）']]},
   _stance:{label:'防御行動', kind:'sel', def:'none', opts:[['none','なし'],['bougyo','ぼうぎょ（25%）'],['yaiba','やいばのぼうぎょ（25%＋極意MAX 6%）']]},
   atk:{label:'ドグドラの攻撃力', kind:'num', def:1700},
@@ -1507,7 +1670,7 @@ const CTRL = {
   teppekiWind:LV('鉄壁の風耐性', 1, '%'),
   teppekiDark:LV('鉄壁の闇耐性', 1, '%', '', 0),
   neck:{label:'首アクセ', kind:'sel', def:'0', opts:[['0','なし'],['30','竜のうろこ（−30）'],['35','赤竜の首飾り（−35）']]},
-  seiMu:{label:'Lv（特技のダメージ＋）', kind:'sel', def:'13', opts:SEI_LV.map(l=>[String(l), `Lv${l}（+${l-1}）${l===SEI_MAX?' 最大':''}`])},
+  seiMu:{label:'冥夢の精（昏冥の精霊）', kind:'sel', def:'13', opts:SEI_LV.map(l=>[String(l), `Lv${l}（+${l-1}）${l===SEI_MAX?' 最大':''}`])},
   seiKi:{label:'冥機の精（呪文のダメージ）', kind:'sel', def:'13', opts:SEI_LV.map(l=>[String(l), `Lv${l}（+${(l-1)*5}）${l===SEI_MAX?' 最大':''}`])},
   utare:LV('宝珠「打たれ名人」', 2, '', '−'),
   // 職業スキル（160〜200スキル）の被ダメージ軽減：置く枠で値が変わる（160P −3／170P −5／180〜200P −10）。キー名は保存との互換のため skill180 のまま
@@ -1521,6 +1684,31 @@ const CTRL = {
   lkClaw:{label:'ツメスキル110', kind:'chk', def:true, box:'攻撃時25%でルカニ'+cite('dicClaw')},
   lkSucc:{label:'状態異常成功率アップ', kind:'sel', def:'100', opts:[['0','なし'],['25','+25%（ムチスキル160）'],['50','+50%（ムチスキル170）'],['100','+100%（ムチスキル180〜）']]},
   lkRes:{label:'ドグドラの守備低下耐性', kind:'sel', def:'0.125', opts:LK_RES.map(r=>[r[0], `${r[1]}／${r[2]}（${r[4]}）${r[5]?' ドグドラの耐性':''}`])},
+  // STEP 03：テンションとバフ・デバフはメンバーごと（ak + 大文字）。ドグドラの数値は共通
+  // 必殺技に使うステータス：職業（基本＋スキル）＋たね＋女神の木＋宝珠＋武器＋錬金/合成/伝承＋手入力（防具・アクセ本体・こころ）
+  akDexSeed:{label:'きようさのたね（1個＝+1）', kind:'sel', def:'11', opts:Array.from({length:12},(_,n)=>[String(n), n ? `${n}個（+${n}）${n===11?' 最大':''}` : '0個'])},
+  akDexTree:{label:'女神の木（きようさ）のLv', kind:'sel', def:String(MEGAMI[MEGAMI.length-1]), opts:MEGAMI.map((v,i)=>[String(v), i ? `Lv${i+1}（+${v}）${i===MEGAMI.length-1?' 最大':''}` : 'Lv1（+0）'])},
+  akJwShingyo:LVSEL('宝珠「神業の手」（きようさ＋）', 5),
+  akJwKinDex:LVSEL('宝珠「禁断のきようさアップ」（きようさ＋・すばやさ−）', 3, 0),
+  akDexEq:{label:'その他のきようさ（手入力）', kind:'num', def:0},
+  akMpSeed:{label:'ふしぎなきのみ（1個＝最大MP+1）', kind:'sel', def:'13', opts:Array.from({length:14},(_,n)=>[String(n), n ? `${n}個（+${n}）${n===13?' 最大':''}` : '0個'])},
+  akMpTree:{label:'女神の木（最大MP）のLv', kind:'sel', def:String(MEGAMI[MEGAMI.length-1]), opts:MEGAMI.map((v,i)=>[String(v), i ? `Lv${i+1}（+${v}）${i===MEGAMI.length-1?' 最大':''}` : 'Lv1（+0）'])},
+  akJwShinen:LVSEL('宝珠「深淵なる叡智」（最大MP＋）', 5),
+  akJwKinMp:LVSEL('宝珠「禁断のMPアップ」（最大MP＋・最大HP−）', 2, 0),
+  akMpEq:{label:'その他の最大MP（手入力）', kind:'num', def:0},
+  akTen:{label:'テンション', kind:'sel', def:'0', opts:[['0','なし'],['5','1段階 5（×1.5＋10）'],['20','2段階 20（×2＋20）'],['50','3段階 50（×2.5＋30）'],['100','4段階 100 スーパーハイテンション（×3.5＋40）']]},
+  dogDef:{label:'ドグドラの守備力', kind:'num', def:867},
+  // ドグドラの属性耐性：7属性とも0.9倍（耐性10%）。攻略の虎「輝晶獣ドグドラ 攻略」の「全属性0.9倍」。IKEは7属性とも「-1」（効きにくい）
+  dogRes:{label:'ドグドラの属性耐性（全属性）', kind:'num', def:10, step:'any', ph:'%'},
+  akBAtk:{label:'こうげき力上昇', kind:'sel', def:'2', opts:[['',''],['1',''],['2','']]},
+  akBAdd:{label:'こうげき力加算', kind:'sel', def:'', opts:[['',''],['1',''],['2','']]},
+  akBWar:{label:'与ダメージ上昇', kind:'sel', def:'auto', opts:[['auto',''],['1',''],['0','']]},   // auto：まもの使いのときだけオン
+  akBDef:{label:'しゅび力低下', kind:'sel', def:'l1', opts:[['',''],['l1',''],['l2',''],['zero','']]},
+  akBHit:{label:'被ダメージ上昇', kind:'sel', def:'1', opts:[['',''],['1','']]},
+  akBEarth:{label:'土耐性低下', kind:'sel', def:'1', opts:[['',''],['1','']]},
+  akBDark:{label:'ダークフォース', kind:'sel', def:'1', opts:[['',''],['1','']]},
+  akBAll:{label:'全属性耐性低下', kind:'sel', def:'l', opts:[['',''],['s',''],['l','']]},
+  akBSaika:{label:'災禍の陣', kind:'sel', def:'', opts:[['',''],['1','']]},
 };
 MOVES.forEach(m=>{
   if (m.type==='phys') CTRL['mult_'+m.id] = {label:'わざの倍率', kind:'num', def:m.mult, step:0.1};
@@ -1540,6 +1728,41 @@ const AK_KEYS = ['akMode','akDirect',
 // 今のメンバーの職業（MEMBERS は後で定義されるので、最初の描画のときは null）
 const memJob = () => { try { return (MEMBERS.find(m=>m.id===curProfile)||{}).job || null; } catch(e){ return null; } };
 const akJobId = () => S.akJob==='auto' ? memJob() : S.akJob;
+// ===== 必殺技に使う きようさ・最大MP =====
+// 職業の値はLv143の基本＋スキル（Lucky Room A表 ver8.1）。たね・女神の木の最大（11・13・33）も同じ表
+const JOB_DEX = {ranger:616, mamono:407, mahosen:351}, JOB_MP = {mahosen:657, ranger:458, mamono:412};
+// 防具（レンジャー・魔法戦士が装備できるセット）：うでのきようさ（★なし）と、セット効果の [きようさ, 最大MP]。出典：極限攻略の各防具セットのページ
+// ★★★でうでのきようさが上がる分（IKEドラクエ10攻略の各防具ページの「出来」の表）
+const ARM_STAR3 = {s1:3,s2:5,s3:5,s5:3,s6:5,s7:5,s9:4,s10:5,s11:5,s13:3,s14:5,s15:5,s17:3,s18:5,s19:6,s21:3,s22:5,s23:5,s25:3,s26:5,s27:5,s29:3,s31:4,s32:4,s33:3,s34:4,s37:3,s38:4,s39:4,s41:3,s42:4,s43:4};
+const ARM_DEX = {s1:74,s2:127,s3:138,s5:72,s6:122,s7:132,s9:70,s10:117,s11:126,s13:68,s14:112,s15:120,s17:66,s18:107,s19:114,s21:64,s22:102,s23:109,s25:62,s26:97,s27:104,s29:60,s31:99,s32:94,s33:58,s34:92,s37:56,s38:87,s39:89,s41:53,s42:82,s43:84};
+const SET_DEXMP = {s2:[0,17],s3:[100,0],s6:[0,15],s7:[95,0],s10:[0,14],s11:[90,0],s14:[0,13],s15:[85,0],s18:[60,12],s19:[80,0],s22:[0,11],s23:[75,0],s26:[0,10],s27:[70,0],s30:[0,8],s31:[65,0],s32:[60,0],s38:[0,8],s39:[55,0],s42:[0,8],s43:[50,0]};
+// アクセ本体の [きようさ, 最大MP]（0のものは省略）。出典：IKEドラクエ10攻略のアクセ検索（詳細表示）
+const ACC_DEXMP = {'かいとうの仮面':[30,0],'はくあいのゆびわ':[0,5],'はじまりの紋章':[0,1],'ひらめきのゆびわ':[0,2],'ようせいの首かざり':[0,2],'アガレスの大紋章':[5,0],'アヌビスのアンク':[0,10],'アヌビスのブローチ':[0,8],'アモンの大紋章':[5,0],'オシリスのアンク':[0,6],'オシリスのブローチ':[0,6],'ガナン帝国の勲章':[20,0],'グレモリーの大紋章':[5,0],'ゴージャスなゆびわ':[0,2],'セトのアンク':[0,8],'セトのブローチ':[0,8],'ソーサリーリング':[0,5],'デスマスク':[4,4],'ハルファスの大紋章':[5,0],'バステトのアンク':[0,6],'バステトのブローチ':[0,4],'ピンクパールリング':[0,2],'ブエルの大紋章':[5,0],'冥雲魔神の勲章':[12,0],'夢幻魔王の勲章':[8,0],'忠義の勲章':[10,0],'教授のメガネ':[0,5],'旅立ちのこころ':[0,1],'邪教司祭の勲章':[25,0],'魔犬の仮面':[4,4]};
+// キャラのこころのLv1〜10の [きようさ], [最大MP]。出典：あせろぐ「異界アスタルジア こころ1」（Lv10はIKEと一致）
+const L10 = [1,2,3,4,5,6,7,8,9,10];
+const HEART_DEXMP = {'イルーシャのこころ':[0,L10],'エステラのこころ':[[1,2,3,4,4,5,5,6,7,8],L10],'ヒューザのこころ':[[1,2,3,4,5,6,7,8,9,11],0],'リナーシェのこころ':[0,L10],'ドルタムのこころ':[0,L10],'アシュレイのこころ':[[0,2,3,4,4,5,5,6,7,8],0]};
+function statCalc(kind){
+  const dex = kind==='dex', j = memJob(), jb = jobOf(j), L = [];
+  L.push([jb ? `${jb[1]}（基本＋スキル）` : '職業', (dex ? JOB_DEX : JOB_MP)[j] || 0]);
+  L.push([dex ? 'きようさのたね' : 'ふしぎなきのみ', num(dex ? 'akDexSeed' : 'akMpSeed')]);
+  L.push(['女神の木', num(dex ? 'akDexTree' : 'akMpTree')]);
+  L.push([dex ? '神業の手' : '深淵なる叡智', num(dex ? 'akJwShingyo' : 'akJwShinen')]);
+  L.push([dex ? '禁断のきようさアップ' : '禁断のMPアップ', num(dex ? 'akJwKinDex' : 'akJwKinMp')]);
+  const w = wepOf(S.wepSel); if (dex && w) L.push([w[2], w[4].dex || 0]);
+  { const arm = setOf(S.eqp_3); if (dex && arm && ARM_DEX[arm[0]]) L.push([`${arm[2]}のうで（★★★）`, ARM_DEX[arm[0]] + (ARM_STAR3[arm[0]]||0)]);
+    const st = wornSet(), sv = st && SET_DEXMP[st[0]]; if (sv) L.push([`${st[2]}（セット効果）`, sv[dex ? 0 : 1]]); }
+  ACC_ROWS.forEach(slot=>{ const a = accOf(S['acc_'+slot]); if (!a) return;
+    const h = HEART_DEXMP[a[2]];
+    if (h && slot==='heart'){ const arr = h[dex ? 0 : 1]; if (arr) L.push([`${a[2]}Lv${heartIdx()+1}`, arr[heartIdx()]]); return; }
+    const v = ACC_DEXMP[a[2]]; if (v) L.push([a[2], v[dex ? 0 : 1]]); });
+  const re = dex ? /きようさ\+(\d+)/ : /最大MP\+(\d+)/;
+  alEntries().forEach(([slot,nm,,v,txt])=>{ const m = String(txt).match(re); if (m) L.push([/^伝承:/.test(txt) ? `${nm}の伝承` : `${nm}の錬金/合成`, +m[1]]); });
+  L.push(['その他（手入力）', num(dex ? 'akDexEq' : 'akMpEq')]);
+  const items = L.filter(x=>x[1]);
+  return {items, total: items.reduce((a,x)=>a+x[1],0)};
+}
+const statOutHTML = kind => { const c = statCalc(kind);
+  return `${kind==='dex' ? 'きようさ' : '最大MP'} ${fmt(c.total)}<small>${c.items.map(([n,v])=>`<span class="nw">${n} ${v}</span>`).join('＋<wbr>')}</small>`; };
 function atkCalc(){
   const w = wepOf(S.wepSel), cat = w ? w[1] : '', job = memJob();
   const L = [];   // [名前, 値, 区分]
@@ -1553,9 +1776,10 @@ function atkCalc(){
   L.push(['ちからの木', num('akTree'), 'str']);
   L.push(['その他のちから', num('akOther'), 'str']);
   if (w){ L.push([`${w[2]}`, w[4].atk||0, 'wep']); if (WEP_STAR_ATK[cat]) L.push(['できのよさ★★★', WEP_STAR_ATK[cat], 'wep']); }
+  if (kishoAtk()) L.push([`輝晶効果Lv${S.akKisho}`, kishoAtk(), 'eq']);
   const line = (WEP_SK_ATK[job]||{})[cat] || 0;
   if (w){ L.push([`${cat}スキル（150Pまで）`, line, 'sk']); L.push(['160〜200スキル', num('akSkHigh'), 'sk']); }
-  { const st = setOf(S.armorSet); if (st && SET_ATK[st[2]]) L.push([`${st[2]}（セット効果）`, SET_ATK[st[2]], 'eq']); }
+  { const st = wornSet(); if (st && SET_ATK[st[2]]) L.push([`${st[2]}（セット効果）`, SET_ATK[st[2]], 'eq']); }
   ACC_ROWS.forEach(slot=>{ const a = accOf(S['acc_'+slot]), v = accAtkOf(a); if (v) L.push([HEART_LV[a[2]] ? `${a[2]}Lv${heartIdx()+1}` : a[2], v, 'eq']); });
   const al = {}; alEntries().forEach(([slot,nm,ty,v])=>{ if (ty==='atk') al[nm] = (al[nm]||0) + v; });
   Object.entries(al).forEach(([nm,v])=>L.push([`${nm}の錬金/合成`, v, 'eq']));
@@ -1566,6 +1790,17 @@ function atkCalc(){
   const total = S.akMode==='direct' ? num('akDirect') : Object.values(parts).reduce((a,b)=>a+b,0);
   return {items, parts, total, line, cat, w};
 }
+// 特技のダメージ＋の合計（区分ごとに色分け）
+function tkOutHTML(){
+  const L = atkFlat().skill, total = L.reduce((a,x)=>a+x[1],0);
+  const chip = (t, i) => `<span class="chip c${i}">${t}</span>`;
+  const NAMES = [['sei','冥夢の精'],['sk','スキルライン'],['wep','武器'],['acc','アクセ'],['al','錬金・合成・伝承']];
+  const use = NAMES.map((x,i)=>[...x,i]).map(([k,n,i])=>[k,n,i,L.filter(x=>x[2]===k)]).filter(x=>x[3].length);
+  const sub = r => r.reduce((a,x)=>a+x[1],0);
+  if (!use.length) return `特技のダメージ ＋0<small>特技1回ごとに足す固定ダメージ（多段の特技は1撃ごと）</small>`;
+  return `特技のダメージ ＋${fmt(total)}<small>特技1回ごとに足す固定ダメージ（多段の特技は1撃ごと）</small>`
+    + `<div class="formula akf"><div class="fsym">${use.map(([k,n,i])=>chip(n,i)).join('＋')}</div><div class="fval">${use.map(([k,n,i,r])=>chip(sub(r),i)).join('+')} = <b>${fmt(total)}</b></div><div class="bd">${use.map(([k,n,i,r])=>`${chip(n,i)} ${sub(r)} ＝ ${r.map(x=>`<span class="nw">${x[0]} ${x[1]}</span>`).join('＋<wbr>')}`).join('<br>')}</div></div>`;
+}
 const lvName2 = (k, name) => num(k) ? `${name}Lv${num(k)/((CTRL[k].opts[1]||[1])[0]||1)}` : name;
 function atkOutHTML(){
   const c = atkCalc();
@@ -1573,7 +1808,7 @@ function atkOutHTML(){
   const chip = (t, i) => `<span class="chip c${i}">${t}</span>`;
   const NAMES = [['str','ちから'],['wep','武器（★★★）'],['sk','武器スキル'],['eq','セット効果・アクセ・錬金・合成'],['plus','料理']];
   const use = NAMES.map((x,i)=>[...x,i]).filter(([k])=>c.parts[k]);
-  const bd = use.map(([k,n,i])=>`${chip(n,i)} ${c.parts[k]} ＝ ${c.items.filter(x=>x[2]===k).map(x=>`${x[0]} ${x[1]}`).join('＋')}`).join('<br>');
+  const bd = use.map(([k,n,i])=>`${chip(n,i)} ${c.parts[k]} ＝ ${c.items.filter(x=>x[2]===k).map(x=>`<span class="nw">${x[0]} ${x[1]}</span>`).join('＋<wbr>')}`).join('<br>');
   return `最終攻撃力 ${fmt(c.total)}<small>与ダメージの計算に使う値（バイキルトなどはわざごとに掛けます）</small>`
     + `<div class="formula akf"><div class="fsym">${use.map(([k,n,i])=>chip(n,i)).join('＋')}</div><div class="fval">${use.map(([k,n,i])=>chip(c.parts[k],i)).join('+')} = <b>${fmt(c.total)}</b></div><div class="bd">${bd}</div></div>`;
 }
@@ -1585,13 +1820,23 @@ const addVal = k => k==='shieldSkill' ? shieldSkCalc().total : num(k);
 
 // 上部の区分
 // 与ダメージにかかわる固定値（精霊・武器の基礎効果・錬金/合成）を集める
+// 職業スキルライン名（160〜200P枠の「特技のダメージ強化（専）」：160P+5・170P+10・180〜200P+20）
+const TK_JOB_LINE = {mamono:'まものマスター', ranger:'サバイバル', mahosen:'フォース'};
 function atkFlat(){
   const out = {skill:[], spell:[]};
   const mu = (+S.seiMu||1)-1, ki = ((+S.seiKi||1)-1)*5;
-  if (mu) out.skill.push(['冥夢の精', mu]);
+  if (mu) out.skill.push([`冥夢の精Lv${mu+1}`, mu, 'sei']);
   if (ki) out.spell.push(['冥機の精', ki]);
-  const w = wepEffects(); if (w) w.fx.forEach(f=>{ if (f.k==='skillFlat') out.skill.push([w.name, f.v]); });
-  alEntries().forEach(([slot,nm,,v,txt])=>{ if (/^特技のダメージ/.test(txt)) out.skill.push([`${nm}の錬金/合成`, v]); if (/^呪文のダメージ/.test(txt)) out.spell.push([`${nm}の錬金/合成`, v]); });
+  const w = wepEffects(); if (w) w.fx.forEach(f=>{ if (f.k==='skillFlat') out.skill.push([w.name, f.v, 'wep']); });
+  // スキルライン：職業スキルの「特技のダメージ強化（専）」と、レンジャーの弓スキル130P（装備時特技のダメージ+50）
+  { const j = memJob(), v = num('akTkJob'); if (v && TK_JOB_LINE[j]) out.skill.push([`${TK_JOB_LINE[j]}（職業スキル）`, v, 'sk']);
+    const wp = wepOf(S.wepSel); if (j==='ranger' && wp && wp[1]==='弓') out.skill.push(['弓スキル130P（レンジャー）', 50, 'sk']); }
+  // アクセ本体の基礎効果（マーシャルピアス「呪文と特技のダメージ+15」など）
+  ACC_ROWS.forEach(slot=>{ const a = accOf(S['acc_'+slot]); if (!a) return; const t = a[6]||'';
+    const ms = t.match(/(?:呪文と)?特技のダメージ\+(\d+)/); if (ms) out.skill.push([a[2], +ms[1], 'acc']);
+    const mp = t.match(/呪文(?:と特技)?のダメージ\+(\d+)/); if (mp) out.spell.push([a[2], +mp[1], 'acc']); });
+  alEntries().forEach(([slot,nm,,v,txt])=>{ const den = /^伝承:/.test(txt), lab = den ? `${nm}の伝承` : `${nm}の錬金/合成`;
+    if (/特技のダメージ/.test(txt)) out.skill.push([lab, v, 'al']); if (/呪文のダメージ/.test(txt)) out.spell.push([lab, v, 'al']); });
   return out;
 }
 // ===== 攻撃時ルカニが入る確率 =====
@@ -1672,9 +1917,11 @@ const REFS = [
   ['dogDic','ドグドラ','DQ10大辞典 第二版','【輝晶獣ドグドラ】','D%E3%80%90%E8%BC%9D%E6%99%B6%E7%8D%A3%E3%83%89%E3%82%B0%E3%83%89%E3%83%A9%E3%80%91','わざの数値・救われぬ死魂の最大475'],
   ['dogKyo','ドグドラ','ドラクエ10極限攻略データベース','輝晶獣ドグドラ','https://xn--10-yg4a1a3kyh.jp/dq10_kisyou3.html','わざの数値'],
   ['dogRanbu','ドグドラ','ゲーム乱舞','輝晶獣ドグドラ攻略','https://gameranbu.jp/dq10/88feb98858a49f10b3a0','わざ・行動'],
-  ['ikeDog','ドグドラ','IKEドラクエ10攻略','輝晶獣ドグドラ攻略','https://dq10.i-k-e.net/item/kisyou/dra','耐性一覧（守備低下が「-2」）'],
+  ['ikeDog','ドグドラ','IKEドラクエ10攻略','輝晶獣ドグドラ攻略','https://dq10.i-k-e.net/item/kisyou/dra','守備力867・耐性一覧（守備低下が「-2」、属性は7つとも「-1」＝効きにくい）'],
+  ['toraDog','ドグドラ','ドラクエ10 攻略の虎','輝晶獣ドグドラ 攻略','https://dragon-quest.jp/ten/monster/formidable/kisho/03.php','属性耐性（全属性0.9倍）・HP約200000'],
   ['defMemo','被ダメージの計算','冒険者の広場（日誌）','防御関連メモ','https://hiroba.dqx.jp/sc/diary/72848010377/view/5444363/','割合軽減・被ダメージの計算式'],
   ['dmgAll','被ダメージの計算','ゆきのDQX日記（exblog）','ダメージ計算のすべて','https://yukidqx.exblog.jp/25718248/','物理ダメージの計算式・守備力'],
+  ['dicMegami','被ダメージの計算','DQ10大辞典 第二版','【女神の祝福】','D%E3%80%90%E5%A5%B3%E7%A5%9E%E3%81%AE%E7%A5%9D%E7%A6%8F%E3%80%91','HP2以上なら致死ダメージを一度だけHP1で耐える・多段の途中で尽きると無力'],
   ['dicFlat','被ダメージの計算','DQ10大辞典 第二版','【被ダメージ軽減】','D%E3%80%90%E8%A2%AB%E3%83%80%E3%83%A1%E3%83%BC%E3%82%B8%E8%BB%BD%E6%B8%9B%E3%80%91','被ダメージ軽減（固定値）の扱い'],
   ['dicYaiba','被ダメージの計算','DQ10大辞典 第二版','【やいばのぼうぎょ】','D%E3%80%90%E3%82%84%E3%81%84%E3%81%B0%E3%81%AE%E3%81%BC%E3%81%86%E3%81%8E%E3%82%87%E3%80%91','構え・やいばの極意の軽減率'],
   ['kyoTeppeki','被ダメージの計算','ドラクエ10極限攻略データベース','鉄壁の攻撃呪文耐性（鉄壁系の宝珠）','https://xn--10-yg4a1a3kyh.jp/a_hojyu/dq10_hojyu_k_teppekinokogekijumontaisei.html','鉄壁系の宝珠の耐性'],
@@ -1701,6 +1948,19 @@ const REFS = [
   ['dqBushin','攻撃力の計算','ドラクエ10極限攻略データベース','武神の豪腕','https://xn--10-yg4a1a3kyh.jp/a_hojyu/dq10_hojyu_k_bushinnogowan.html','武神の豪腕 Lv1〜6で ちから+1〜+6'],
   ['kyoSet','攻撃力の計算','ドラクエ10極限攻略データベース','防具セット一覧（装備Lv別）','https://xn--10-yg4a1a3kyh.jp/a_bgset/dq10_bgset_lsl_135.html','防具のセット効果（こうげき力・受けるダメージ軽減・ダメージ減）'],
   ['dicSword','攻撃力の計算','DQ10大辞典 第二版','【片手剣スキル】','D%E3%80%90%E7%89%87%E6%89%8B%E5%89%A3%E3%82%B9%E3%82%AD%E3%83%AB%E3%80%91','魔法戦士の片手剣 装備時こうげき力'],
+  ['dicJwDark','攻撃力の計算','DQ10大辞典 第二版','宝珠/闇','https://wikiwiki.jp/dq10dic2nd/%E5%AE%9D%E7%8F%A0/%E9%97%87','ライガークラッシュ・ゴッドスマッシュ・サマーソルトクロー・弓・片手剣の極意の値'],
+  ['dicJwLight','攻撃力の計算','DQ10大辞典 第二版','宝珠/光','https://wikiwiki.jp/dq10dic2nd/%E5%AE%9D%E7%8F%A0/%E5%85%89','ビーストファング・アヌビスアタック・エナジーフォールの極意の値'],
+  ['ranbuJwDark','攻撃力の計算','ゲーム乱舞','闇の宝珠一覧','https://gameranbu.jp/dq10/9b31f522869d74edd543','極意の最大値（大辞典と照合）'],
+  ['ranbuJwLight','攻撃力の計算','ゲーム乱舞','光の宝珠一覧','https://gameranbu.jp/dq10/163b2e2ee32b9a241312','ビーストファングの極意の最大値'],
+  ['dicDmgUp','攻撃力の計算','DQ10大辞典 第二版','【与ダメージ増加】','D%E3%80%90%E4%B8%8E%E3%83%80%E3%83%A1%E3%83%BC%E3%82%B8%E5%A2%97%E5%8A%A0%E3%80%91','極意の宝珠は与ダメージ増加と足し算'],
+  ['ranbuShinzui','攻撃力の計算','ゲーム乱舞','Ver6.5の追加宝珠','https://gameranbu.jp/dq10/ea016c4c8acd00484615','真髄の固定ダメージは多段攻撃の1回目だけ（さみだれうちの真髄の例）'],
+  ['kyoDmgCalc','攻撃力の計算','ドラクエ10極限攻略データベース','ダメージ計算式','https://xn--10-yg4a1a3kyh.jp/dq10_damege.html','真髄の+300は倍率を掛け終えたあとに足す固定ダメージ'],
+  ['ikeButou65','攻撃力の計算','IKEドラクエ10攻略','武闘家 Ver6.5後期の強化','https://dq10.i-k-e.net/job/butou_6_5b','ライガークラッシュの真髄 Lv6でテンション時のダメージ+300'],
+  ['dicTk180','攻撃力の計算','DQ10大辞典 第二版','【180スキル】','D%E3%80%90180%E3%82%B9%E3%82%AD%E3%83%AB%E3%80%91','160〜200P枠の仕組み・特技のダメージ強化は最終ダメージに固定値を足す'],
+  ['dicMamoM','攻撃力の計算','DQ10大辞典 第二版','【まものマスター】','D%E3%80%90%E3%81%BE%E3%82%82%E3%81%AE%E3%83%9E%E3%82%B9%E3%82%BF%E3%83%BC%E3%80%91','特技のダメージ強化（専）+5/+10/+20'],
+  ['dicSurv','攻撃力の計算','DQ10大辞典 第二版','【サバイバル】','D%E3%80%90%E3%82%B5%E3%83%90%E3%82%A4%E3%83%90%E3%83%AB%E3%80%91','特技のダメージ強化（専）+5/+10/+20'],
+  ['dicForce','攻撃力の計算','DQ10大辞典 第二版','【フォース】','D%E3%80%90%E3%83%95%E3%82%A9%E3%83%BC%E3%82%B9%E3%80%91','特技のダメージ強化（専）+5/+10/+20'],
+  ['dicMartial','攻撃力の計算','DQ10大辞典 第二版','【マーシャルピアス】','D%E3%80%90%E3%83%9E%E3%83%BC%E3%82%B7%E3%83%A3%E3%83%AB%E3%83%94%E3%82%A2%E3%82%B9%E3%80%91','呪文と特技のダメージ+15・合成の特技のダメージ+'],
   ['dicBow','攻撃力の計算','DQ10大辞典 第二版','【弓スキル】','D%E3%80%90%E5%BC%93%E3%82%B9%E3%82%AD%E3%83%AB%E3%80%91','レンジャー・魔法戦士の弓 装備時こうげき力'],
   ['kyoSk160','攻撃力の計算','ドラクエ10極限攻略データベース','160〜180スキル（武器スキル）','https://xn--10-yg4a1a3kyh.jp/dq10_tokugi160_00.html','装備時こうげき力 160P+5・170P+8・180P以上+10'],
   ['atkFx','ルカニ','DQ10大辞典 第二版','【攻撃時○%で××】','D%E3%80%90%E6%94%BB%E6%92%83%E6%99%82%E2%97%8B%25%E3%81%A7%C3%97%C3%97%E3%80%91','判定の枠・多段攻撃は1撃目だけ・ムチの通常攻撃は2撃目も・職業スキルの特技は判定なし'],
@@ -1714,6 +1974,44 @@ const REFS = [
   ['dicClaw','ルカニ','DQ10大辞典 第二版','【ツメスキル】','D%E3%80%90%E3%83%84%E3%83%A1%E3%82%B9%E3%82%AD%E3%83%AB%E3%80%91','レンジャーのツメスキル110「攻撃時25%でルカニ」・ツメの装備時こうげき力（レンジャー+70・まもの使い+20）'],
   ['dicLiger','ルカニ','DQ10大辞典 第二版','【ライガークラッシュ】','D%E3%80%90%E3%83%A9%E3%82%A4%E3%82%AC%E3%83%BC%E3%82%AF%E3%83%A9%E3%83%83%E3%82%B7%E3%83%A5%E3%80%91','ツメスキルの特技（武器スキル）'],
   ['dicBeast','ルカニ','DQ10大辞典 第二版','【ビーストファング】','D%E3%80%90%E3%83%93%E3%83%BC%E3%82%B9%E3%83%88%E3%83%95%E3%82%A1%E3%83%B3%E3%82%B0%E3%80%91','職業スキルの特技（攻撃時の状態異常は判定なし）'],
+  ['kyoBeast','与ダメージ計算','ドラクエ10極限攻略データベース','ビーストファング','https://xn--10-yg4a1a3kyh.jp/dq10_tokugi200_33.html','通常攻撃の1.9倍×4回'],
+  ['kyoLiger','与ダメージ計算','ドラクエ10極限攻略データベース','ツメスキル','https://xn--10-yg4a1a3kyh.jp/dq10_skill10.html','ライガークラッシュ 通常攻撃の2.5倍×5回'],
+  ['kyoGod','与ダメージ計算','ドラクエ10極限攻略データベース','ゴッドスマッシュ','https://xn--10-yg4a1a3kyh.jp/dq10_tokugi200_09.html','（攻撃力−300）×2＋800（±15）・光属性・攻撃力300〜1000'],
+  ['kyoRanger','与ダメージ計算','ドラクエ10極限攻略データベース','レンジャーのツメスキル','https://xn--10-yg4a1a3kyh.jp/dq10_skill106.html','サマーソルトクロー 通常攻撃の3.5倍＋被ダメージ上昇'],
+  ['kyoJob8','与ダメージ計算','ドラクエ10極限攻略データベース','レンジャー','https://xn--10-yg4a1a3kyh.jp/dq10_job8.html','サマーソルトクローの被ダメージ上昇は20秒間+50%'],
+  ['kyoSun','与ダメージ計算','ドラクエ10極限攻略データベース','サンライトアロー','https://xn--10-yg4a1a3kyh.jp/dq10_tokugi200_14.html','通常攻撃の0.95倍×5回・光属性・ランダム'],
+  ['kyoShine','与ダメージ計算','ドラクエ10極限攻略データベース','弓スキル','https://xn--10-yg4a1a3kyh.jp/dq10_skill21.html','シャイニングボウ 通常攻撃の0.75倍×6回・光属性・ランダム'],
+  ['kyoFushi','与ダメージ計算','ドラクエ10極限攻略データベース','不死鳥天舞','https://xn--10-yg4a1a3kyh.jp/dq10_tokugi180_02.html','通常攻撃の0.9倍×4回'],
+  ['kyoHaya','与ダメージ計算','ドラクエ10極限攻略データベース','片手剣スキル','https://xn--10-yg4a1a3kyh.jp/dq10_skill1.html','超はやぶさ斬り 通常攻撃の0.75倍×4回'],
+  ['kyoMemo66','与ダメージ計算','ドラクエ10極限攻略データベース','属性耐性低下・フォース','https://xn--10-yg4a1a3kyh.jp/dq10_memo66.html','全属性耐性低下と各属性耐性低下は足し算・ダークフォースは闇＋土（高いほう）・フォースはこうげきを1.1倍'],
+  ['kyoTameru','与ダメージ計算','ドラクエ10極限攻略データベース','ためる（テンション）','https://xn--10-yg4a1a3kyh.jp/dq10_tameru.html','テンション5/20/50/100：×1.5/2/2.5/3.5＋ボーナス（Lv50以上で10）×1/2/3/4'],
+  ['kyo81','与ダメージ計算','ドラクエ10極限攻略データベース','Ver8.1のダメージ関係の変更','https://xn--10-yg4a1a3kyh.jp/dq10_damege_change_8.1.html','通常攻撃のダメージ上限1999・こうげき力加算は2段階で+80'],
+  ['dicDefDown','与ダメージ計算','DQ10大辞典 第二版','【守備力低下】','D%E3%80%90%E5%AE%88%E5%82%99%E5%8A%9B%E4%BD%8E%E4%B8%8B%E3%80%91','Ver.4.0から、プレイヤーが使うと1段階−30%・2段階−40%（敵が使うと−10%/−20%）'],
+  ['dicBaiki','与ダメージ計算','DQ10大辞典 第二版','【バイキルト】','D%E3%80%90%E3%83%90%E3%82%A4%E3%82%AD%E3%83%AB%E3%83%88%E3%80%91','こうげき力上昇2段階（およそ40%）'],
+  ['dicGashin','与ダメージ計算','DQ10大辞典 第二版','【牙神昇誕】','D%E3%80%90%E7%89%99%E7%A5%9E%E6%98%87%E8%AA%95%E3%80%91','こうげき力加算2段階で+80・こうげき力上昇とは別枠'],
+  ['dicWar','与ダメージ計算','DQ10大辞典 第二版','【ウォークライ】','D%E3%80%90%E3%82%A6%E3%82%A9%E3%83%BC%E3%82%AF%E3%83%A9%E3%82%A4%E3%80%91','与ダメージ+50%（45秒）'],
+  ['dicFB','与ダメージ計算','DQ10大辞典 第二版','【フォースブレイク】','D%E3%80%90%E3%83%95%E3%82%A9%E3%83%BC%E3%82%B9%E3%83%96%E3%83%AC%E3%82%A4%E3%82%AF%E3%80%91','全属性耐性低下 小50%・大100%'],
+  ['dicSaika','与ダメージ計算','DQ10大辞典 第二版','【災禍の陣】','D%E3%80%90%E7%81%BD%E7%A6%8D%E3%81%AE%E9%99%A3%E3%80%91','陣の中の敵の被ダメージ+50%（被ダメージ増加と足し算）'],
+  ['dicDF','与ダメージ計算','DQ10大辞典 第二版','【ダークフォース】','D%E3%80%90%E3%83%80%E3%83%BC%E3%82%AF%E3%83%95%E3%82%A9%E3%83%BC%E3%82%B9%E3%80%91','無属性・武器依存の攻撃に闇と土を付ける'],
+  ['dicAnubis','与ダメージ計算','DQ10大辞典 第二版','【アヌビスアタック】','D%E3%80%90%E3%82%A2%E3%83%8C%E3%83%93%E3%82%B9%E3%82%A2%E3%82%BF%E3%83%83%E3%82%AF%E3%80%91','きようさ800で1500±25×3回・きようさ1で約+0.71・守備力ゼロ12秒・極意+2%/Lv'],
+  ['dicEnergy','与ダメージ計算','DQ10大辞典 第二版','【エナジーフォール】','D%E3%80%90%E3%82%A8%E3%83%8A%E3%82%B8%E3%83%BC%E3%83%95%E3%82%A9%E3%83%BC%E3%83%AB%E3%80%91','消費MP×10の光属性ダメージ・上限29999・極意+2%/Lv（与ダメージ増加の枠）'],
+  ['luckyA','与ダメージ計算','Lucky Room','A表_ver8.1（Lv143）','https://luckyroom.blog.jp/archives/88272823.html','Lv143の基本＋スキルのきようさ・最大MP（レンジャー616・魔法戦士MP657など）、たね・女神の木の最大'],
+  ['panHissatsu','与ダメージ計算','下町豆腐屋ブログ','「新必殺技」の仕様を解説！「テンション・会心・フォース」が有効なのかを徹底検証！！','https://pan1946.com/archives/19111','テンションはレンジャー（アヌビスアタック）だけ無効・無属性の必殺技はフォースで属性が付く・エナジーフォール（光）はフォースで変わらない'],
+  ['panBelt','与ダメージ計算','下町豆腐屋ブログ','「新必殺技」で属性ダメージアップは有効！？「輝石／戦神のベルト」で徹底検証！！','https://pan1946.com/archives/20569','必殺技にも「□属性の特技の攻撃ダメージ+%」と「特技のダメージ＋」が乗る（メドローアを除く）'],
+  ['dicJwFire','与ダメージ計算','DQ10大辞典 第二版','宝珠/炎','https://wikiwiki.jp/dq10dic2nd/%E5%AE%9D%E7%8F%A0/%E7%82%8E','神業の手（きようさ+5/Lv）・深淵なる叡智（最大MP+5/Lv）'],
+  ['dicJwWind','与ダメージ計算','DQ10大辞典 第二版','宝珠/風','https://wikiwiki.jp/dq10dic2nd/%E5%AE%9D%E7%8F%A0/%E9%A2%A8','禁断のきようさアップ（+3/Lv）・禁断のMPアップ（+2/Lv）'],
+  ['ikeArm','与ダメージ計算','IKEドラクエ10攻略','各防具のページ（例：ミラージュグラブ）','https://dq10.i-k-e.net/item/%E3%83%9F%E3%83%A9%E3%83%BC%E3%82%B8%E3%83%A5%E3%82%B0%E3%83%A9%E3%83%96','うでの防具のできのよさ★★★で増えるきようさ（セットごとに+3〜+6）'],
+  ['kyoBgset','与ダメージ計算','ドラクエ10極限攻略データベース','防具セット（各セットのページ）','https://xn--10-yg4a1a3kyh.jp/a_bgset/dq10_bgset_lsl_135.html','レンジャー・魔法戦士の防具のうでのきようさ・セット効果のきようさ/最大MP'],
+  ['ikeAccSearch','与ダメージ計算','IKEドラクエ10攻略','アクセサリー検索（詳細表示）','https://dq10.i-k-e.net/item/acs/search?Disp=DETAIL','アクセ本体のきようさ・最大MP'],
+  ['dicCap','与ダメージ計算','DQ10大辞典 第二版','【ダメージ上限】','D%E3%80%90%E3%83%80%E3%83%A1%E3%83%BC%E3%82%B8%E4%B8%8A%E9%99%90%E3%80%91','1撃ごとの上限（Ver.8.1）：CT特技9999・通常攻撃1999（竜の脈動で引き上げ）・必殺技9999（エナジーフォールは29999）'],
+  ['dicTension','与ダメージ計算','DQ10大辞典 第二版','【テンションアップ】','D%E3%80%90%E3%83%86%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%B3%E3%82%A2%E3%83%83%E3%83%97%E3%80%91','5/20/50/100で×1.5/2/2.5/3.5＋固定値10/20/30/40（Lv45以上）。多段攻撃は1撃目だけ。固定値にも与ダメ・被ダメ・属性の倍率が掛かる'],
+  ['dicTsume','与ダメージ計算','DQ10大辞典 第二版','【ツメスキル】','D%E3%80%90%E3%83%84%E3%83%A1%E3%82%B9%E3%82%AD%E3%83%AB%E3%80%91','180・200スキル：ライガークラッシュの強化+2/3/5%・サマーソルトクローの強化+6/8/10%・ゴッドスマッシュの強化+1/3%'],
+  ['dicYumi','与ダメージ計算','DQ10大辞典 第二版','【弓スキル】','D%E3%80%90%E5%BC%93%E3%82%B9%E3%82%AD%E3%83%AB%E3%80%91','180・200スキル：シャイニングボウの強化+2/3/5%・サンライトアローの強化+2/5%'],
+  ['dicMamoMaster','与ダメージ計算','DQ10大辞典 第二版','【まものマスター】','D%E3%80%90%E3%81%BE%E3%82%82%E3%81%AE%E3%83%9E%E3%82%B9%E3%82%BF%E3%83%BC%E3%80%91','180・200スキル：ビーストファングの強化+1/2%'],
+  ['dicKatate','与ダメージ計算','DQ10大辞典 第二版','【片手剣スキル】','D%E3%80%90%E7%89%87%E6%89%8B%E5%89%A3%E3%82%B9%E3%82%AD%E3%83%AB%E3%80%91','魔法戦士は42・110・130Pで装備時全ての属性のダメージ+5%（合計+15%）。180スキル：不死鳥天舞の強化+2/5/8%・超はやぶさ斬りの強化+6/8/10%'],
+  ['dicElem','与ダメージ計算','DQ10大辞典 第二版','【属性】','D%E3%80%90%E5%B1%9E%E6%80%A7%E3%80%91','（1＋属性強化）×属性倍率。耐性低下は属性倍率に足し算（等倍の敵に50%低下で1.5倍）'],
+  ['dicElemDown','与ダメージ計算','DQ10大辞典 第二版','【○属性耐性低下】','D%E3%80%90%E2%97%8B%E5%B1%9E%E6%80%A7%E8%80%90%E6%80%A7%E4%BD%8E%E4%B8%8B%E3%80%91','属性耐性低下は基本50%（マグマなど一部は30%）。全属性耐性低下とは別枠で重なる'],
+  ['dicLiger','与ダメージ計算','DQ10大辞典 第二版','【ライガークラッシュ】','D%E3%80%90%E3%83%A9%E3%82%A4%E3%82%AC%E3%83%BC%E3%82%AF%E3%83%A9%E3%83%83%E3%82%B7%E3%83%A5%E3%80%91','テンションが乗るのは初段（1撃目）だけ'],
 ].map(r=>{ if (r[4].startsWith('D%')) r[4] = 'https://wikiwiki.jp/dq10dic2nd/' + r[4].slice(1); return r; });
 const REF_N = Object.fromEntries(REFS.map((r,i)=>[r[0], i+1]));
 // 本文の [番号]：<sup data-cite="キー,キー"> を update() のたびに埋める（ページごとに文献一覧の場所が違うので）
@@ -1739,8 +2037,11 @@ const SECTIONS = [
   {title:'装備', col:'L', cite:'ikeAcc,ikeBelt,ikeRing,ikeCard,ikeKokoro,aseHeart,aseRen', for:'防具・アクセサリー・武器と錬金/合成', keys:['#equip'], wide:true, nocols:true},
   {title:'守備力', type:'phys', cite:'lucky,dmgAll,dicShield,kyoKindan', for:'通常攻撃・しっぽアタック', keys:DEF_KEYS, wide:true},
   {title:'攻撃力', page:'atk', cite:'dicAtk,luckyAtk,luckyBase,ikePassive,ikeTree,dicTree,kyoSet,kyoKindan,dqBushin,dicClaw,dicSword,dicBow,kyoSk160', for:'通常攻撃・特技の攻撃力', keys:AK_KEYS, wide:true},
-  {title:'冥夢の精', page:'atk', for:'昏冥の精霊・特技のダメージ＋', keys:['seiMu']},
-  {title:'ルカニの確率', page:'lk', cite:'atkFx,succUp', for:'攻撃時ルカニ・ドグドラ相手', keys:['lkHits','lkSucc','lkRes','lkClaw','#lkwhip','#lkside','#lukani'], wide:true},
+  {title:'特技のダメージ＋', page:'atk', cite:'dicTk180,dicMamoM,dicSurv,dicForce,dicBow,dicMartial,ikeAcc', for:'冥夢の精・スキルライン・武器・アクセ・錬金の合計', keys:['seiMu','akTkJob','#tkout'], wide:true},
+  {title:'必殺技のステータス', page:'atk', cite:'luckyA,dicJwFire,dicJwWind,kyoBgset,ikeArm,ikeAccSearch,aseHeart', for:'アヌビスアタックのきようさ・エナジーフォールの最大MP', keys:['#h:きようさ（アヌビスアタック）','akDexSeed','akDexTree','akJwShingyo','akJwKinDex','akDexEq','#statout:dex','#h:最大MP（エナジーフォール）','akMpSeed','akMpTree','akJwShinen','akJwKinMp','akMpEq','#statout:mp'], wide:true},
+  {title:'180・200スキル', page:'atk', cite:'dicTsume,dicYumi,dicKatate,dicMamoMaster', for:'特技の強化（攻撃力+10などとは同時に選べない）', keys:['akSk_liger','akSk_beast','akSk_god','akSk_summer','akSk_shine','akSk_sun','akSk_fushi','akSk_haya'], wide:true},
+  {title:'宝珠', page:'atk', cite:'dicJwDark,dicJwLight,ranbuJwDark,ranbuJwLight,dicDmgUp,ranbuShinzui,kyoDmgCalc,ikeButou65', for:'この人の職業の特技の極意（Lv6まで）', keys:GOKUI_KEYS, wide:true},
+  {title:'ルカニの確率', page:'lk', cite:'atkFx,succUp', for:'攻撃時ルカニ・ドグドラ相手', keys:['lkHits','lkSucc','lkRes','lkClaw','#lkwhip','#lkeq','#lkside','#lukani'], wide:true},
   {title:'料理', page:'atk', cite:'kyoFood,ranbuFood', for:'同時に効くのは1つ', row:'foodrow', keys:['foodSel','foodStar'], foot:'#foodfx'},
   {title:'被ダメージ軽減', pair:true, cite:'dicFlat,kyoUtare,kyoSkill,kyoSet', for:'全わざ・1回ごと', row:'flatrow', keys:['utare','skill180','otherFlat'], foot:'#flatsum'},
   {title:'料理', pair:true, cite:'kyoFood,ranbuFood', for:'同時に効くのは1つ', row:'foodrow', keys:['foodSel','foodStar'], foot:'#foodfx'},
@@ -1767,6 +2068,8 @@ function moveGroups(m){
   const rt = [m.type==='spell'||m.type==='breath' ? m.type : null, m.elem].filter(Boolean);
   g.push(['防御行動', ['stance_'+m.id]]);
   if (rt.length) g.push(['宝珠', ['#res:'+rt.join(',')]]);
+  // 属性のあるわざ：からだ上の錬金で属性耐性をつけられる
+  if (m.elem) g.push(['からだ上の錬金', ['#eqbody']]);
   return g;
 }
 
@@ -1788,12 +2091,18 @@ function ctrlHTML(k){
   if (k.startsWith('#h:')) return `<h5 class="subh" data-wrap="${k}">${k.slice(3)}</h5>`;
   if (k==='#out') return `<div class="defout" data-defout></div>`;
   if (k==='#akout') return `<div class="defout akout" data-akout></div>`;
+  if (k==='#tkout') return `<div class="defout akout" data-tkout></div>`;
+  if (k.startsWith('#statout:')) return `<div class="defout akout" data-statout="${k.slice(9)}"></div>`;
+  if (k.startsWith('#statnote:')) return `<div class="statnote" data-statout="${k.slice(10)}"></div>`;
   if (k==='#akpsum') return `<div class="psum" data-wrap="#akpsum" data-akpsum></div>`;
   if (k==='#akwep') return `<div class="psum akwep" data-wrap="#akwep" data-akwep></div>`;
   if (k==='#atksum') return `<div class="psum" data-wrap="#atksum" data-atksum></div>`;
   if (k==='#lkwhip') return `<div class="lkwhip" data-wrap="#lkwhip"><table class="eqtbl lkwtbl"><thead><tr><th>部位</th><th>装備（基礎効果）</th><th>錬金効果</th></tr></thead><tbody><tr class="k-weapon"><th>ムチ</th>
     <td class="eqsel"><label class="lkwb">攻撃時<input type="number" data-key="lkWB" min="0" step="any">%でルカニ</label><div class="eqfx">ムチそのものに付いていれば入れる</div></td>
     <td class="eqal"><div class="al"><div class="alrow albulk"><span class="albulklab">一括</span><button type="button" class="almax" data-lkmaxall title="3つとも5%（超大成功込み）にする">すべてMax</button></div>${['lkW0','lkW1','lkW2'].map(k=>`<div class="alrow"><span class="alfix">攻撃時ルカニ</span><button type="button" class="almax" data-lkmax="${k}" title="5%（超大成功込み）">Max</button><input type="number" data-key="${k}" min="0" step="any"></div>`).join('')}</div></td></tr></tbody></table></div>`;
+  // ルカニの枠で、ルカニが付けられる部位（武器・うで・腰）の錬金効果をその場で変える。STEP 01 の装備と同じキーなので連動する
+  if (k==='#lkeq') return `<div class="lkeq" data-wrap="#lkeq"><h5 class="lkeqh">装備の攻撃時ルカニ<small>STEP 01の「装備」と連動。効果を「攻撃時ルカニ」にして値を入れる（一括で3枠まとめても選べる）。こころはSTEP 01で選ぶ</small></h5><table class="eqtbl lkwtbl"><thead><tr><th>部位</th><th>装備</th><th>錬金効果</th></tr></thead><tbody>${[['weapon','武器'],['arm','うで'],['waist','腰']].map(([slot,nm])=>`<tr class="k-${slot}"><th>${nm}</th><td class="eqsel"><div class="eqfx" data-lkeqname="${slot}"></div></td><td class="eqal">${alCell(slot)}</td></tr>`).join('')}</tbody></table></div>`;
+  if (k==='#eqbody') return `<div class="lkeq" data-wrap="#eqbody"><table class="eqtbl lkwtbl"><thead><tr><th>部位</th><th>装備</th><th>錬金効果</th></tr></thead><tbody><tr class="k-armor"><th>からだ上</th><td class="eqsel"><div class="eqfx" data-lkeqname="bodyU"></div></td><td class="eqal">${alCell('bodyU')}</td></tr></tbody></table><div class="fn">STEP 01の「装備」と連動しています</div></div>`;
   if (k==='#lukani') return `<div class="lkout" data-lukani></div>`;
   if (k==='#lkside') return `<div class="lkside" data-lkside></div>`;
   if (k==='#foodfx') return `<div class="foodfx" data-foodfx></div>`;
@@ -1812,7 +2121,7 @@ function ctrlHTML(k){
   if (c.box) return `<label class="field" data-wrap="${k}">${c.label}<span class="chkbox"><input type="checkbox" data-key="${k}">${c.box}</span></label>`;
   if (c.kind==='chk' && /^(ps_|akp_)/.test(k)){
     const p = [...PASSIVES, ...ATK_PASSIVES].find(x=>x[0]===k);
-    if (p) return `<label class="row pas" data-wrap="${k}"><input type="checkbox" data-key="${k}"><span class="pasv"><span>${p[1]}</span><b>+${p[2]}</b></span></label>`;
+    if (p) return `<label class="row pas" data-wrap="${k}"><input type="checkbox" data-key="${k}"><span class="pasv"><span>${p[1].split(/(?=（)/).map(t=>`<span class="nw">${t}</span>`).join('<wbr>')}</span><b>+${p[2]}</b></span></label>`;
   }
   if (c.kind==='chk') return `<label class="row" data-wrap="${k}"><input type="checkbox" data-key="${k}"> ${c.label}</label>`;
   let input;
@@ -1867,9 +2176,16 @@ function accHasAtk(a){
 const accInDef = a => accHasDef(a) || accHasAtk(a);
 // p なし＝被ダメージのページ（攻撃力か守備力がつくもの） ／ p あり＝与ダメージの人（全部）
 const accListFor = (slot, p) => ACCS.filter(a=>a[1]===slot && (p || accInDef(a)));
+// 世代：伝承が2つ＝第三世代、1つ＝第二世代、なし＝第一世代（伝承のないアクセも含む）
+const accGen = a => { const d = ACC_DEN[a[2]]; return !d ? 1 : d[1] && d[1].length ? 3 : 2; };
 function accOpts(slot, p){
   // 最初に作るときは Lv10 の値（S はまだない）。Lvを変えたら refreshHeart で書き直す
-  return opt('none','なし') + accListFor(slot, p).map(a=>opt(a[0], slot==='heart' ? a[2] : accLabel(a))).join('');
+  const L = accListFor(slot, p);
+  if (isHeart(slot)) return opt('none','なし') + L.map(a=>opt(a[0], a[2])).join('');
+  // 新しい世代から：第三世代 → 第二世代 → 第一世代・その他（同じ世代の中は元の順）
+  const G = [[3,'第三世代'],[2,'第二世代'],[1,'第一世代・その他']].map(([g,n])=>[n, L.filter(a=>accGen(a)===g)]).filter(x=>x[1].length);
+  const one = G.length===1;
+  return opt('none','なし') + G.map(([n,A])=>{ const h = A.map(a=>opt(a[0], accLabel(a))).join(''); return one ? h : `<optgroup label="${n}">${h}</optgroup>`; }).join('');
 }
 // 被ダメのページ：守備力が関係しない行はグレー（選択とMaxはできる）
 //   守備力がつくアクセが1つもない部位／選んだアクセに守備力がつかない
@@ -1907,14 +2223,15 @@ function armorSetOpts(p){
 function alCell(slot){
   const rows = Array.from({length:alMax(slot)},(_,n)=>n).map(n=>`<div class="alrow" data-alline="${slot}_${n}"${n>=AL_N?' hidden':''}>${n<2 && ONE_DEF_SLOTS.includes(slot) ? `<span class="alfix" data-alfix="${slot}_${n}" hidden></span>` : ''}${bareSel(`al_${slot}_${n}_t`, opt('','—'))}<button type="button" class="almax" data-almax="${slot}_${n}" disabled>Max</button><input type="number" data-key="al_${slot}_${n}_v" min="0" step="any"></div>`).join('');
   // 一括：選んだ効果を3枠すべてに入れる。Max で3枠とも最大値
-  const bulk = `<div class="alrow albulk"><select data-albulk="${slot}" aria-label="3枠まとめて選ぶ">${opt('','—')}</select><button type="button" class="almax" data-albulkmax="${slot}" disabled title="3枠とも同じ効果の最大値にする">Max×3</button><span class="albulklab">一括</span></div>`;
+  const bulk = `<div class="alrow albulk"><select data-albulk="${slot}" aria-label="3枠まとめて選ぶ">${opt('','—')}</select><button type="button" class="almax" data-albulkmax="${slot}" disabled title="3枠とも同じ効果の最大値にする">Max×3</button><button type="button" class="almax alreset" data-alreset="${slot}" title="この部位の効果をすべて消す">リセット</button></div>`;
   const den = ACC_ROWS.includes(slot) ? [0,1].map(k=>`<div class="alrow alden" data-denrow="${slot}_${k}"><span class="denlab">${['第一伝承','第二伝承'][k]}</span>${bareSel(`den_${slot}_${k}`, opt('','—'))}</div>`).join('') : '';
   const belt = slot==='waist' ? `<div class="alrow albulk" data-beltbar hidden><span class="beltnote">ベルトの効果（5枠まで・同じ効果は1つ）</span><button type="button" class="almax" data-beltmax disabled title="選んだ効果すべてに最大値を入れる">すべてMax</button></div>` : '';
   if (atkDefOnly(slot)){
     const line = n => `<div class="alrow" data-alline="${slot}_${n}" hidden><span class="alfix" data-alfix="${slot}_${n}"></span>${bareSel(`al_${slot}_${n}_t`, opt('','—'))}<button type="button" class="almax" data-almax="${slot}_${n}" disabled>Max</button><input type="number" data-key="al_${slot}_${n}_v" min="0" step="any"></div>`;
     return `<div class="al"><div class="onenote" data-onenote="${slot}" hidden></div>${isHeart(slot)?`<div class="heartfx" data-heartfx="${slot}" hidden></div>`:''}${line(ONE_ATK)}${line(ONE_DEF)}<div class="onenote elnote" data-elnote="${slot}" hidden></div>${line(ONE_EL)}</div>`;
   }
-  return `<div class="al" data-albox="${slot}"><div class="onenote" data-aldash hidden>—</div>${bulk}${belt}${rows}${den}</div>`;
+  const kisho = slot==='weapon' ? `<div class="alrow kisho" data-kisho><span class="alfix" data-fx="atk">輝晶効果</span>${bareSel('akKisho', CTRL.akKisho.opts.map(([v,t])=>opt(v,t)).join(''))}</div>` : '';
+  return `<div class="al" data-albox="${slot}"><div class="onenote" data-aldash hidden>—</div>${bulk}${belt}${rows}${den}${kisho}</div>`;
 }
 function equipHTML(){
   const head = `<div class="eqtop"><div class="field" data-wrap="armorSet">防具セットでまとめて選ぶ（できのよさ★★★）${bareSel('armorSet', armorSetOpts())}</div></div>`;
@@ -1925,9 +2242,9 @@ function equipHTML(){
     else if (kind==='armor'){ sel = bareSel('eqp_'+i, armorOpts(i)); dk = ARMOR_PARTS[i]; }
     else { sel = bareSel('acc_'+slot, accOpts(slot)); dk = 'eqd_'+slot;
       if (slot==='heart') sel = `<div class="heartsel">${sel}${bareSel('heartLv', HEART_LVS.map(o=>opt(o[0],o[1])).join(''))}</div>`; }
-    return `<tr data-eqrow="${slot}" class="k-${kind}"><th>${nm.replace('のこころ', 'の<span class="nb">こころ</span>')}</th><td class="eqsel">${sel}<div class="eqfx" data-eqfx="${slot}"></div>${kind==='acc'?`<div class="nodefnote" data-nodef="${slot}" hidden>守備力がつくアクセはありません</div>`:''}</td><td class="eqdef"><input type="number" data-key="${dk}" min="0"></td><td class="eqal">${alCell(slot)}</td></tr>`;
+    return `<tr data-eqrow="${slot}" class="k-${kind}"><th>${nm.replace('のこころ', 'の<span class="nb">こころ</span>')}</th><td class="eqsel">${sel}<div class="eqfx" data-eqfx="${slot}"></div>${kind==='acc'?`<div class="nodefnote" data-nodef="${slot}" hidden>守備力がつくアクセはありません</div>`:''}</td><td class="eqdef"><input type="number" data-key="${dk}" min="0"><span class="eqatk" data-eqatk="${slot}">—</span></td><td class="eqal">${alCell(slot)}</td></tr>`;
   }).join('');
-  return head + `<div class="eqwrap"><table class="eqtbl"><thead><tr><th>部位</th><th>装備</th><th title="装備そのものの守備力。スカラ・スクルトの倍率がかかります（錬金・合成の守備力にはかかりません）">基礎守備<br><small style="font-weight:normal">スカラ対象</small></th><th>錬金効果・合成効果</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  return head + `<div class="eqwrap"><table class="eqtbl"><thead><tr><th>部位</th><th>装備</th><th><span class="ondef" title="装備そのものの守備力。スカラ・スクルトの倍率がかかります（錬金・合成の守備力にはかかりません）">基礎守備<br><small style="font-weight:normal">スカラ対象</small></span><span class="onatk" title="装備そのものの攻撃力（武器はできのよさ★★★込み）。装備を選ぶと自動で入ります">基礎攻撃<br><small style="font-weight:normal">自動</small></span></th><th>錬金効果・合成効果</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 // 見出し（#h:）ごとに枠で囲み、#h2: はその中で一段下げた小グループにする
@@ -2023,6 +2340,53 @@ function defTotalHTML(){
       ${card('守備力'+(num('scala') && S.defMode!=='direct' ? '（スカラ込み）' : ''), fmt(defCalc().final))}
       ${card('被ダメージ軽減', fl ? '−'+fl : '0', !fl)}
       ${RES_ALL.map(t=>{ const v = sum(resItems(t)); return card(RES_TYPES[t], d(v*100)+'%'+(v>=1 ? '<small>上限</small>' : ''), !v); }).join('')}
+    </div>`;
+}
+// ===== 与ダメージ側の設定の合計 =====
+// 種族（ドラゴン系）と「全ての攻撃ダメージ」は同じ与ダメージ補正の枠で足し算。属性は属性ごとに足し算（全属性は全部に足す）。2つの枠どうしは掛け算
+const ELS = ['炎','氷','風','雷','土','闇','光'];
+function dmgFx(t){
+  t = t.replace(/^伝承:/,'').replace(/\s+/g,'').replace(/([炎氷風雷土闇光])の攻撃ダメージ/,'$1攻撃ダメージ'); let m;
+  if ((m = t.match(/^ドラゴン系にダメージ\+([\d.]+)%/))) return {k:'race', v:+m[1]};
+  if ((m = t.match(/^全ての攻撃ダメージ\+([\d.]+)%/))) return {k:'all', v:+m[1]};
+  // 「土の特技ダメージ+%」（ベルトなど）も同じ属性強化の枠で足し算。効くのはその種類（特技／呪文）の攻撃だけ
+  if ((m = t.match(/^([炎氷風雷土闇光])の(特技|呪文)ダメージ\+([\d.]+)%/))) return {k:'elem', el:m[1], v:+m[3], only:m[2]};
+  if ((m = t.match(/^全(?:ての)?属性(?:攻撃)?(?:の)?ダメージ\+([\d.]+)%/))) return {k:'elemAll', v:+m[1]};
+  if ((m = t.match(/^(?:装備時)?(?:全ての)?([炎氷風雷土闇光])(?:属性)?(?:攻撃)?(?:の)?ダメージ\+([\d.]+)%/))) return {k:'elem', el:m[1], v:+m[2]};
+  return null;
+}
+function atkMults(){
+  const L = [];   // [名前, 効果]
+  const w = wepOf(S.wepSel); if (w) w[5].forEach(t=>{ const x = dmgFx(t); if (x) L.push([w[2], x]); });
+  ACC_ROWS.forEach(slot=>{ const a = accOf(S['acc_'+slot]); if (!a) return;
+    (a[6]||'').split('・').forEach(t=>{ const x = dmgFx(t); if (x) L.push([a[2], x]); });
+    if (isHeart(slot)) heartFx(slot).forEach(([tpl,v])=>{ const x = dmgFx(fmtAl(tpl, v)); if (x) L.push([`${a[2]}Lv${heartIdx()+1}`, x]); }); });
+  alEntries().forEach(([slot,nm,,v,txt])=>{ const x = dmgFx(txt); if (x) L.push([/^伝承:/.test(txt) ? `${nm}の伝承` : `${nm}の錬金/合成`, x]); });
+  // 職業の武器スキル：魔法戦士の片手剣スキル（独自仕様）は42・110・130Pで装備時全ての属性のダメージ+5%ずつ（DQ10大辞典【片手剣スキル】）。
+  // ツメ・弓、まものマスター・フォース・サバイバルには与ダメージ%の効果はない（攻撃力・きようさ・MPは職業の値に入っている）
+  if (memJob()==='mahosen' && w && w[1]==='片手剣') L.push(['片手剣スキル（魔法戦士）', {k:'elemAll', v:15}]);
+  const race = L.filter(([,x])=>x.k==='race' || x.k==='all');
+  const elAll = L.filter(([,x])=>x.k==='elemAll');
+  const el = Object.fromEntries(ELS.map(e=>[e, [...L.filter(([,x])=>x.k==='elem' && x.el===e), ...elAll]]));
+  return {race, el, elAll};
+}
+function atkTotalHTML(){
+  const sum = L => Math.round(L.reduce((a,[,x])=>a+x.v,0)*10)/10;
+  const det = L => L.length ? `<div class="totdet">${L.map(([n,x])=>`<span class="nw">${n} ${x.v}%${x.k==='all'?'（全攻撃）':x.k==='elemAll'?'（全属性）':x.only?`（${x.only}のみ）`:''}</span>`).join('＋<wbr>')}</div>` : '';
+  const card = (name, val, zero, extra='') => `<div class="totcard${zero?' zero':''}"><h4>${name}</h4><div class="totbig">${val}</div>${extra}</div>`;
+  const a = atkCalc(), mu = atkMults(), tk = atkFlat().skill.reduce((x,y)=>x+y[1],0);
+  const rv = sum(mu.race);
+  // 特技に効く分（呪文だけのものは除く）。特技だけのものがあれば、通常攻撃の値も添える
+  const els = ELS.filter(e=>mu.el[e].some(([,x])=>x.k==='elem' && x.only!=='呪文'));
+  const elCards = els.length ? els.map(e=>{ const L = mu.el[e].filter(([,x])=>x.only!=='呪文'), v = sum(L), n = sum(L.filter(([,x])=>!x.only));
+      return card(`${e}属性ダメージ`, '+'+v+'%'+(n!==v ? `<small>通常攻撃は+${n}%</small>` : ''), !v, det(L)); }).join('')
+    : card('属性ダメージ', mu.elAll.length ? '+'+sum(mu.elAll)+'%<small>全属性</small>' : '0%', !mu.elAll.length, det(mu.elAll));
+  return `<h3>設定の合計<small>バイキルトなどの状態変化は、わざごとに掛けます</small></h3>
+    <div class="totgrid">
+      ${card('攻撃力', fmt(a.total))}
+      ${card('種族ダメージ（ドラゴン系）', rv ? '+'+rv+'%' : '0%', !rv, det(mu.race))}
+      ${elCards}
+      ${card('特技のダメージ＋', tk ? '+'+fmt(tk) : '0', !tk)}
     </div>`;
 }
 // ===== 計算 =====
@@ -2147,16 +2511,338 @@ $('panels').innerHTML = `<div class="panel" id="panel_all" hidden>
         <span class="meta">${m.elem?ELEM[m.elem][0]+'属性・':''}${m.area}${m.note?'　'+m.note:''}</span></div>
       <div class="pgrid">
         <div id="res_${m.id}" aria-live="polite"></div>
-        <div class="pctrl"><h3>このわざに関係する設定</h3><p>上の「1 設定」と連動しています。</p>
+        <div class="pctrl"><h3>このわざに関係する設定</h3><p>上の「STEP 01 設定」と連動しています。</p>
           ${grpHTML(moveGroups(m))}
         </div>
       </div></div>`;
   }).join('');
 
+// 計算式のかっこ：内側から ( ) → { } → [ ] の順に変える（入れ子の深さで決める）。HTMLのタグの中には ( ) がない前提
+function brk(str){
+  const st = [], h = {}, pairs = [];
+  for (let i=0;i<str.length;i++){ const c = str[i];
+    if (c==='('){ st.push(i); h[i] = 0; }
+    else if (c===')' && st.length){ const o = st.pop(); pairs.push([o,i]); if (st.length) h[st[st.length-1]] = Math.max(h[st[st.length-1]], h[o]+1); } }
+  const out = str.split(''), B = [['(',')'],['{','}'],['[',']']];
+  pairs.forEach(([o,c])=>{ const b = B[h[o]%3]; out[o] = b[0]; out[c] = b[1]; });
+  return out.join('');
+}
+// ===== STEP 03 与ダメージ計算（今の人の職業の特技ごと） =====
+// 倍率・回数・属性：ドラクエ10極限攻略の各特技のページ。武器依存の特技は、このツールの武器に属性がないので無属性（ダークフォースで闇・土）
+const AK_MOVES = [
+  {id:'normal', name:'通常攻撃', mult:1, hits:1, jobs:['mamono','ranger','mahosen'], spec:'こうげき', cap:1999, cite:'kyoDmgCalc,kyo81,dicCap'},
+  {id:'beast', name:'ビーストファング', mult:1.9, hits:4, wep:['ツメ'], jobs:['mamono'], gk:'akGk_beast', spec:'通常攻撃の1.9倍×4回・単体・武器の属性', cite:'kyoBeast'},
+  {id:'liger', name:'ライガークラッシュ', mult:2.5, hits:5, wep:['ツメ'], jobs:['mamono','ranger'], gk:'akGk_liger', sz:'akGk_ligerS', spec:'通常攻撃の2.5倍×5回・単体・武器の属性', cite:'kyoLiger,dicLiger'},
+  {id:'god', name:'ゴッドスマッシュ', kind:'god', hits:1, elem:'光', wep:['ツメ'], jobs:['mamono','ranger'], gk:'akGk_god', spec:'（攻撃力−300）×2＋800（±15）・光属性・守備力無視（攻撃力300〜1000で変わる）', cite:'kyoGod'},
+  {id:'summer', name:'サマーソルトクロー', mult:3.5, hits:1, wep:['ツメ'], jobs:['ranger'], gk:'akGk_summer', spec:'通常攻撃の3.5倍・単体・武器の属性。当てると20秒間 被ダメージ上昇（+50%）', cite:'kyoRanger,kyoJob8'},
+  {id:'sun', name:'サンライトアロー', mult:0.95, hits:5, elem:'光', wep:['弓'], jobs:['mahosen'], gk:'akGk_sun', spec:'通常攻撃の0.95倍×5回・光属性・対象と周囲からランダム（全部当たったとき）', cite:'kyoSun'},
+  {id:'shine', name:'シャイニングボウ', mult:0.75, hits:6, elem:'光', wep:['弓'], jobs:['mahosen'], gk:'akGk_shine', spec:'通常攻撃の0.75倍×6回・光属性・対象と周囲からランダム（全部当たったとき）', cite:'kyoShine'},
+  {id:'fushi', name:'不死鳥天舞', mult:0.9, hits:4, wep:['片手剣'], jobs:['mahosen'], gk:'akGk_fushi', spec:'通常攻撃の0.9倍×4回・単体・武器の属性', cite:'kyoFushi'},
+  {id:'haya', name:'超はやぶさ斬り', mult:0.75, hits:4, wep:['片手剣'], jobs:['mahosen'], gk:'akGk_haya', spec:'通常攻撃の0.75倍×4回・単体・武器の属性', cite:'kyoHaya'},
+  // 必殺技：特技と同じく「特技のダメージ＋」「○属性の特技ダメージ+%」が乗る（下町豆腐屋ブログの検証）。守備力は使わない。アヌビスアタックはテンションが乗らない（同ブログ）
+  {id:'anubis', name:'アヌビスアタック', kind:'anubis', hissatsu:true, noTen:true, hits:3, jobs:['ranger'], gk:'akGk_anubis', stat:'dex', spec:'必殺技・きようさ800で1500±25×3回（きようさ1につき約+0.71）・当てると守備力ゼロ（12秒）', cite:'dicAnubis,luckyA,panHissatsu,panBelt'},
+  {id:'energy', name:'エナジーフォール', kind:'energy', hissatsu:true, hits:1, elem:'光', jobs:['mahosen'], gk:'akGk_energy', stat:'mp', cap:29999, spec:'必殺技・MPを全部使い、消費MP×10の光属性ダメージ', cite:'dicEnergy,luckyA,panHissatsu,panBelt'},
+];
+// 1撃のダメージ上限（DQ10大辞典【ダメージ上限】Ver.8.1）：CT特技は9999、通常攻撃は1999（竜の脈動は入れない）
+const akCap = m => m.cap || 9999;
+const DOG_HP = 200000;   // IKE・ゲーム乱舞：HP約20万
+// テンション：×倍率＋ボーナス（Lv50以上はボーナス10。極限攻略「ダメージ計算式」「ためる」）
+const TENSION = {'0':[1,0], '5':[1.5,10], '20':[2,20], '50':[2.5,30], '100':[3.5,40]};
+const AKB_OFF = {akBWar:'0'};
+const akG = (g, v) => g==='akBWar' ? (S.akBWar==='auto' ? memJob()==='mamono' : S.akBWar==='1') : String(S[g]||'')===v;
+// 特技ごとのバフ・デバフ：S['akO_特技id'] に {grp:値} を JSON で持つ（全体の設定と違うものだけ）。AK_M：いま計算している特技
+let AK_M = null;
+const akOv = id => { try { const o = JSON.parse(S['akO_'+id]||'{}'); return o && typeof o==='object' ? o : {}; } catch(e){ return {}; } };
+const akGEff = g => g==='akBWar' ? (akG(g,'1') ? '1' : '0') : String(S[g]||'');
+let AK_X = null;   // セクション02で計算しているとき {glob:全員の設定, ov:その人の特技だけの設定}
+const akOn = (g, v) => { if (AK_X){ const val = g in AK_X.ov ? AK_X.ov[g] : g in AK_X.glob ? AK_X.glob[g] : CTRL[g].def;
+    return g==='akBWar' ? (val==='auto' ? memJob()==='mamono' : val==='1') : String(val)===v; }
+  const o = AK_M ? akOv(AK_M) : {}; if (!(g in o)) return akG(g, v); return g==='akBWar' ? o[g]==='1' : o[g]===v; };
+const akOnFor = (id, g, v) => { const p = AK_M; AK_M = id; try { return akOn(g, v); } finally { AK_M = p; } };
+const akMoveOk = m => { const w = wepOf(S.wepSel); return !m.wep || !!(w && m.wep.includes(w[1])); };
+let akTab = 'all';
+AK_MOVES.forEach(m=>{ CTRL['akO_'+m.id] = {kind:'hid', def:''}; S['akO_'+m.id] = ''; });
+// セクション02（4人の合計）：tsAll＝全員にかかるバフ・デバフ {grp:値}、tsM_人＝{mv:特技, ten:テンション, ov:{grp:値}}（JSON文字列・共通の保存）
+['tsAll', 'tsM_mamo1', 'tsM_mamo2', 'tsM_mahosen', 'tsM_ranger'].forEach(k=>{ CTRL[k] = {kind:'hid', def:''}; S[k] = ''; });
+// 攻撃力：こうげき力上昇（バイキルトなど）は ちから・武器（★★★込み）・アクセの基礎攻撃力 にだけ掛かる。こうげき力加算はそのあと足す
+function akAtkNow(){
+  const c = atkCalc(), acc = ACC_ROWS.reduce((a,sl)=>a+accAtkOf(accOf(S['acc_'+sl])),0);
+  const up = S.akMode==='direct' ? c.total : c.parts.str + c.parts.wep + acc;
+  const r = akOn('akBAtk','2') ? 0.4 : akOn('akBAtk','1') ? 0.2 : 0;
+  const add = akOn('akBAdd','2') ? 80 : akOn('akBAdd','1') ? 40 : 0;
+  return {base:c.total, up, r, add, total:Math.floor(c.total + up*r) + add};
+}
+// 守備力：ルカニ（プレイヤーが使ったとき）1段階−30%・2段階−40%（DQ10大辞典【守備力低下】）。しゅび力ゼロは0
+function akDefNow(){
+  const d0 = num('dogDef'), z = akOn('akBDef','zero'), r = z ? 1 : akOn('akBDef','l2') ? 0.4 : akOn('akBDef','l1') ? 0.3 : 0;
+  return {d0, r, z, total:Math.floor(d0*(1-r))};
+}
+// 属性：（1＋装備の属性ダメージ）×（1−ドグドラの属性耐性＋耐性低下）（DQ10大辞典【属性】）。ダークフォース（闇＋土）は土で計算（ユーザー指定）
+function akElem(m){
+  const skill = m.id!=='normal', mu = atkMults(), res = num('dogRes')/100;
+  const all = akOn('akBAll','l') ? 1 : akOn('akBAll','s') ? 0.5 : 0;
+  const one = e => { const L = mu.el[e].filter(([,x])=>x.only!=='呪文' && (skill || !x.only));
+    const b = L.reduce((a,[,x])=>a+x.v,0)/100, down = e==='土' && akOn('akBEarth','1') ? 0.5 : 0;
+    const f = Math.max(0, 1 - res + all + down);
+    return {e, L, b, res, all, down, f, x:(1+b)*f}; };
+  if (m.elem) return one(m.elem);
+  if (akOn('akBDark','1')) return one('土');
+  return null;
+}
+function akCompute(m, noTen){ const p = AK_M; AK_M = m.id; try { return akCompute0(m, noTen); } finally { AK_M = p; } }
+function akCompute0(m, noTen){
+  const A = akAtkNow(), D = akDefNow(), normal = m.id==='normal', skill = !normal, w = wepOf(S.wepSel);
+  let ci = 0;
+  const chip = (t, i) => `<span class="chip c${i%6}">${t}</span>`;
+  const K = (name, v) => { const i = ci++; return [chip(name,i), chip(v,i)]; };
+  let sym, val, base;
+  const [aS,aV] = m.hissatsu ? ['',''] : K('攻撃力', A.total);
+  let lo, mid;   // ゆれの最小・中央（平均）。base は最大
+  if (m.kind==='anubis'){
+    // 大辞典【アヌビスアタック】：きようさ800で1500±25、きようさ1につき約0.71増える
+    const x = statCalc('dex').total, [xS,xV] = K('きようさ', x); mid = 1500 + 0.71*(x-800); base = mid + 25; lo = mid - 25;
+    sym = `(1500＋0.71×(${xS}−800)＋25)`; val = `(1500+0.71×(${xV}−800)+25)`;
+  } else if (m.kind==='energy'){
+    // 大辞典【エナジーフォール】：消費MP×10。ゆれはない
+    const x = statCalc('mp').total, [xS,xV] = K('最大MP', x); base = mid = lo = x*10;
+    sym = `${xS}×10`; val = `${xV}×10`;
+  } else if (m.kind==='god'){
+    const a = Math.min(1000, Math.max(300, A.total)); base = (a-300)*2 + 815; mid = base - 15; lo = base - 30;   // ±15
+    sym = `((${aS}−300)×2＋815)`; val = `((${a!==A.total ? a : aV}−300)×2+815)`;
+  } else {
+    const a = A.total, df = D.total, [dS,dV] = K('守備力', df);
+    // ゆれ：平均 ±（平均÷16＋1）。攻撃力が低いときは 0〜攻撃力÷16、さらに低いと0か1（極限攻略「ダメージ計算式」）
+    const av = a/2 - df/4;
+    const [l0, m0, h0] = a > df*4/7 ? [Math.max(0, av*15/16 - 1), av, av*17/16 + 1] : a > df/2 ? [0, a/32, a/16] : [0, 0.5, 1];
+    base = h0 * m.mult; mid = m0 * m.mult; lo = l0 * m.mult;
+    sym = `((${aS}÷2−${dS}÷4)×17/16＋1)`; val = `((${aV}÷2−${dV}÷4)×17/16+1)`;
+    if (m.mult!==1){ const [s1,v1] = K('わざ倍率', d(m.mult)); sym += '×'+s1; val += '×'+v1; }
+  }
+  const el = akElem(m);
+  const mul = (s1, v1) => { sym += '×'+s1; val += '×'+v1; };
+  // テンション：×倍率＋固定値。固定値は与ダメージ・被ダメージ・属性の計算の前に足す（大辞典【テンションアップ】）。1撃目だけ
+  const [ta, tb] = noTen || m.noTen ? [1,0] : TENSION[S.akTen] || [1,0];
+  if (ta!==1){ const [s1,v1] = K(`テンション${S.akTen}`, d(ta)), [s2,v2] = K('固定値', tb); sym = `(${sym}×${s1}＋${s2})`; val = `(${val}×${v1}+${v2})`; }
+  // 属性ダメージ（装備の属性強化）
+  if (el && el.b){ const [s1,v1] = K(`${el.e}属性ダメージ`, d(el.b)); mul(`(1＋${s1})`, `(1+${v1})`); }
+  // D：与ダメージ補正（系統特攻・全ての攻撃ダメージ・極意・ウォークライは足し算）
+  const mu = atkMults(), race = mu.race.reduce((a,[,x])=>a+x.v,0)/100, gk = m.gk ? num(m.gk)/100 : 0, war = akOn('akBWar','1') ? 0.5 : 0, sk = CTRL['akSk_'+m.id] ? num('akSk_'+m.id)/100 : 0;
+  { const t = [['ドラゴン系・全攻撃', race], [m.gk ? '極意' : '', gk], ['スキルの強化', sk], ['ウォークライ', war]].filter(x=>x[1]);
+    if (t.length){ const ks = t.map(([n,v])=>K(n, d(v))); mul(`(1＋${ks.length>1?'('+ks.map(k=>k[0]).join('＋')+')':ks[0][0]})`, `(1+${ks.length>1?'('+ks.map(k=>k[1]).join('+')+')':ks[0][1]})`); } }
+  // 通常攻撃だけの倍率：片手剣はドラゴン系に1.2倍、フォースは「こうげき」を1.1倍
+  let ex = 1;
+  if (normal && w && w[1]==='片手剣'){ ex *= 1.2; const [s1,v1] = K('片手剣×ドラゴン系', '1.2'); mul(s1, v1); }
+  if (normal && akOn('akBDark','1')){ ex *= 1.1; const [s1,v1] = K('フォース（こうげき）', '1.1'); mul(s1, v1); }
+  // E：被ダメージ上昇（サマーソルトクローなど）と災禍の陣は足し算
+  const hit = akOn('akBHit','1') ? 0.5 : 0, saika = akOn('akBSaika','1') ? 0.5 : 0;
+  { const t = [['被ダメージ上昇', hit], ['災禍の陣', saika]].filter(x=>x[1]);
+    if (t.length){ const ks = t.map(([n,v])=>K(n, d(v))); mul(`(1＋${ks.length>1?'('+ks.map(k=>k[0]).join('＋')+')':ks[0][0]})`, `(1+${ks.length>1?'('+ks.map(k=>k[1]).join('+')+')':ks[0][1]})`); } }
+  // F：ドグドラの属性耐性
+  if (el){ const [s1,v1] = K(`${el.e}耐性`, d(el.res)); let s2 = `1−${s1}`, v2 = `1−${v1}`;
+    if (el.all){ const [a1,b1] = K('全属性耐性低下', d(el.all)); s2 += '＋'+a1; v2 += '+'+b1; }
+    if (el.down){ const [a1,b1] = K('土耐性低下', d(el.down)); s2 += '＋'+a1; v2 += '+'+b1; }
+    mul(`(${s2})`, `(${v2})`); }
+  // G：特技のダメージ＋（1撃ごと）・真髄（テンション時・1撃目だけ）
+  const tk = skill ? atkFlat().skill.reduce((a,x)=>a+x[1],0) : 0, sz = m.sz && ta!==1 ? num(m.sz) : 0;
+  // テンションは1撃目だけに乗る（DQ10大辞典【ライガークラッシュ】「テンションの乗る初段」）
+  const core = (a, b, bs=base) => Math.floor((bs*a + b) * (1+(el?el.b:0)) * (1+race+gk+sk+war) * ex * (1+hit+saika) * (el?el.f:1) + 1e-6);
+  if (tk){ const [s1,v1] = K('特技のダメージ＋', tk); sym = `⌊${sym}⌋＋${s1}`; val = `⌊${val}⌋+${v1}`; }
+  let h1 = core(ta, tb) + tk + sz, hn = core(1, 0) + tk, cap = '';
+  { const c = akCap(m); if (h1 > c || hn > c) cap = `1撃のダメージの上限${fmt(c)}で止めています（${h1 > c ? `1撃目の計算値 ${fmt(h1)}` : ''}${h1 > c && hn > c && m.hits>1 ? '、' : ''}${hn > c && m.hits>1 ? `2撃目以降の計算値 ${fmt(hn)}` : ''}）。`; h1 = Math.min(h1, c); hn = Math.min(hn, c); }
+  const total = h1 + hn*(m.hits-1);
+  const vary = bs => { const c = akCap(m), x1 = Math.min(c, core(ta, tb, bs) + tk + sz), xn = Math.min(c, core(1, 0, bs) + tk); return {h1:x1, hn:xn, total:x1 + xn*(m.hits-1)}; };
+  return {m, A, D, el, hits:m.hits, hn, h1, sz, total, sym, val, cap, ta, lo:vary(lo), av:vary(mid)};
+}
+function akResHTML(r){
+  const pct = Math.round(r.total/DOG_HP*1000)/10, n = r.total ? Math.ceil(DOG_HP/r.total) : 0;
+  const why = [r.ta!==1 ? 'テンション' : '', r.sz ? `真髄+${r.sz}` : ''].filter(Boolean).join('・');
+  // 1回あたり×回数（テンション・真髄で1撃目が違うときは分ける）。rg：最小〜最大
+  const rg = (a, b) => a===b ? fmt(a) : `${fmt(a)}〜${fmt(b)}`;
+  const perOf = (lo, hi) => r.hits>1 ? (hi.h1!==hi.hn ? `<span class="nw">1撃目 ${rg(lo.h1, hi.h1)}（${why}）</span>＋<wbr><span class="nw">${rg(lo.hn, hi.hn)} × ${r.hits-1}回</span>` : `<span class="nw">1回あたり ${rg(lo.hn, hi.hn)} × ${r.hits}回</span>`) : '1回';
+  const per = perOf(r.lo, r), perAv = perOf(r.av, r.av);
+  const atkBd = `攻撃力 ${fmt(r.A.total)} ＝ <span class="nw">設定の攻撃力 ${fmt(r.A.base)}</span>${r.A.r ? `＋<wbr><span class="nw">（ちから・武器・アクセの攻撃力 ${fmt(r.A.up)}）</span><wbr><span class="nw">×${Math.round(r.A.r*100)}%</span><wbr><span class="nw">（こうげき力上昇）</span>` : ''}${r.A.add ? `＋<wbr><span class="nw">${r.A.add}（こうげき力加算）</span>` : ''}`;
+  const defBd = r.m.kind==='god' || r.m.hissatsu ? `守備力：${r.m.name}は守備力を使いません` : `守備力 ${fmt(r.D.total)} ＝ <span class="nw">ドグドラ ${fmt(r.D.d0)}</span>${r.D.z ? '（しゅび力ゼロ）' : r.D.r ? `<span class="nw">×（1−${Math.round(r.D.r*100)}%）（しゅび力低下）</span>` : ''}`;
+  const elBd = r.el ? `属性：${r.el.e}${r.m.elem ? '' : '（ダークフォース）'}${r.el.L.length ? `・装備の${r.el.e}属性ダメージ ${r.el.L.map(([n,x])=>`<span class="nw">${n} ${x.v}%</span>`).join('＋<wbr>')}` : ''}` : '属性：なし（武器に属性がないので無属性。属性耐性・耐性低下は効きません）';
+  return `<div class="stats"><div>
+      <div class="sub">合計ダメージ（最小〜最大・${r.hits}回）</div>
+      <div class="big">${r.lo.total===r.total ? fmt(r.total) : `<span class="nw">${fmt(r.lo.total)}〜</span><wbr><span class="nw">${fmt(r.total)}</span>`}<small> ダメージ</small></div>
+      <div class="sub">${per}</div>
+    </div><div>
+      <div class="sub">平均</div>
+      <div class="big">${fmt(r.av.total)}<small> ダメージ</small></div>
+      <div class="sub">${perAv}</div>
+    </div><div>
+      <div class="sub">ドグドラのHP（約${fmt(DOG_HP)}）に対して（最大）${cite('ikeDog,dogRanbu,toraDog')}</div>
+      <div class="big">${pct}<small> %</small></div>
+      <div class="sub">この特技だけなら${n}回で倒せる</div>
+    </div></div>
+    <div class="formula"><div class="fl">計算式（最大・${r.ta!==1 ? '1撃目' : '1回あたり'}）</div><div class="fsym">${brk(r.sym)}</div><div class="fval">${brk(r.val)}</div>${r.cap && r.h1===akCap(r.m) ? `<b>= ${fmt(r.h1)}</b>（上限）` : `<b>= ${fmt(r.h1 - r.sz)}</b>${r.sz ? `　＋ 真髄 ${r.sz} = <b>${fmt(r.h1)}</b>` : ''}`}${r.hits>1 ? (r.h1!==r.hn ? `<br>2撃目以降はテンションなしで ${fmt(r.hn)}　→　${fmt(r.h1)} ＋ ${fmt(r.hn)} × ${r.hits-1}回 = <b>${fmt(r.total)}</b>` : `　× ${r.hits}回 = <b>${fmt(r.total)}</b>`) : ''}
+      <div class="bd akbd">${r.m.hissatsu ? `攻撃力：${r.m.name}は攻撃力を使いません` : atkBd}<br>${defBd}<br>${elBd}</div>
+      <div class="fn">${r.cap}式は最大のとき。${r.m.kind==='god' ? '最小・平均は815を785・800にした値です。' : r.m.kind==='anubis' ? '最小・平均は＋25を−25・0にした値です。' : r.m.kind==='energy' ? 'ゆれはありません。' : '最小・平均は「×17/16＋1」を「×15/16−1」「×1」にした値です（ダメージのゆれ）。'}${r.m.noTen ? 'アヌビスアタックにはテンションが乗りません。' : ''}同じ色の帯どうしが対応しています。小数点以下は切り捨て。${r.hits>1 && r.ta!==1 ? 'テンションは1撃目だけに乗ります。' : ''}${r.m.sz && r.ta===1 ? '真髄はテンションがあるときだけ足します。' : ''}</div></div>`;
+}
+function akGroups(m){
+  const g = [];
+  if (m.gk) g.push(['宝珠', [m.gk, ...(m.sz ? [m.sz] : [])]]);
+  // 180・200スキルの「○○の強化」（DQ10大辞典の各スキルライン）。極意と同じく与ダメージ補正に足す（仮定）。攻撃力+10などの選択肢とは同時に取れない
+  if (CTRL['akSk_'+m.id]) g.push([`180・200スキル${cite(m.id==='beast' ? 'dicMamoMaster' : m.id==='fushi'||m.id==='haya' ? 'dicKatate' : m.id==='shine'||m.id==='sun' ? 'dicYumi' : 'dicTsume')}`, ['akSk_'+m.id]]);
+  if (!m.noTen) g.push(['テンション', ['akTen']]);
+  if (m.stat) g.push([m.kind==='anubis' ? 'きようさ' : '最大MP', [`#statnote:${m.kind==='anubis' ? 'dex' : 'mp'}`]]);
+  if (m.id!=='normal') g.push(['特技のダメージ＋', ['seiMu','akTkJob']]);
+  g.push([`ドグドラ${cite('ikeDog,toraDog')}`, [...(m.kind!=='god' && !m.hissatsu ? ['dogDef'] : []), 'dogRes']]);
+  return g;
+}
+// タブ（付箋）の色：一覧は紫、特技は順に色を変える
+const AK_TC = ['phys','spell','other','breath','mdef'];
+const akTc = id => id==='all' ? 'accent' : AK_TC[AK_MOVES.findIndex(m=>m.id===id) % AK_TC.length];
+$('akTabs').innerHTML = [{id:'all', name:'一覧'}, ...AK_MOVES].map(t=>`<button class="tab" role="tab" data-aktab="${t.id}" aria-selected="false" style="--tc:var(--${akTc(t.id)})">${t.name}<span class="dmg" id="akdmg_${t.id}"></span></button>`).join('');
+$('akPanels').innerHTML = `<div class="panel" id="akpanel_all" hidden><div class="phead"><h2>一覧</h2><span class="meta">今の設定で計算した結果です。行をクリックするとその特技のタブを開きます。</span></div><div id="akOverview"></div></div>`
+  + AK_MOVES.map(m=>`<div class="panel" id="akpanel_${m.id}" hidden>
+    <div class="phead"><h2>${m.name}${cite(m.cite)}</h2><span class="meta">${m.spec}・1撃の上限${fmt(akCap(m))}${cite('dicCap')}</span></div>
+    <div class="pgrid"><div id="res_ak_${m.id}" aria-live="polite"></div>
+      <div class="pctrl"><div class="akbfh"><h3>この特技のバフ・デバフ</h3><span id="akrs_${m.id}"></span></div><p>押すとこの特技だけ切り替わります。●は上の全体の設定と違うもの。</p><div class="akbf" id="akbf_${m.id}"></div><h3>この特技に関係する設定</h3><p>STEP 01の設定と連動しています。</p>${grpHTML(akGroups(m))}</div></div></div>`).join('');
+function akOpen(id){ akTab = id; $('akPanels').style.setProperty('--tc', `var(--${akTc(id)})`); keepHeight($('akPanels'), ()=>{
+  $('akTabs').querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected', b.dataset.aktab===id));
+  document.querySelectorAll('#akPanels > .panel').forEach(p=>p.hidden = p.id!=='akpanel_'+id); }); }
+$('akTabs').addEventListener('click', e=>{ const b = e.target.closest('.tab'); if (b) akOpen(b.dataset.aktab); });
+$('akPanels').addEventListener('click', e=>{ const tr = e.target.closest('tr[data-akopen]'); if (tr) akOpen(tr.dataset.akopen); });
+// バフ・デバフのバッジ：押すとオン／オフ（同じ種類の段階は1つだけ）
+document.addEventListener('click', e=>{ const b = e.target.closest('[data-ten]'); if (!b) return; S.akTen = b.dataset.ten; syncKey('akTen'); update(); });
+document.addEventListener('click', e=>{ const b = e.target.closest('[data-grp]'); if (!b) return;
+  if (b.dataset.ts) return;
+  const g = b.dataset.grp, v = b.dataset.val, id = b.dataset.akm;
+  if (!id){ S[g] = akG(g, v) ? (AKB_OFF[g] ?? '') : v; update(); return; }
+  const nv = akOnFor(id, g, v) ? (AKB_OFF[g] ?? '') : v, o = akOv(id);
+  if (nv===akGEff(g)) delete o[g]; else o[g] = nv;
+  S['akO_'+id] = Object.keys(o).length ? JSON.stringify(o) : ''; update(); });
+document.addEventListener('click', e=>{ const b = e.target.closest('[data-akreset]'); if (!b) return; S['akO_'+b.dataset.akreset] = ''; update(); });
+// オンになっているバフ・デバフのアイコン（一覧用）
+// 攻撃力・守備力を使わない特技（必殺技は両方、ゴッドスマッシュは守備力）では、それに関わるバフ・デバフを出さない
+const akRel = (id, b) => { const m = AK_MOVES.find(x=>x.id===id) || {};
+  if (m.hissatsu && ['akBAtk','akBAdd','akBDef'].includes(b.grp)) return false;
+  return !(m.kind==='god' && b.grp==='akBDef'); };
+const akIcons = id => window.BUFFS ? BUFFS.filter(b=>akRel(id, b) && akOnFor(id, b.grp, b.val)).map(b=>buffIcon(b)).join('') : '';
+// ===== セクション02：4人の合計 =====
+const tsJ = k => { try { const o = JSON.parse(S[k]||'{}'); return o && typeof o==='object' ? o : {}; } catch(e){ return {}; } };
+const tsSet = (k, o) => { S[k] = JSON.stringify(o); };
+// その人の装備・宝珠（STEP 01）に入れ替えて fn を実行し、元に戻す
+function akAs(id, fn){
+  const keep = Object.fromEntries(EQ_STATE.map(k=>[k, S[k]])), cp = curProfile;
+  if (id!==curProfile){ Object.assign(S, PROFILE_VALS[id]); curProfile = id; }
+  try { return fn(); } finally { Object.assign(S, keep); curProfile = cp; }
+}
+// 職業ごとに並べる特技（ユーザー指定の並び）。魔法戦士は武器で分ける。はじめからオンの特技
+const TS_LAYOUT = {mamono:[['', ['liger','beast','god']]], ranger:[['', ['summer','liger','god','anubis']]], mahosen:[['弓', ['shine','sun']], ['片手剣', ['fushi','haya']], ['必殺技', ['energy']]]};
+const TS_DEF_ON = ['liger','beast','summer'];
+// その人の特技ごとの設定：tsM_人＝{sel:{特技:{on, ten, ov:{grp:値}}}}
+const tsSel = id => { const o = tsJ('tsM_'+id); return o.sel && typeof o.sel==='object' ? o.sel : {}; };
+const tsEnt = (id, mv) => { const e = tsSel(id)[mv]; return e && typeof e==='object' ? e : {}; };
+const tsIsOn = (id, mv) => { const e = tsEnt(id, mv); return 'on' in e ? !!e.on : TS_DEF_ON.includes(mv); };
+const tsPut = (id, mv, f) => { const sel = tsSel(id), e = sel[mv] && typeof sel[mv]==='object' ? sel[mv] : {}; f(e); sel[mv] = e; tsSet('tsM_'+id, {sel}); };
+const tsMvs = mem => (TS_LAYOUT[mem.job] || []).flatMap(([,L])=>L);
+// その人のその特技（テンション・バフ・デバフ込み）で fn(特技, 今の武器で使えるか, 設定) を実行
+function tsRun(mem, mv, fn, ovOverride){
+  const st = tsEnt(mem.id, mv), m = AK_MOVES.find(x=>x.id===mv);
+  return akAs(mem.id, ()=>{ const ok = akMoveOk(m);
+    const px = AK_X, pt = S.akTen; AK_X = {glob:tsJ('tsAll'), ov:ovOverride || (st.ov && typeof st.ov==='object' ? st.ov : {})}; S.akTen = st.ten || '0';
+    try { return fn(m, ok, st); } finally { AK_X = px; S.akTen = pt; } });
+}
+const tsAt = s => s.split(':');
+document.addEventListener('change', e=>{ const t = e.target, on = t.dataset.tson, tn = t.dataset.tsten; if (!on && !tn) return;
+  const [id, mv] = tsAt(on || tn); tsPut(id, mv, x=>{ if (on) x.on = t.checked; else x.ten = t.value; }); update(); });
+document.addEventListener('click', e=>{
+  const b = e.target.closest('[data-ts]'); if (!b) return;
+  const g = b.dataset.grp, v = b.dataset.val, who = b.dataset.ts;
+  if (who==='all'){ const a = tsJ('tsAll'), p = AK_X; AK_X = {glob:a, ov:{}}; let on; try { on = akOn(g, v); } finally { AK_X = p; }
+    a[g] = on ? (AKB_OFF[g] ?? '') : v; tsSet('tsAll', a); update(); return; }
+  if (who.startsWith('reset:')){ const [id, mv] = tsAt(who.slice(6)); tsPut(id, mv, x=>{ delete x.ov; }); update(); return; }
+  const [id, mv] = tsAt(who), mem = MEMBERS.find(x=>x.id===id);
+  const on = tsRun(mem, mv, ()=>akOn(g, v)), nv = on ? (AKB_OFF[g] ?? '') : v;
+  const gEff = tsRun(mem, mv, ()=>g==='akBWar' ? (akOn(g, '1') ? '1' : '0') : String(g in AK_X.glob ? AK_X.glob[g] : CTRL[g].def), {});
+  tsPut(id, mv, x=>{ const ov = x.ov && typeof x.ov==='object' ? x.ov : {}; if (nv===gEff) delete ov[g]; else ov[g] = nv; x.ov = ov; }); update(); });
+function tsUpdate(){
+  if (!window.BUFFS) return;
+  const tenSel = (key, m, st) => m.noTen ? '<span class="tsnt">テンションは乗らない</span>' : `<select data-tsten="${key}" aria-label="テンション">${CTRL.akTen.opts.map(([v])=>`<option value="${v}"${String(st.ten||'0')===v ? ' selected' : ''}>${v==='0' ? 'テンションなし' : 'テンション '+v}</option>`).join('')}</select>`;
+  // 1. 使う特技（チェックでオン／オフ）
+  $('tsMoves').innerHTML = MEMBERS.map(mem=>{ const w = akAs(mem.id, ()=>wepOf(S.wepSel));
+    const grp = (TS_LAYOUT[mem.job] || []).map(([gn, L])=>`<div class="tsg">${gn ? `<div class="tsgh">${gn}</div>` : ''}${L.map(mv=>tsRun(mem, mv, (m, ok, st)=>{ const on = tsIsOn(mem.id, mv), key = mem.id+':'+mv;
+        return `<div class="tsl${on ? ' on' : ''}"><label><input type="checkbox" data-tson="${key}"${on ? ' checked' : ''}><span>${m.name}</span></label>${on ? tenSel(key, m, st) : ''}${on && !ok ? `<small class="tsng">${m.wep.join('・')}を装備していないので数えません</small>` : ''}</div>`; })).join('')}</div>`).join('');
+    return `<div class="tsm" style="--mc:var(${mem.col})"><b>${mem.name}<small>${w ? w[2] : '武器未選択'}</small></b><div class="tsgs">${grp}</div></div>`; }).join('');
+  // 2. 全員にかかるバフ・デバフ
+  { const a = tsJ('tsAll'), p = AK_X; AK_X = {glob:a, ov:{}};
+    try { $('tsBuffs').innerHTML = BUFFS.map(b=>buffBadge(b, akOn(b.grp, b.val)).replace('data-grp=', 'data-ts="all" data-grp=')).join(''); } finally { AK_X = p; } }
+  // 3. 特技ごとのバフ・デバフと合計
+  const rg = (x, y) => x===y ? fmt(x) : `<span class="nw">${fmt(x)}〜</span><wbr><span class="nw">${fmt(y)}</span>`;
+  let lo = 0, hi = 0, av = 0;
+  const rows = MEMBERS.map(mem=>{ let slo = 0, shi = 0, sav = 0, cnt = 0, first = true;
+    const rr = tsMvs(mem).filter(mv=>tsIsOn(mem.id, mv)).map(mv=>tsRun(mem, mv, (m, ok, st)=>{
+      const tn = st.ten && st.ten!=='0' && !m.noTen ? `<small class="tsten">テンション${st.ten}</small>` : '';
+      const who = `<td class="mvn">${m.name}${tn}</td>`;
+      if (!ok) return `<tr>${who}<td colspan="3" class="sub">${m.wep.join('・')}を装備していないので数えません</td></tr>`;
+      const r = akCompute(m), ov = st.ov && typeof st.ov==='object' ? st.ov : {};
+      slo += r.lo.total; shi += r.total; sav += r.av.total; cnt++;
+      const icons = BUFFS.filter(b=>akRel(m.id, b)).map(b=>buffBadge(b, akOn(b.grp, b.val), 'x', b.grp in ov).replace('data-akm="x"', `data-ts="${mem.id}:${mv}"`)).join('');
+      const rs = Object.keys(ov).length ? `<button type="button" class="akreset" data-ts="reset:${mem.id}:${mv}">全員の設定に戻す</button>` : '';
+      return `<tr>${who}<td><div class="akbf">${icons}</div>${rs}</td><td class="tot">${rg(r.lo.total, r.total)}</td><td class="tot">${fmt(r.av.total)}</td></tr>`; }));
+    lo += slo; hi += shi; av += sav;
+    const head = `<tr class="tsmem" style="--mc:var(${mem.col})"><td colspan="4">${mem.name}${rr.length ? '' : '<small>特技を使わない</small>'}</td></tr>`;
+    return `<tbody class="tsgrp" style="--mc:var(${mem.col})">${head}${rr.join('')}${cnt>1 ? `<tr class="tssub"><td class="mvn">小計</td><td></td><td class="tot">${rg(slo, shi)}</td><td class="tot">${fmt(sav)}</td></tr>` : ''}</tbody>`; }).join('');
+  const pc = t => `${Math.round(t/DOG_HP*1000)/10}%`, n = av ? Math.ceil(DOG_HP/av) : 0;
+  $('tsTable').innerHTML = `<div style="overflow-x:auto"><table class="res tstbl"><thead><tr><th>人・特技</th><th>バフ・デバフ</th><th>最小〜最大</th><th>平均</th></tr></thead>${rows}
+    <tfoot><tr><td>4人の合計</td><td></td><td class="tot">${rg(lo, hi)}</td><td class="tot">${fmt(av)}</td></tr></tfoot></table></div>
+    <div class="tssum">ドグドラのHP（約${fmt(DOG_HP)}）に対して 平均 <b>${pc(av)}</b>（最大 ${pc(hi)}）。${av ? (av >= DOG_HP ? '1巡で倒しきれます（平均）' : `平均なら<b>${n}</b>巡で倒せます`) : ''}</div>`;
+}
+function akUpdate(){
+  { const L = lkCalc(), pc = x => (x*100).toFixed(1) + '%';
+    $('lkSum').innerHTML = L.fr.length ? `<span>攻撃時ルカニが入る確率<small>（通常攻撃1回）</small></span><span>魔導の書なし <b>${pc(L.a.atk)}</b></span><span>魔導の書あり <b>${pc(L.b.atk)}</b></span>` : '<span>装備に「攻撃時○%でルカニ」がありません</span>'; }
+  const j = memJob(), mem = (()=>{ try { return MEMBERS.find(x=>x.id===curProfile) || null; } catch(e){ return null; } })(), w = wepOf(S.wepSel);
+  $('akWho').innerHTML = mem ? `STEP 01で選んでいる人：<b>${mem.name}</b>（武器：${w ? `${w[2]}（${w[1]}）` : 'なし'}）。ほかの人はSTEP 01のタブで切り替えます` : '';
+  if (window.BUFFS){ $('buffList').innerHTML = BUFFS.map(b=>buffBadge(b, akG(b.grp, b.val))).join('');
+    AK_MOVES.forEach(m=>{ const o = akOv(m.id);
+      $('akbf_'+m.id).innerHTML = BUFFS.filter(b=>akRel(m.id, b)).map(b=>buffBadge(b, akOnFor(m.id, b.grp, b.val), m.id, b.grp in o)).join('');
+      $('akrs_'+m.id).innerHTML = Object.keys(o).length ? `<button type="button" class="akreset" data-akreset="${m.id}">全体の設定に戻す</button>` : ''; }); }
+  $('tenBtns').innerHTML = CTRL.akTen.opts.map(([v])=>{ const t = TENSION[v];
+    return `<button type="button" class="tenbtn" data-ten="${v}" aria-pressed="${String(S.akTen)===v}"><b>${v==='0' ? 'なし' : v}</b><small>${v==='0' ? '×1' : `×${t[0]}＋${t[1]}`}</small></button>`; }).join('');
+  const ms = AK_MOVES.filter(m=>m.jobs.includes(j)), rs = [];
+  AK_MOVES.forEach(m=>{
+    const tab = $('akTabs').querySelector(`[data-aktab="${m.id}"]`), show = ms.includes(m);
+    tab.hidden = !show; if (!show) return;
+    if (!akMoveOk(m)){ $('res_ak_'+m.id).innerHTML = `<div class="aknone">${m.wep.join('・')}を装備しているときの特技です（今の武器：${w ? w[1] : 'なし'}）。STEP 01の「装備」で武器を選んでください</div>`; $('akdmg_'+m.id).textContent = '—'; return; }
+    const r = akCompute(m); rs.push(r);
+    $('res_ak_'+m.id).innerHTML = akResHTML(r);
+    $('akdmg_'+m.id).textContent = fmt(r.total) + (r.hits>1 && r.h1===r.hn ? `（${fmt(r.hn)}×${r.hits}）` : '');
+  });
+  $('akdmg_all').textContent = '';
+  // 一覧：通常攻撃は出さない。連続で使う組み合わせも出す（テンションは最初の特技にだけ乗る）
+  const pc = t => `${Math.round(t/DOG_HP*1000)/10}%`;
+  const row = r => `<tr data-akopen="${r.m.id}"><td>${r.m.name}<br><span class="bics">${akIcons(r.m.id)}</span></td><td>×${r.hits}</td><td class="tot"><span class="nw">${fmt(r.lo.total)}〜</span><wbr><span class="nw">${fmt(r.total)}</span></td><td class="tot">${fmt(r.av.total)}</td><td>${pc(r.av.total)}<small>（最大 ${pc(r.total)}）</small></td></tr>`;
+  const AK_COMBOS = [['liger','beast'], ['liger','beast','god']];   // 使う順（ユーザー指定）。テンションは最初のライガークラッシュに乗る
+  const combos = AK_COMBOS.map(ids=>{ const L = ids.map((id,i)=>{ const r = rs.find(x=>x.m.id===id); return r && (i ? akCompute(r.m, true) : r); });
+      return L.every(Boolean) ? L : null; }).filter(Boolean);
+  const crow = L => { const sm = f => L.reduce((a,r)=>a+f(r),0), t = sm(r=>r.total), av = sm(r=>r.av.total);
+    const ic = L.map(r=>akIcons(r.m.id)), ics = ic.every(x=>x===ic[0]) ? ic[0] : ic.join('<span class="sep">｜</span>');
+    return `<tr class="combo"><td>${L.map(r=>`<span class="nw">${r.m.name}</span>`).join('＋<wbr>')}<br><span class="bics">${ics}</span></td><td>—</td><td class="tot"><span class="nw">${fmt(sm(r=>r.lo.total))}〜</span><wbr><span class="nw">${fmt(t)}</span></td><td class="tot">${fmt(av)}</td><td>${pc(av)}<small>（最大 ${pc(t)}）</small></td></tr>`; };
+  const rs1 = rs.filter(r=>r.m.id!=='normal');
+  $('akOverview').innerHTML = rs1.length ? `<div style="overflow-x:auto"><table class="res"><thead><tr><th>特技</th><th>回数</th><th>最小〜最大</th><th>平均</th><th>HPの割合（平均）</th></tr></thead><tbody>${rs1.map(row).join('')}${combos.map(crow).join('')}</tbody></table></div><div class="sub">アイコンはその特技でオンにしているバフ・デバフ（組み合わせで違うときは｜で区切ります）。最小・平均・最大はダメージのゆれによる合計ダメージ。ランダムに当たる特技は全部当たったときの値です${combos.length && S.akTen!=='0' ? '。組み合わせでは、テンションは最初の特技にだけ乗せています' : ''}</div>` : '<div class="aknone">今の武器で使える特技がありません</div>';
+  const tabOk = id => id==='all' || ms.includes(AK_MOVES.find(m=>m.id===id));
+  if (!tabOk(akTab)) akTab = 'all';
+  $('akPanels').style.setProperty('--tc', `var(--${akTc(akTab)})`);
+  $('akTabs').querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected', b.dataset.aktab===akTab));
+  document.querySelectorAll('#akPanels > .panel').forEach(p=>p.hidden = p.id!=='akpanel_'+akTab);
+  tsUpdate();
+}
+
 Object.keys(CTRL).forEach(k=>syncKey(k));
 
 // タブを切り替えて中身が短くなると、ページの高さが縮んで画面が勝手に上へ動いてしまう。
 // 切り替える前の高さを下限（min-height）として残し、スクロール位置が動かないようにする
+// STEP 01・02 をたたむ（たたんだ状態はこのブラウザに覚えておく）
+function setFold(id, on){ const b = document.querySelector(`[data-fold="${id}"]`); if (!b) return;
+  b.closest('section').classList.toggle('folded', on); b.setAttribute('aria-expanded', String(!on)); b.setAttribute('aria-label', b.getAttribute('aria-label').replace(/を(たたむ|ひらく)$/, on ? 'をひらく' : 'をたたむ'));
+  try{ localStorage.setItem('dogdora-fold-'+id, on ? '1' : ''); }catch(e){} }
+document.querySelectorAll('[data-fold]').forEach(b=>{ let on = false; try{ on = localStorage.getItem('dogdora-fold-'+b.dataset.fold)==='1'; }catch(e){} setFold(b.dataset.fold, on); });
+// 被ダメージ計算をたたんでいるときにわざのタブを押したら、ひらく
+document.addEventListener('click', e=>{ if (e.target.closest('#tabs .tab')) setFold('defcalc', false); });
+document.addEventListener('click', e=>{ const h = e.target.closest('.pagettl'), b = e.target.closest('[data-fold]') || (h && !e.target.closest('a,sup') && h.querySelector('[data-fold]')); if (b) setFold(b.dataset.fold, b.getAttribute('aria-expanded')==='true'); });
 function keepHeight(el, fn){ const h = el.offsetHeight; fn(); el.style.minHeight = Math.max(h, parseFloat(el.style.minHeight)||0) + 'px'; }
 function openTab(id){ keepHeight($('panels'), ()=>openTab0(id)); }
 function openTab0(id){
@@ -2196,6 +2882,12 @@ function update(){
   }
   document.querySelectorAll('[data-flatsum]').forEach(o=>o.innerHTML = flatSumHTML());
   $('defTotal').innerHTML = defTotalHTML();
+  { const w = wepOf(S.wepSel), add = w && w[3]>=115 ? 1 : 0;
+    document.querySelectorAll('[data-key="akKisho"]').forEach(sel=>{ [...sel.options].forEach((o,l)=>{ o.textContent = l ? `Lv${l}（攻+${KISHO_ATK[l]+add}）` : 'なし'; }); sel.value = S.akKisho||'0'; sel.disabled = !w; }); }
+  $('atkTotal').innerHTML = atkTotalHTML();
+  { const j = memJob(); Object.keys(CTRL).filter(k=>k.startsWith('akSk_')).forEach(k=>{ const m = AK_MOVES.find(x=>'akSk_'+x.id===k);
+      document.querySelectorAll(`#settingsAtk [data-wrap="${k}"]`).forEach(w=>w.classList.toggle('hide', !!j && !!m && !m.jobs.includes(j))); }); }
+  { const j = memJob(); GOKUI.forEach(g=>document.querySelectorAll(`[data-wrap="${g[0]}"]`).forEach(w=>w.classList.toggle('hide', !!j && !g[5].includes(j)))); }
   document.querySelectorAll('[data-atksum]').forEach(o=>{ const a = atkFlat(), f = L => L.length ? `+${L.reduce((x,y)=>x+y[1],0)}（${L.map(([n,v])=>n+' '+v).join('・')}）` : '+0';
     o.innerHTML = `特技のダメージ ${f(a.skill)}<br>呪文のダメージ ${f(a.spell)}`; });
   document.querySelectorAll('[data-lukani]').forEach(o=>o.innerHTML = lukaniHTML());
@@ -2209,8 +2901,15 @@ function update(){
       ? `武器 ${c.w[2]}（攻撃力 ${c.w[4].atk||0}）・${c.cat}スキル 150Pまで +${c.line}${c.line ? '' : '（この職業はこの武器のスキルがありません）'}（できのよさは★★★で計算）<br>防具のセット効果・アクセ・錬金・合成の攻撃力は「装備」の欄から自動で足します`
       : '武器が選ばれていません（「装備」の欄で選ぶ）');
     document.querySelectorAll('[data-akout]').forEach(o=>o.innerHTML = atkOutHTML()); }
+  document.querySelectorAll('[data-tkout]').forEach(o=>o.innerHTML = tkOutHTML());
+  document.querySelectorAll('[data-statout]').forEach(o=>o.innerHTML = o.classList.contains('statnote') ? statOutHTML(o.dataset.statout) + '<div class="sub">STEP 01の「必殺技のステータス」で変えられます</div>' : statOutHTML(o.dataset.statout));
+  { const j = memJob(), sh = {'#h:きようさ（アヌビスアタック）':j==='ranger', '#h:最大MP（エナジーフォール）':j==='mahosen'};
+    Object.entries(sh).forEach(([k,on])=>document.querySelectorAll(`[data-wrap="${k}"]`).forEach(w=>w.classList.toggle('hide', !on)));
+    document.querySelectorAll('[data-statout="dex"]').forEach(o=>{ const b = o.closest('.sbox'); if (b) b.classList.toggle('hide', j!=='ranger' && j!=='mahosen'); }); }
   document.querySelectorAll('[data-lkside]').forEach(o=>o.innerHTML = lkSideHTML());
   document.querySelectorAll('[data-wrap="#lkwhip"]').forEach(w=>w.classList.toggle('hide', !lkWhip()));
+  document.querySelectorAll('[data-lkeqname]').forEach(o=>{ const slot = o.dataset.lkeqname, x = slot==='weapon' ? wepOf(S.wepSel) : slot==='arm' ? setOf(S.eqp_3) : slot==='bodyU' ? setOf(S.eqp_1) : accOf(S.acc_waist);
+    o.innerHTML = (x ? `<span class="nw">${x[2]}</span>` : '<span class="nw">未選択</span><small>STEP 01で選ぶ</small>') + (x && slot==='weapon' && lkWhip() ? '<small>ムチの欄を使うので、武器の錬金は数えません</small>' : ''); });
   document.querySelectorAll('[data-wrap="lkClaw"]').forEach(w=>{ w.classList.toggle('hide', !isRanger()); w.classList.toggle('off', !lkClawOn() && !!S.lkClaw); });
   document.querySelectorAll('[data-psum]').forEach(o=>o.textContent = `パッシブの合計：みのまもり +${S.mmSkill}`);
   const direct = S.defMode==='direct';
@@ -2234,20 +2933,64 @@ function update(){
     const total = r.per*r.hits;
     const range = (r.m.type==='phys' && r.lo!==r.hi) ? `<div class="sub">1回の幅：${fmt(r.lo)}〜${fmt(r.hi)}（最大の${fmt(r.hi)}で計算）</div>` : '';
     $('res_'+r.m.id).innerHTML = `
+      <div class="stats"><div>
       <div class="sub">最大の合計ダメージ（${r.hits}回）</div>
       <div class="big">${fmt(total)}<small> ダメージ</small></div>
       <div class="sub">1回あたり ${fmt(r.per)} × ${r.hits}回</div>
+      </div>${surviveHTML(r)}</div>
       ${range}
-      ${r.m.type==='phys' ? (()=>{ const dc = defCalc(); return `<div class="formula def"><div class="fl">守備力の計算</div><div class="fsym">${dc.sym}</div><div class="fval">${dc.val}</div><b>= ${fmt(dc.final)}</b><div class="bd">${dc.bd}</div></div>`; })() : ''}
-      <div class="formula"><div class="fl">計算式（1回あたり）</div><div class="fsym">${r.sym}</div><div class="fval">${r.val}</div><b>= ${fmt(r.per)}</b>${r.hits>1?`　× ${r.hits}回 = <b>${fmt(total)}</b>`:''}<div class="fn">${r.note}同じ色の帯どうしが対応しています。小数点以下は切り捨て。</div></div>`;
+      ${r.m.type==='phys' ? (()=>{ const dc = defCalc(); return `<div class="formula def"><div class="fl">守備力の計算</div><div class="fsym">${brk(dc.sym)}</div><div class="fval">${brk(dc.val)}</div><b>= ${fmt(dc.final)}</b><div class="bd">${dc.bd}</div></div>`; })() : ''}
+      <div class="formula"><div class="fl">計算式（1回あたり）</div><div class="fsym">${brk(r.sym)}</div><div class="fval">${brk(r.val)}</div><b>= ${fmt(r.per)}</b>${r.hits>1?`　× ${r.hits}回 = <b>${fmt(total)}</b>`:''}<div class="fn">${r.note}同じ色の帯どうしが対応しています。小数点以下は切り捨て。</div></div>`;
     $('tabdmg_'+r.m.id).textContent = fmt(total) + (r.hits>1 ? `（${fmt(r.per)}×${r.hits}）` : '');
   });
   $('overview').innerHTML = `<div style="overflow-x:auto"><table class="res">
-    <thead><tr><th>わざ</th><th>1回（最大）</th><th>回数</th><th>合計</th></tr></thead>
+    <thead><tr><th>わざ</th><th>1回（最大）</th><th>回数</th><th>合計</th><th>耐えるHP</th><th>祝福あり</th></tr></thead>
     <tbody>${rs.map(r=>{ const [t,c] = TYPE[r.m.type];
-      return `<tr data-open="${r.m.id}"><td><span class="type ${c}">${t}</span>${r.m.name}</td><td>${fmt(r.per)}</td><td>×${r.hits}</td><td class="tot">${fmt(r.per*r.hits)}</td></tr>`; }).join('')}</tbody></table></div>`;
+      return `<tr data-open="${r.m.id}"><td><span class="type ${c}">${t}</span>${r.m.name}</td><td>${fmt(r.per)}</td><td>×${r.hits}</td><td class="tot">${fmt(r.per*r.hits)}</td><td>${fmt(needHp(r).none)}</td><td>${fmt(needHp(r).bless)}</td></tr>`; }).join('')}</tbody></table></div><div class="sub">耐えるHP＝全部当たっても生き残るのに必要な最大HP。祝福あり＝女神の祝福（HP2以上なら一度だけHP1で踏みとどまる）が掛かっているとき${cite('dicMegami')}</div>`;
+  // 与ダメージのページ：装備表の「基礎攻撃」（武器は★★★込み・アクセは本体の攻撃力）
+  { const w = wepOf(S.wepSel), wa = w ? (w[4].atk||0) + (WEP_STAR_ATK[w[1]]||0) : 0;
+    document.querySelectorAll('[data-eqatk]').forEach(o=>{ const slot = o.dataset.eqatk;
+      const v = slot==='weapon' ? wa : ACC_ROWS.includes(slot) ? accAtkOf(accOf(S['acc_'+slot])) : 0;
+      o.textContent = v ? fmt(v) : '—'; o.classList.toggle('zero', !v); }); }
+  akUpdate();
   fillCites();
+  fitSoon();
   afterUpdate();
+}
+// 選択欄の文字が見切れないように：欄の幅に収まらないときは、グリッドの横のマスをまたいで広げる
+function fitSelects(){
+  document.querySelectorAll('main .field > select').forEach(sel=>{
+    const f = sel.parentElement, g = f.parentElement;
+    if (!f.offsetParent || getComputedStyle(g).display!=='grid') return;
+    f.style.gridColumn = '';
+    const cols = getComputedStyle(g).gridTemplateColumns.split(' ').map(parseFloat).filter(x=>x>0);
+    if (cols.length<2) return;
+    const old = sel.style.width; sel.style.width = 'max-content'; sel.style.maxWidth = 'none';
+    const need = sel.getBoundingClientRect().width; sel.style.width = old; sel.style.maxWidth = '';
+    const gap = parseFloat(getComputedStyle(g).columnGap)||0, w = cols[0];
+    if (need <= f.getBoundingClientRect().width + 0.5) return;
+    const n = Math.min(cols.length, Math.ceil((need + gap) / (w + gap)));
+    if (n>1) f.style.gridColumn = `span ${n}`;
+  });
+}
+var fitT; function fitSoon(){ clearTimeout(fitT); fitT = setTimeout(fitSelects, 80); }
+['resize','hashchange','load'].forEach(ev=>window.addEventListener(ev, fitSoon));
+document.addEventListener('click', fitSoon); document.addEventListener('change', fitSoon);
+if (document.fonts) document.fonts.ready.then(fitSoon);
+// 耐えるのに必要な最大HP。女神の祝福：HP2以上で致死ダメージを受けると一度だけHP1で踏みとどまる（DQ10大辞典【女神の祝福】）
+// → 最後の1撃で致死になれば耐える。そのためには最後の1撃の前に HP2 以上残っていればよい：(回数−1)×1回 ＋ 2
+function needHp(r){ return {none: r.per*r.hits + 1, bless: r.per*(r.hits-1) + 2}; }
+function surviveHTML(r){
+  const h = needHp(r);
+  return `<div>
+      <div class="sub">耐えるのに必要な最大HP（女神の祝福なし）</div>
+      <div class="big">${fmt(h.none)}<small> HP</small></div>
+      <div class="sub">${fmt(r.per)} × ${r.hits}回 ＋ 1</div>
+    </div><div>
+      <div class="sub">耐えるのに必要な最大HP（女神の祝福あり）${cite('dicMegami')}</div>
+      <div class="big">${fmt(h.bless)}<small> HP</small></div>
+      <div class="sub">${r.hits>1 ? `${fmt(r.per)} × ${r.hits-1}回 ＋ 2<span class="nw">（最後の1撃の前にHP2を残す）</span>` : 'HP2あればHP1で踏みとどまる'}</div>
+    </div>`;
 }
 $('overview').addEventListener('click', e=>{ const tr = e.target.closest('tr[data-open]'); if (tr) openTab(tr.dataset.open); });
 
@@ -2294,6 +3037,17 @@ document.addEventListener('click', e=>{ const b = e.target.closest('[data-albulk
     const best = (denList(slot, k)||[]).filter(o=>o[1]===sel.value).sort((x,y)=>y[2]-x[2])[0];
     const ds = document.querySelector(`[data-key="den_${slot}_${k}"]`);
     if (best && ds){ ds.value = best[0]; ds.dispatchEvent(new Event('change', {bubbles:true})); } }); });
+// まとめてリセット：その部位の効果（と伝承）をすべて空にする
+document.addEventListener('click', e=>{ const b = e.target.closest('[data-alreset]'); if (!b) return;
+  const slot = b.dataset.alreset, fire = (el, ev) => el && el.dispatchEvent(new Event(ev, {bubbles:true}));
+  for (let n=0;n<alMax(slot);n++){
+    const sel = document.querySelector(`[data-key="al_${slot}_${n}_t"]`), inp = document.querySelector(`[data-key="al_${slot}_${n}_v"]`);
+    if (sel && sel.value){ sel.value = ''; fire(sel, 'change'); }
+    if (inp && inp.value!=='' && +inp.value!==0){ inp.value = 0; fire(inp, 'input'); }
+  }
+  [0,1].forEach(k=>{ const ds = document.querySelector(`[data-key="den_${slot}_${k}"]`); if (ds && ds.value){ ds.value = ''; fire(ds, 'change'); } });
+  const bs = document.querySelector(`[data-albulk="${slot}"]`); if (bs) bs.value = '';
+  update(); });
 // アクセの攻撃力・守備力：Max も手入力も、その行だけ変える。相手側は、枠が足りず付けられない分だけ下げる（上げることはしない）
 function accBalance(slot, n){
   if (!atkDefOnly(slot) || n>ONE_DEF || !accRowList(slot, 1-n).length || !accRowList(slot, n).length) return;
@@ -2520,7 +3274,7 @@ function loadProfile(){
     $('memPanel').style.setProperty('--tc', `var(${m.col})`);
     $('memNote').textContent = eqNote(m);
     $('lkPanel').style.setProperty('--tc', `var(${m.col})`);
-    $('lkWho').textContent = `${m.name}の装備で計算しています（人の切り替えは1の設定のタブで）`;
+    $('lkWho').textContent = `${m.name}の装備で計算しています（人の切り替えはSTEP 01の設定のタブで）`;
   }
   drawJobTabs();
   drawMemTabs();
@@ -2583,7 +3337,7 @@ function saveAll(){
   const profiles = {...PROFILE_VALS, [curProfile]: capture()};
   const jobs = {...JOB_VALS, [tabOfWho(defWho)]: jobNow()};
   const shared = Object.fromEntries(SHARED_KEYS.map(k=>[k, S[k]]));
-  try{ localStorage.setItem(SAVE_KEY, JSON.stringify({v:1, slots3:1, sk180on:1, seedmax:1, akkin0:1, member:curMember, defWho, lastMamo, jobs, shared, profiles})); saveStatus('自動保存済み'); }
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify({v:1, slots3:1, sk180on:1, seedmax:1, akkin0:1, gks0:1, res10:1, member:curMember, defWho, lastMamo, jobs, shared, profiles})); saveStatus('自動保存済み'); }
   catch(e){ saveStatus('保存できません', true); }
 }
 // 壊れた値・型の違う値は初期値に
@@ -2593,7 +3347,7 @@ function cleanVal(k, v){
   if (c.kind==='chk') return typeof v==='boolean' ? v : c.def;
   if (typeof v!=='string' && typeof v!=='number') return c.def;
   if (c.kind==='num') return v==='' || isFinite(v) ? v : c.def;
-  return String(v).length<=100 ? v : c.def;
+  return String(v).length<=(/^(akO_|ts)/.test(k) ? 3000 : 100) ? v : c.def;
 }
 // 選択肢にない値（なくなった装備など）は初期値に。錬金・合成・伝承の選択肢は refreshAl が見る
 function dropUnknown(keys){
@@ -2639,6 +3393,10 @@ function applySave(raw, first){
   if (data.profiles && !data.slots3) unpackOld(PROFILE_VALS.def);
   // akkin0 のない保存は、禁断のちからアップ（ちから）の初期値がLv6だったころのもの。一度だけLv0にする
   if (!data.akkin0) for (const id in PROFILE_VALS) PROFILE_VALS[id].akKindan = CTRL.akKindan.def;
+  // gks0 のない保存は、ライガークラッシュの真髄の初期値がLv6だったころのもの。一度だけLv0にする
+  if (!data.gks0) for (const id in PROFILE_VALS) PROFILE_VALS[id].akGk_ligerS = CTRL.akGk_ligerS.def;
+  // res10 のない保存は、ドグドラの属性耐性の初期値が仮の値（10%・25%）だったころのもの。一度だけ10%（0.9倍・攻略の虎）にする
+  if (!data.res10) S.dogRes = CTRL.dogRes.def;
   if (first && MEMBERS.some(m=>m.id===data.member)) curMember = data.member;
   defWho = memberOf(data.defWho) ? data.defWho : 'def';
   lastMamo = tabOfWho(data.lastMamo)==='mamono' ? data.lastMamo : MEMBERS[0].id;
@@ -2709,6 +3467,7 @@ showPage();
     shieldcrack:'<path d="M11 3.5l6 2.4v4.6c0 4-2.6 7.2-6 8.9-3.4-1.7-6-4.9-6-8.9V5.9z" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><path d="M11.2 4.6l-1.4 4.2 2.4 1.8-2 3.6 1.1 2.6" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.2 10.6l2.3-.8M9.8 8.8L7.6 8" stroke="#fff" stroke-width="1" stroke-linecap="round"/>',
     hitout:'<path d="M12 4.5l1.6 3.6 3.9.4-2.9 2.6.8 3.9-3.4-2-3.4 2 .8-3.9L6.5 8.5l3.9-.4z" fill="#fff"/>',
     gem:'<path d="M11 3.5l5 6-5 9.5-5-9.5z" fill="#fff" fill-opacity=".9"/><path d="M6 9.5h10" stroke="rgba(0,0,0,.25)" stroke-width="1"/>',
+    force:'<path d="M11 3.2l1.5 5.3 5.3 1.5-5.3 1.5L11 16.8l-1.5-5.3L4.2 10l5.3-1.5z" fill="#fff"/><path d="M16.6 13.2a3.4 3.4 0 1 1-3.3 4.6 2.7 2.7 0 0 0 3.3-4.6z" fill="#fff" fill-opacity=".85"/>',
     gems:'<path d="M7 4l2.6 3.2L7 12 4.4 7.2z" fill="#ff8a6b"/><path d="M14.5 4l2.6 3.2-2.6 4.8-2.6-4.8z" fill="#7cc4ff"/><path d="M7 11.5l2.6 3.2L7 19.5l-2.6-4.8z" fill="#9be07a"/><path d="M14.5 11.5l2.6 3.2-2.6 4.8-2.6-4.8z" fill="#ffe066"/>',
   };
   const M = {
@@ -2720,26 +3479,57 @@ showPage();
     down2:'<circle cx="19.5" cy="19.5" r="4.5" fill="#e0453a" stroke="#fff" stroke-width="1.2"/><path d="M17.2 16.9l2.3 2.3 2.3-2.3M17.2 19.8l2.3 2.3 2.3-2.3" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
     plus2:'<circle cx="19.5" cy="19.5" r="4.5" fill="#e09a1f" stroke="#fff" stroke-width="1.2"/><path d="M17.6 17.8v3M16.1 19.3h3M21.4 17.8v3M19.9 19.3h3" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/>',
   };
+  // grp・val：STEP 03 の S のキーと値（同じ grp は1つだけオン）。fx：効果の量
   const BUFFS = [
-    {name:'こうげき力上昇', lv:1, from:'', g:'sword', m:'up', c:'#c2602b'},
-    {name:'こうげき力上昇', lv:2, from:'バイキルト', g:'sword', m:'up2', c:'#c2602b'},
-    {name:'こうげき力加算', lv:1, from:'', g:'sword', m:'plus', c:'#a8761c'},
-    {name:'こうげき力加算', lv:2, from:'牙神昇誕', g:'sword', m:'plus2', c:'#a8761c'},
-    {name:'与ダメージ上昇', from:'ウォークライ', g:'hitout', m:'up', c:'#c2416e'},
-    {name:'しゅび力低下', lv:1, from:'ルカニ', g:'shield', m:'down', c:'#5b6b7a'},
-    {name:'しゅび力低下', lv:2, from:'ルカニ', g:'shield', m:'down2', c:'#5b6b7a'},
-    {name:'しゅび力ゼロ', from:'アヌビスアタック', g:'shieldcrack', m:'zero', c:'#3f4752'},
-    {name:'被ダメージ上昇', from:'サマーソルトクロー', g:'hitin', m:'up', c:'#7a3fb8'},
-    {name:'土耐性低下', from:'土耐性ダウン', g:'gem', m:'down', c:'#8a5a2b'},
-    {name:'全属性耐性低下', from:'フォースブレイク', g:'gems', m:'down', c:'#4a3f66'},
+    {name:'こうげき力上昇', lv:1, from:'', fx:'+20%', g:'sword', m:'up', c:'#c2602b', grp:'akBAtk', val:'1'},
+    {name:'こうげき力上昇', lv:2, from:'バイキルト', fx:'+40%', g:'sword', m:'up2', c:'#c2602b', grp:'akBAtk', val:'2'},
+    {name:'こうげき力加算', lv:1, from:'', fx:'+40', g:'sword', m:'plus', c:'#a8761c', grp:'akBAdd', val:'1'},
+    {name:'こうげき力加算', lv:2, from:'牙神昇誕', fx:'+80', g:'sword', m:'plus2', c:'#a8761c', grp:'akBAdd', val:'2'},
+    {name:'与ダメージ上昇', from:'ウォークライ', fx:'+50%', g:'hitout', m:'up', c:'#c2416e', grp:'akBWar', val:'1'},
+    {name:'しゅび力低下', lv:1, from:'ルカニ', fx:'−30%', g:'shield', m:'down', c:'#5b6b7a', grp:'akBDef', val:'l1'},
+    {name:'しゅび力低下', lv:2, from:'ルカニ', fx:'−40%', g:'shield', m:'down2', c:'#5b6b7a', grp:'akBDef', val:'l2'},
+    {name:'しゅび力ゼロ', from:'アヌビスアタック', fx:'', g:'shieldcrack', m:'zero', c:'#3f4752', grp:'akBDef', val:'zero'},
+    {name:'被ダメージ上昇', from:'サマーソルトクロー', fx:'+50%', g:'hitin', m:'up', c:'#7a3fb8', grp:'akBHit', val:'1'},
+    {name:'土耐性低下', from:'土耐性ダウン', fx:'+50%', g:'gem', m:'down', c:'#8a5a2b', grp:'akBEarth', val:'1'},
+    {name:'ダークフォース', from:'ダークフォース', fx:'闇・土', g:'force', m:'', c:'#5a2d8c', grp:'akBDark', val:'1'},
+    {name:'全属性耐性低下', tag:'小', from:'フォースブレイク', fx:'+50%', g:'gems', m:'down', c:'#4a3f66', grp:'akBAll', val:'s'},
+    {name:'全属性耐性低下', tag:'大', from:'フォースブレイク', fx:'+100%', g:'gems', m:'down2', c:'#4a3f66', grp:'akBAll', val:'l'},
+    {name:'災禍の陣', from:'チャンス特技', fx:'被ダメ+50%', kanji:'禍', c:'#d9791a', grp:'akBSaika', val:'1'},
   ];
-  window.buffBadge = function(b){
-    const svg = `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x=".5" y=".5" width="21" height="21" rx="5" fill="${b.c}"/>${G[b.g]}${M[b.m]}</svg>`;
-    return `<span class="bdg">${svg}<span><b>${b.name}${b.lv?`<i class="blv">${b.lv}段階</i>`:''}</b><small>${b.from||'&nbsp;'}</small></span></span>`;
+  const svgOf = b => b.kanji ? `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x=".5" y=".5" width="21" height="21" rx="5" fill="${b.c}"/><text x="11" y="16" text-anchor="middle" font-size="12" font-weight="900" fill="#fff" font-family="sans-serif">${b.kanji}</text></svg>`
+    : `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x=".5" y=".5" width="21" height="21" rx="5" fill="${b.c}"/>${G[b.g]}${M[b.m]||''}</svg>`;
+  const nameOf = b => b.name + (b.tag ? b.tag : b.lv ? b.lv+'段階' : '') + (b.from && b.from!==b.name ? `（${b.from}）` : '');
+  window.buffIcon = b => `<span title="${nameOf(b)}" role="img" aria-label="${nameOf(b)}">${svgOf(b)}</span>`;
+  window.buffBadge = function(b, on, mid, ov){
+    if (mid) return `<button type="button" class="bdg tgl ico${ov?' ov':''}" data-grp="${b.grp}" data-val="${b.val}" data-akm="${mid}" aria-pressed="${!!on}" title="${nameOf(b)}" aria-label="${nameOf(b)}">${svgOf(b)}</button>`;
+    const sub = [b.from, b.fx].filter(Boolean).join('・') || '&nbsp;';
+    const inner = `${svgOf(b)}<span><b>${b.name}${b.tag||b.lv?`<i class="blv">${b.tag||b.lv+'段階'}</i>`:''}</b><small>${sub}</small></span>`;
+    return `<button type="button" class="bdg tgl" data-grp="${b.grp}" data-val="${b.val}" aria-pressed="${!!on}">${inner}</button>`;
   };
-  const el = document.getElementById('buffList');
-  if (el) el.innerHTML = BUFFS.map(buffBadge).join('') +
-    '<span class="bdg chance"><span class="cw">チャンス</span><b>災禍の陣</b></span>';
+  window.BUFFS = BUFFS;
+  update();
+})();
+</script>
+<nav class="jobrail" id="jobRail" aria-label="職業の切り替え"></nav>
+<script>
+// 左端の職業タブ：今のページのSTEP 01のタブ（与ダメ＝4人、被ダメ＝職業）を写し、押すと元のタブを押す
+(function(){
+  const rail = document.getElementById('jobRail');
+  const SHORT = {'まもの使い1':'まもの使い1','まもの使い2':'まもの使い2','魔法戦士':'魔法戦士','レンジャー':'レンジャー'};
+  const src = () => document.getElementById(location.hash==='#atk' ? 'memTabs' : 'jobTabs');
+  let sig = '';
+  function sync(){
+    const tabs = [...src().querySelectorAll('.tab')];
+    const s2 = location.hash + tabs.map(t=>t.getAttribute('aria-selected')).join();
+    if (s2===sig) return; sig = s2;
+    rail.innerHTML = tabs.map((t,i)=>{ const name = t.childNodes[0].textContent.trim();
+      return `<button type="button" data-rail="${i}" aria-pressed="${t.getAttribute('aria-selected')==='true'}" style="${t.getAttribute('style')||''}">${SHORT[name]||name}</button>`; }).join('');
+  }
+  rail.addEventListener('click', e=>{ const b = e.target.closest('[data-rail]'); if (!b) return; const t = src().querySelectorAll('.tab')[+b.dataset.rail]; if (t) t.click(); sync(); });
+  const keep = window.afterUpdate;
+  new MutationObserver(sync).observe(document.body, {subtree:true, attributes:true, attributeFilter:['aria-selected']});
+  addEventListener('hashchange', ()=>setTimeout(sync, 0));
+  sync();
 })();
 </script>
 </body>
