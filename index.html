@@ -232,6 +232,14 @@ section.folded .totbox{margin-top:0}
 .setcols .sbox>h3{font-size:14px;padding-bottom:6px;margin-bottom:8px;border-bottom:1px solid var(--line)}
 .page2{margin-top:28px;padding-top:6px;border-top:2px solid var(--line)}
 /* 左上のハンバーガーメニュー */
+:root{--stickytop:52px}
+.stickysum{position:fixed;top:var(--stickytop);left:var(--railw);right:0;z-index:25;background:var(--panel);border-bottom:3px solid var(--tc);box-shadow:0 3px 8px rgba(0,0,0,.12);padding:6px 14px 7px;cursor:pointer}
+.stickysum .sn{font-size:13px;font-weight:800;margin-bottom:2px}
+.stickysum .sn .type{margin-right:6px}
+.stickysum .si{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,max-content));gap:2px 18px}
+.stickysum .si span{display:flex;flex-direction:column;min-width:0}
+.stickysum .si small{font-size:10px;line-height:1.3;color:var(--sub)}
+.stickysum .si b{font-size:18px;line-height:1.15;white-space:nowrap;font-weight:800;font-variant-numeric:tabular-nums}
 .stepnav{display:flex;gap:4px;margin-left:auto;flex:none}
 .stepnav button{font:inherit;font-size:12px;cursor:pointer;display:inline-flex;align-items:baseline;gap:4px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);white-space:nowrap}
 .stepnav button{align-items:center}
@@ -552,6 +560,7 @@ body{padding-left:var(--railw)}
   :root{--railw:0px}
   .topbar{margin-bottom:40px}
   html{scroll-padding-top:96px}
+  :root{--stickytop:96px}
   .stepnav button{padding:3px 7px;border-radius:9px}
   .stepnav button span{display:none}
   .savestate{display:none}
@@ -3453,6 +3462,31 @@ function setMenu(open){
   $('resetAsk').hidden = true; $('resetBtn').hidden = false;
   menuBtn.setAttribute('aria-expanded', String(open));
 }
+// 特技・わざのタブ：ダメージの数字が画面の上に流れたら、上に小さくまとめて固定して出す（設定はその下でスクロール）
+function stickyRefresh(){
+  const bar = $('stickySum'); if (!bar) return;
+  const top = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--stickytop')) || 52;
+  const panel = [...document.querySelectorAll(`main[data-page="${curPage}"] .panel`)].find(p=>!p.hidden && p.offsetParent && p.querySelector('.stats'));
+  let show = false;
+  if (panel){ const st = panel.querySelector('.stats'), pr = panel.getBoundingClientRect(), sr = st.getBoundingClientRect();
+    show = sr.bottom < top + 4 && pr.bottom > top + 120; }
+  if (!show){ bar.hidden = true; return; }
+  const h = panel.querySelector('.phead h2'), ty = panel.querySelector('.phead .type');
+  const lab = t => t.replace(/\[[\d,]+\]/g, '').replace(/耐えるのに必要な/, '').replace(/ドグドラのHP（約[\d,]+）に対して/, 'HPの割合').replace(/合計ダメージ（最小〜最大・(\d+)回）/, '合計（$1回）').trim();
+  const items = [...panel.querySelectorAll('.stats > div')].map(d=>{ const l = d.querySelector('.sub'), b = d.querySelector('.big'); if (!l || !b) return '';
+    const v = b.cloneNode(true); v.querySelectorAll('small').forEach(x=>x.remove());
+    return `<span><small>${lab(l.textContent)}</small><b>${v.textContent.trim()}</b></span>`; }).join('');
+  bar.style.setProperty('--tc', getComputedStyle(panel.closest('.panelbox') || panel).getPropertyValue('--tc') || 'var(--accent)');
+  const html = `<div class="sn">${ty ? ty.outerHTML : ''}${h ? [...h.childNodes].filter(x=>!(x.nodeType===1 && x.matches('sup'))).map(x=>x.textContent).join('') : ''}</div><div class="si">${items}</div>`;
+  if (bar.dataset.html!==html){ bar.innerHTML = html; bar.dataset.html = html; }   // 同じなら書かない（MutationObserver が回り続けないように）
+  bar.dataset.panel = panel.id; bar.hidden = false;
+}
+addEventListener('scroll', ()=>requestAnimationFrame(stickyRefresh), {passive:true});
+addEventListener('resize', ()=>requestAnimationFrame(stickyRefresh));
+// 設定を変えて数字が変わったときも写しなおす
+new MutationObserver(()=>requestAnimationFrame(stickyRefresh)).observe(document.body, {childList:true, subtree:true, characterData:true});
+// まとめを押すと、その特技の数字のところへ戻る
+document.addEventListener('click', e=>{ const b = e.target.closest('#stickySum'); if (!b) return; const p = $(b.dataset.panel); if (p) p.scrollIntoView({block:'start'}); });
 function showPage(){
   const id = location.hash==='#atk' ? 'atk' : 'def';
   setMenu(false);
@@ -3547,6 +3581,7 @@ showPage();
 })();
 </script>
 <nav class="jobrail" id="jobRail" aria-label="職業の切り替え"></nav>
+<div class="stickysum" id="stickySum" aria-hidden="true" hidden></div>
 <script>
 // 左端の職業タブ：今のページのSTEP 01のタブ（与ダメ＝4人、被ダメ＝職業）を写し、押すと元のタブを押す
 (function(){
