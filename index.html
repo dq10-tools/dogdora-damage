@@ -234,9 +234,12 @@ section.folded .totbox{margin-top:0}
 /* 左上のハンバーガーメニュー */
 .stepnav{display:flex;gap:4px;margin-left:auto;flex:none}
 .stepnav button{font:inherit;font-size:12px;cursor:pointer;display:inline-flex;align-items:baseline;gap:4px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);white-space:nowrap}
-.stepnav button b{font-size:13px;font-weight:900;color:var(--tc);font-family:"Segoe UI",system-ui,sans-serif}
+.stepnav button{align-items:center}
+.stepnav button i{font-style:normal;display:inline-flex;flex-direction:column;align-items:center;line-height:1;color:var(--tc)}
+.stepnav button i small{font-size:7px;font-weight:800;letter-spacing:.12em;margin-left:.12em}
+.stepnav button b{font-size:13px;font-weight:900;font-family:"Segoe UI",system-ui,sans-serif}
+.stepnav button[aria-current=true] i{color:#fff}
 .stepnav button[aria-current=true]{background:var(--tc);border-color:var(--tc);color:#fff}
-.stepnav button[aria-current=true] b{color:#fff}
 .stepnav+.savestate{margin-left:6px}
 html{scroll-padding-top:64px}
 .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;height:52px;padding:0 10px;background:var(--panel);border-bottom:3px solid var(--tc,var(--mdef))}
@@ -549,7 +552,7 @@ body{padding-left:var(--railw)}
   :root{--railw:0px}
   .topbar{margin-bottom:40px}
   html{scroll-padding-top:96px}
-  .stepnav button{padding:4px 8px}
+  .stepnav button{padding:3px 7px;border-radius:9px}
   .stepnav button span{display:none}
   .savestate{display:none}
   .jobrail{top:52px;left:0;right:0;width:auto;transform:none;flex-direction:row;gap:4px;padding:4px 6px;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:0 2px 4px rgba(0,0,0,.06)}
@@ -3469,7 +3472,7 @@ function showPage(){
 function drawStepNav(){
   const hs = [...document.querySelectorAll(`main[data-page="${curPage}"] h2.pagettl`)];
   $('stepNav').innerHTML = hs.map(h=>{ const n = h.querySelector('.pno b')?.textContent || '', t = [...h.childNodes].filter(x=>x.nodeType===3).map(x=>x.textContent).join('').trim();
-    return `<button type="button" data-step="${h.id}" aria-label="STEP ${n} ${t}"><b>${n}</b><span>${t}</span></button>`; }).join('');
+    return `<button type="button" data-step="${h.id}" aria-label="STEP ${n} ${t}"><i><small>STEP</small><b>${n}</b></i><span>${t}</span></button>`; }).join('');
   markStep();
 }
 function markStep(){
