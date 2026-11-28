@@ -232,6 +232,13 @@ section.folded .totbox{margin-top:0}
 .setcols .sbox>h3{font-size:14px;padding-bottom:6px;margin-bottom:8px;border-bottom:1px solid var(--line)}
 .page2{margin-top:28px;padding-top:6px;border-top:2px solid var(--line)}
 /* 左上のハンバーガーメニュー */
+.stepnav{display:flex;gap:4px;margin-left:auto;flex:none}
+.stepnav button{font:inherit;font-size:12px;cursor:pointer;display:inline-flex;align-items:baseline;gap:4px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);white-space:nowrap}
+.stepnav button b{font-size:13px;font-weight:900;color:var(--tc);font-family:"Segoe UI",system-ui,sans-serif}
+.stepnav button[aria-current=true]{background:var(--tc);border-color:var(--tc);color:#fff}
+.stepnav button[aria-current=true] b{color:#fff}
+.stepnav+.savestate{margin-left:6px}
+html{scroll-padding-top:64px}
 .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;height:52px;padding:0 10px;background:var(--panel);border-bottom:3px solid var(--tc,var(--mdef))}
 .menubtn{flex:none;width:44px;height:44px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:0;border:0;border-radius:8px;background:none;cursor:pointer}
 .menubtn:hover,.menubtn[aria-expanded=true]{background:color-mix(in srgb,var(--ink) 9%,transparent)}
@@ -542,6 +549,9 @@ body{padding-left:var(--railw)}
   :root{--railw:0px}
   .topbar{margin-bottom:40px}
   html{scroll-padding-top:96px}
+  .stepnav button{padding:4px 8px}
+  .stepnav button span{display:none}
+  .savestate{display:none}
   .jobrail{top:52px;left:0;right:0;width:auto;transform:none;flex-direction:row;gap:4px;padding:4px 6px;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:0 2px 4px rgba(0,0,0,.06)}
   .jobrail button{flex:1 1 0;min-width:0;font-size:11px;padding:6px 2px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:8px;border-left-width:1px;border-bottom:3px solid var(--tc)}
 }
@@ -551,6 +561,7 @@ body{padding-left:var(--railw)}
 <div class="topbar">
   <button type="button" class="menubtn" id="menuBtn" aria-label="メニュー" aria-expanded="false" aria-controls="menu"><span></span><span></span><span></span></button>
   <span class="toptitle">輝晶獣ドグドラ<b id="topPage">被ダメージ</b></span>
+  <nav class="stepnav" id="stepNav" aria-label="STEPへ移動"></nav>
   <span class="savestate" id="saveState" role="status"></span>
 </div>
 <div class="scrim" id="scrim" hidden></div>
@@ -3452,7 +3463,22 @@ function showPage(){
   document.querySelector('.topbar').style.setProperty('--tc', `var(--m${id})`);
   document.title = `ドグドラ${PAGES[id]}計算`;
   scrollTo(0, pageScroll[id] || 0);
+  drawStepNav();
 }
+// 上のバーの STEP ボタン：今のページの STEP 見出しへ移動。今見ている STEP を色で示す
+function drawStepNav(){
+  const hs = [...document.querySelectorAll(`main[data-page="${curPage}"] h2.pagettl`)];
+  $('stepNav').innerHTML = hs.map(h=>{ const n = h.querySelector('.pno b')?.textContent || '', t = [...h.childNodes].filter(x=>x.nodeType===3).map(x=>x.textContent).join('').trim();
+    return `<button type="button" data-step="${h.id}" aria-label="STEP ${n} ${t}"><b>${n}</b><span>${t}</span></button>`; }).join('');
+  markStep();
+}
+function markStep(){
+  const bs = [...$('stepNav').querySelectorAll('[data-step]')]; let cur = bs[0];
+  bs.forEach(b=>{ const h = $(b.dataset.step); if (h && h.getBoundingClientRect().top < innerHeight*0.4) cur = b; });
+  bs.forEach(b=>b.setAttribute('aria-current', String(b===cur)));
+}
+$('stepNav').addEventListener('click', e=>{ const b = e.target.closest('[data-step]'); if (b) $(b.dataset.step).scrollIntoView({block:'start'}); });
+addEventListener('scroll', ()=>requestAnimationFrame(markStep), {passive:true});
 menuBtn.addEventListener('click', ()=>{ const open = menu.hidden; setMenu(open); if (open) menu.querySelector('a').focus(); });
 $('scrim').addEventListener('click', ()=>setMenu(false));
 menu.addEventListener('click', e=>{ if (e.target.closest('a')){ setMenu(false); menuBtn.focus({preventScroll:true}); } });
