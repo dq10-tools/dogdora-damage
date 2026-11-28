@@ -537,7 +537,14 @@ body{padding-left:var(--railw)}
 .jobrail button{font:inherit;font-size:12px;line-height:1.25;text-align:left;cursor:pointer;color:var(--ink);background:color-mix(in srgb,var(--tc) 16%,var(--panel));border:1px solid color-mix(in srgb,var(--tc) 45%,var(--line));border-left:4px solid var(--tc);border-radius:0 8px 8px 0;padding:8px 6px;word-break:keep-all;box-shadow:1px 1px 3px rgba(0,0,0,.08)}
 .jobrail button[aria-pressed=true]{background:var(--tc);color:#fff;border-color:var(--tc);font-weight:700}
 .jobrail button:focus-visible{outline:2px solid var(--tc);outline-offset:2px}
-@media (max-width:600px){:root{--railw:50px}.jobrail button{font-size:10.5px;padding:7px 3px}}
+/* スマホ：職業タブは左端ではなく、上のバーのすぐ下に横並びで固定する */
+@media (max-width:600px){
+  :root{--railw:0px}
+  .topbar{margin-bottom:40px}
+  html{scroll-padding-top:96px}
+  .jobrail{top:52px;left:0;right:0;width:auto;transform:none;flex-direction:row;gap:4px;padding:4px 6px;background:var(--panel);border-bottom:1px solid var(--line);box-shadow:0 2px 4px rgba(0,0,0,.06)}
+  .jobrail button{flex:1 1 0;min-width:0;font-size:11px;padding:6px 2px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:8px;border-left-width:1px;border-bottom:3px solid var(--tc)}
+}
 </style>
 </head>
 <body>
